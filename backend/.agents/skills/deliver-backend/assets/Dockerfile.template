@@ -1,0 +1,17 @@
+FROM gradle:<PINNED_GRADLE_JDK21_IMAGE> AS build
+WORKDIR /workspace
+COPY gradlew settings.gradle* build.gradle* ./
+COPY gradle ./gradle
+RUN ./gradlew --no-daemon dependencies
+COPY src ./src
+RUN ./gradlew --no-daemon clean bootJar
+
+FROM eclipse-temurin:<PINNED_JRE21_IMAGE>
+RUN groupadd --system app && useradd --system --gid app --home-dir /app app
+WORKDIR /app
+COPY --from=build --chown=app:app /workspace/build/libs/*.jar /app/application.jar
+USER app
+EXPOSE 8080
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -Duser.timezone=UTC"
+ENTRYPOINT ["java", "-jar", "/app/application.jar"]
+

@@ -1,0 +1,78 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+	// id 'info.solidsoft.pitest' version '1.15.0' // Temporary disabled due to ReportingExtension.baseDir issue in Gradle 8
+}
+
+group = 'com.re.ecommerce'
+version = '0.0.1-SNAPSHOT'
+description = 'backend'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	all {
+		exclude group: 'commons-logging', module: 'commons-logging'
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
+
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+	implementation 'com.cloudinary:cloudinary-http44:1.38.0'
+
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:mysql'
+	testRuntimeOnly 'com.h2database:h2'
+	testImplementation 'net.jqwik:jqwik:1.9.0'
+	testImplementation 'com.code-intelligence:jazzer-junit:0.23.0'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+/* pitest {
+	junit5PluginVersion = '1.2.1'
+	targetClasses = [
+		'com.re.ecommerce.modules.*.domain.*',
+		'com.re.ecommerce.modules.*.service.*'
+	]
+	targetTests = [
+		'com.re.ecommerce.modules.*Test',
+		'com.re.ecommerce.*Tests'
+	]
+	outputFormats = ['HTML', 'XML']
+	timestampedReports = false
+	mutationThreshold = 80
+	coverageThreshold = 80
+} */

@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: phone-store-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/phone_store}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+jwt:
+  secret: ${JWT_SECRET:d1f2e34567890abcdef1234567890abcdef1234567890abcdef1234567890a}
+  expirationMs: ${JWT_EXPIRATION_MS:86400000}

@@ -1,0 +1,37 @@
+services:
+  mysql:
+    image: mysql:<PINNED_MYSQL_VERSION>
+    environment:
+      MYSQL_DATABASE: phone_store
+      MYSQL_USER: phone_store
+      MYSQL_PASSWORD: \${DB_PASSWORD:?set DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: \${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://mysql:3306/phone_store
+      DB_USERNAME: phone_store
+      DB_PASSWORD: \${DB_PASSWORD:?set DB_PASSWORD}
+      JWT_SECRET: \${JWT_SECRET:?set JWT_SECRET}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+
