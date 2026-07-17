@@ -5,7 +5,7 @@ description: Khởi tạo hoặc rà soát backend Java 21 Spring Boot dùng Gra
 
 # Bootstrap Spring Backend
 
-Đọc rules 00, 10, 20, 30, 50 và 60 trước khi thay đổi nền tảng.
+Đọc rules 00, 10, 20, 30, 40, 50 và 60 trước khi thay đổi nền tảng. Đọc `document-openapi-swagger` khi thêm hoặc nâng cấp OpenAPI/Swagger.
 
 ## Quy trình
 
@@ -13,10 +13,11 @@ description: Khởi tạo hoặc rà soát backend Java 21 Spring Boot dùng Gra
 2. Đọc [technology-stack.md](references/technology-stack.md) và [gradle-dependencies.md](references/gradle-dependencies.md).
 3. Thiết kế profile theo [environment-profiles.md](references/environment-profiles.md).
 4. Áp dụng [configuration-checklist.md](references/configuration-checklist.md).
-5. Dùng template trong [assets/backend-template](assets/backend-template/) khi khởi tạo mới; điều chỉnh package và version theo dự án.
-6. Chạy `python3 scripts/validate_gradle.py <project-root>`.
-7. Chạy `python3 scripts/validate_configuration.py <project-root>`.
-8. Chạy Gradle Wrapper: `./gradlew test` và `./gradlew bootJar`.
+5. Nếu có OpenAPI/Swagger, chốt contract-first/code-first, chọn đúng starter WebMVC/WebFlux và profile exposure trước khi thêm dependency.
+6. Dùng template trong [assets/backend-template](assets/backend-template/) khi khởi tạo mới; điều chỉnh package và version theo dự án.
+7. Chạy `python3 scripts/validate_gradle.py <project-root>`.
+8. Chạy `python3 scripts/validate_configuration.py <project-root>`.
+9. Chạy Gradle Wrapper: `./gradlew test` và `./gradlew bootJar`.
 
 ## Ràng buộc
 
@@ -24,10 +25,10 @@ description: Khởi tạo hoặc rà soát backend Java 21 Spring Boot dùng Gra
 - Không ghi secret thật vào repository.
 - Flyway quản lý schema; Hibernate không tự cập nhật schema ngoài test cô lập.
 - Chỉ thêm dependency có mục đích rõ, nguồn chính thức và version tương thích.
+- Springdoc phải được pin theo Spring Boot compatibility matrix; không trộn WebMVC/WebFlux, Springfox hoặc UI trùng lặp.
 - Không thay đổi đồng thời framework major version và nghiệp vụ nếu có thể tách.
 - Nếu cần tham khảo, ưu tiên tài liệu chính thức Spring, Gradle, Flyway, MySQL và Testcontainers; ghi lại URL/phiên bản đã dùng.
 
 ## Hoàn tất khi
 
 Build tái lập, profile rõ, cấu hình fail-fast, migration chạy trên database sạch, test pass và README/runbook có lệnh chạy thực tế.
-

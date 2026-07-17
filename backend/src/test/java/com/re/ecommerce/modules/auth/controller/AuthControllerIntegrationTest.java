@@ -3,6 +3,7 @@ package com.re.ecommerce.modules.auth.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.re.ecommerce.modules.auth.dto.request.LoginRequest;
 import com.re.ecommerce.modules.auth.dto.request.RegisterRequest;
+import com.re.ecommerce.modules.auth.repository.RefreshTokenRepository;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +33,19 @@ public class AuthControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private com.re.ecommerce.modules.auth.repository.EmailVerificationTokenRepository emailVerificationTokenRepository;
+    @Autowired
+    private com.re.ecommerce.modules.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll(); // Clean up DB before each test
+        refreshTokenRepository.deleteAll();
+        emailVerificationTokenRepository.deleteAll();
+        passwordResetTokenRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test

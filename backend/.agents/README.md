@@ -30,6 +30,7 @@ _Một số kỹ năng tiêu biểu:_
 
 - `design-database-migrations`: Kỹ năng viết DB migration (mở rộng với Flyway, giữ data).
 - `implement-auth-security`: Kỹ năng làm tính năng Đăng nhập - Bảo mật.
+- `document-openapi-swagger`: Kỹ năng quản lý OpenAPI 3.1, Swagger UI/springdoc, JWT Authorize, Try it out, dữ liệu mẫu, profile demo/production và contract test mà không tạo nguồn API thứ hai.
 - `build-catalog-inventory`: Nghiệp vụ về Sản phẩm (Catalog) và Tồn kho (Inventory).
 - `build-cart-checkout` / `build-order-payment-shipping`: Nghiệp vụ Giỏ hàng - Đặt hàng - Thanh toán - Giao hàng.
 
@@ -37,7 +38,15 @@ _Một số kỹ năng tiêu biểu:_
 
 Chứa các bản hướng dẫn làm việc từng bước (step-by-step). Nó định hướng Agent phải trải qua những thao tác/lệnh nào để làm xong 1 việc trọn vẹn, không bỏ sót bước.
 
-- _Ví dụ:_ `implement-endpoint.md` (Cách làm ra 1 API từ đầu đến cuối), `run-quality-gate.md` (Quy trình kiểm tra chất lượng tự động trước khi release).
+- _Ví dụ:_ `implement-endpoint.md` (Cách làm ra 1 API từ đầu đến cuối), `manage-openapi-swagger.md` (Cách tích hợp/đồng bộ Swagger đúng source of truth), `run-quality-gate.md` (Quy trình kiểm tra chất lượng tự động trước khi release).
+
+### OpenAPI và Swagger của dự án
+
+- Mặc định dùng **contract-first**: `docs/api/openapi.yaml` là nguồn sự thật.
+- Swagger UI đọc chính contract đó hoặc runtime copy được build tự động; không duy trì spec viết tay và annotation như hai nguồn độc lập.
+- Chỉ dùng Swagger annotation trên `*Api` interface khi dự án có ADR chọn code-first; interface phải nằm trong module sở hữu endpoint, Controller không khai báo mapping trùng.
+- Local/demo có thể bật Try it out và JWT Authorize; production phải tắt hoặc bảo vệ UI, runtime docs và đường dẫn spec.
+- Prompt sẵn dùng nằm tại `prompts/REQUEST-OPENAPI-SWAGGER.md`.
 
 ## 4. Thư viện prompt mẫu tự động `P00–P12`
 
@@ -170,6 +179,7 @@ Agent không được vừa gửi prompt đề xuất vừa tự triển khai tr
 - **`rules/`** = Luật bắt buộc không được làm sai.
 - **`skills/`** = Kho tàng kiến thức cách lập trình cho từng module.
 - **`prompts/`** = Prompt nền, các profile lỗi và mẫu để tự thêm prompt riêng.
+- **`REQUEST-OPENAPI-SWAGGER.md`** = Prompt hoàn chỉnh để yêu cầu Agent triển khai Swagger đúng cấu trúc và Prompt Approval Gate.
 - **`workflows/`** = Quy trình theo thứ tự 1-2-3 để hoàn thành các công việc cụ thể.
 - **`P00–P12`** = Cách gọi nhanh workflow xử lý lỗi theo đúng mức quyền và chuyên môn.
 - **Prompt Approval Gate** = Mọi yêu cầu mới phải được chuyển thành prompt hoàn chỉnh và được người dùng duyệt trước khi Agent làm.

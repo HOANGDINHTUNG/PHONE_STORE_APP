@@ -27,6 +27,78 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Resource Not Found [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(BusinessConflictException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessConflictException(BusinessConflictException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Business Conflict [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity<ErrorResponse> handleUnprocessableEntityException(UnprocessableEntityException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Unprocessable Entity [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Unauthorized [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountLockedException(AccountLockedException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Account Locked [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExceededException(RateLimitExceededException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Rate Limit Exceeded [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         ErrorResponse response = ErrorResponse.builder()

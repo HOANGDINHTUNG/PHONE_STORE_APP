@@ -8,7 +8,7 @@
 4. Integration test với Testcontainers.
 5. Migration/config/security validator.
 6. Dependency/secret scan.
-7. OpenAPI diff và docs check.
+7. OpenAPI lint/ref/example/security, duplicate operationId, breaking diff, implementation conformance và docs profile exposure check.
 
 ## Release
 
@@ -21,4 +21,3 @@
 7. Theo dõi SLO/domain metric và rollback condition.
 
 Không build lại artifact khác cho production.
-

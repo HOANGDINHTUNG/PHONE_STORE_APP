@@ -10,7 +10,7 @@ Feature/use case, actor, acceptance criteria, dữ liệu/API bị tác động 
 
 - Rules 00–60.
 - `phone-store-project-context` và skill domain tương ứng.
-- `enforce-backend-architecture`, `design-rest-api`, `test-backend-quality`.
+- `enforce-backend-architecture`, `design-rest-api`, `document-openapi-swagger`, `test-backend-quality` khi feature có HTTP contract.
 - Thêm security/database skill nếu có quyền hoặc schema.
 
 ## Thực hiện
@@ -23,7 +23,7 @@ Feature/use case, actor, acceptance criteria, dữ liệu/API bị tác động 
 6. Triển khai domain/application trước, adapter/API sau.
 7. Thêm migration tương thích nếu bắt buộc.
 8. Chạy test hẹp, validator liên quan, rồi full quality gate.
-9. Cập nhật OpenAPI/docs/ADR/runbook phù hợp.
+9. Cập nhật đúng OpenAPI source, docs/ADR/runbook; không duy trì YAML và annotation như hai contract độc lập.
 10. Review diff để loại thay đổi ngoài phạm vi, secret, log nhạy cảm và TODO nguy hiểm.
 
 ## Dừng an toàn
@@ -33,4 +33,3 @@ Dừng nếu yêu cầu mâu thuẫn, ownership không rõ, cần phá compatibi
 ## Báo cáo
 
 Kết quả, file thay đổi, quyết định thiết kế, test/validator đã chạy, compatibility và rủi ro còn lại.
-

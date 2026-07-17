@@ -1855,6 +1855,12 @@ OpenAPI và Swagger UI phải:
 - Được bảo vệ hoặc tắt trong production nếu không cần public.
 - Không hiển thị secret mẫu.
 - Không chứa production token.
+- Chỉ permit path tối thiểu theo strategy: `/swagger-ui/**`, `/v3/api-docs/**` hoặc `/openapi/**`.
+- Mô tả JWT bằng HTTP bearer scheme nhưng không bypass role, scope, ownership hoặc state guard.
+- Chỉ bật `persist-authorization` ở local/demo; token không được ghi vào config, example hoặc log.
+- Cảnh báo rõ Try it out gửi request thật và có thể tạo side effect.
+
+Production phải tắt Swagger UI và runtime-generated API docs. Nếu contract-first artifact chứa runtime copy của `docs/api/openapi.yaml`, đường dẫn spec phải bị deny hoặc bảo vệ theo policy; chỉ tắt `/v3/api-docs` là chưa đủ.
 
 Không bật:
 

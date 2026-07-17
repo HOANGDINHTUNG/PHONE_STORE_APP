@@ -15,7 +15,7 @@ Rule 50; `test-backend-quality` và các rule/skill bị tác động.
 5. Chạy `./gradlew --no-daemon check`.
 6. Chạy integration/contract task riêng nếu không nằm trong `check`.
 7. Kiểm tra coverage report, test disabled và flaky retry.
-8. Kiểm tra OpenAPI/docs/ADR/runbook cập nhật.
+8. Kiểm tra OpenAPI lint/ref/example/security, duplicate operationId, breaking diff, conformance, Swagger production exposure và docs/ADR/runbook cập nhật.
 9. Tổng hợp lỗi gốc; không che lỗi bằng skip/exclude.
 10. Chỉ sửa khi người dùng yêu cầu; nếu chỉ kiểm tra, báo cáo.
 
@@ -29,4 +29,3 @@ Rule 50; `test-backend-quality` và các rule/skill bị tác động.
 ## Báo cáo
 
 Bảng gate, lệnh, duration/kết quả, log lỗi cô đọng, file report và hành động tiếp theo.
-

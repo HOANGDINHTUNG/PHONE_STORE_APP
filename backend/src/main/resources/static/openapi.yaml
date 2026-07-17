@@ -1,0 +1,769 @@
+openapi: 3.1.0
+
+info:
+  title: Phone Store E-Commerce Platform API
+  version: 1.0.0
+  description: API documentation for the Phone Store E-Commerce Platform backend services.
+
+servers:
+  - url: /api/v1
+    description: local dev server
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Đăng ký tài khoản người dùng mới
+      description: Tạo một tài khoản người dùng mới với vai trò mặc định (USER). Trả về JWT Access Token nếu thành công.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Đăng ký thành công và đã tạo phiên đăng nhập.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Dữ liệu không hợp lệ hoặc lỗi nghiệp vụ (như trùng username/email, lỗi đăng ký).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                UsernameTaken:
+                  summary: Trùng tên đăng nhập
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: Username is already taken
+                    correlationId: df185ee6-d7e7-494b-a63e-f1b203c9bf82
+                EmailRegistered:
+                  summary: Trùng địa chỉ email
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: Email is already registered
+                    correlationId: a5f2da51-419b-4e08-9fd1-cb4be6c1e345
+                ValidationFailed:
+                  summary: Lỗi validation dữ liệu đầu vào
+                  value:
+                    errorCode: VALIDATION_FAILED
+                    message: Dữ liệu đầu vào không hợp lệ.
+                    fieldErrors:
+                      username: Username must be between 3 and 100 characters
+                      email: Invalid email format
+                      password: Password must be between 8 and 64 characters
+                    correlationId: 3d50b4f8-e1a1-432d-8b01-df5f1d93bff0
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Đăng nhập vào hệ thống
+      description: Xác thực bằng tên người dùng và mật khẩu để lấy mã JWT Access Token.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Đăng nhập thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Đăng nhập thất bại (sai thông tin xác thực, tài khoản bị khoá, hoặc dữ liệu trống).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                InvalidCredentials:
+                  summary: Sai tài khoản hoặc mật khẩu
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: Invalid username or password
+                    correlationId: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
+                UserDeactivated:
+                  summary: Tài khoản đã bị vô hiệu hoá
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: User account is deactivated
+                    correlationId: 2df3e485-bc75-4d0f-8973-455bdaef3841
+                ValidationFailed:
+                  summary: Trống trường thông tin bắt buộc
+                  value:
+                    errorCode: VALIDATION_FAILED
+                    message: Dữ liệu đầu vào không hợp lệ.
+                    fieldErrors:
+                      username: Username is required
+                      password: Password is required
+                    correlationId: dcba0987-7654-3210-fedc-ba9876543210
+  /auth/token/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Khởi tạo lại Access Token mỡi
+      description: Dùng Refresh Token để lấy phiên mới.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRefreshRequest"
+      responses:
+        "200":
+          description: Refresh thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Đăng xuất phiên hiện tại
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "204":
+          description: Đã vô hiệu hoá Token thành công.
+  /auth/email-verifications:
+    post:
+      tags:
+        - Authentication
+      summary: Gửi lại email xác minh
+      operationId: resendVerificationEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerificationRequest"
+      responses:
+        "202":
+          description: Yêu cầu đã được chấp nhận.
+  /auth/email-verifications/confirm:
+    post:
+      tags:
+        - Authentication
+      summary: Xác minh địa chỉ email mới đăng ký
+      operationId: confirmEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerificationConfirmRequest"
+      responses:
+        "204":
+          description: Xác minh thành công.
+  /auth/password-reset-requests:
+    post:
+      tags:
+        - Authentication
+      summary: Yêu cầu đặt lại mật khẩu (quên mật khẩu)
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetRequest"
+      responses:
+        "202":
+          description: Yêu cầu đã được chấp nhận.
+  /auth/password-resets/confirm:
+    post:
+      tags:
+        - Authentication
+      summary: Xác nhận đổi mật khẩu với Token OTP
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetConfirmRequest"
+      responses:
+        "204":
+          description: Mật khẩu đổi thành công.
+  /me:
+    get:
+      tags:
+        - Profile
+      summary: Lấy hồ sơ tài khoản hiện hành
+      operationId: getCurrentProfile
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Hồ sơ thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    patch:
+      tags:
+        - Profile
+      summary: Cập nhật hồ sơ tài khoản
+      operationId: updateCurrentProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdateRequest"
+      responses:
+        "200":
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /admin/users:
+    get:
+      tags:
+        - Admin User Management
+      summary: Danh sách account người dùng
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+  /admin/users/{userId}:
+    get:
+      tags:
+        - Admin User Management
+      summary: Chi tiết tài khoản
+      operationId: getUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /admin/users/{userId}/status:
+    patch:
+      tags:
+        - Admin User Management
+      summary: Khóa mờ tài khoản
+      operationId: changeUserStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /categories/tree:
+    get:
+      tags:
+        - Category
+      summary: Lấy cây danh mục sản phẩm đang hoạt động
+      description: Trả về danh sách cấp bậc cây danh mục đang hoạt động (ACTIVE). Phục vụ công khai cho khách hàng vãng lai.
+      operationId: getActiveCategoryTree
+      responses:
+        "200":
+          description: Lấy cây danh mục thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryResponse"
+
+  /admin/categories:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Category Admin
+      summary: Liệt kê danh mục cho quản trị viên
+      description: Trả về toàn bộ danh mục sản phẩm (cả hoạt động và không hoạt động) kèm bộ lọc phục vụ quản lý sản phẩm.
+      operationId: adminListCategories
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE]
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Danh sách danh mục phản hồi thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryResponse"
+        "401":
+          description: Chưa xác thực token truy cập.
+        "403":
+          description: Không có quyền truy cập.
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Category Admin
+      summary: Tạo mới một danh mục sản phẩm
+      description: Tạo mới danh mục, tự động tạo slug từ tên danh mục. Cần quyền admin.
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+      responses:
+        "201":
+          description: Tạo danh mục mới thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+        "400":
+          description: Lỗi dữ liệu đầu vào không hợp lệ.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Trùng lặp slug danh mục sản phẩm.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          examples:
+            SlugExists:
+              summary: Slug danh mục đã tồn tại
+              value:
+                errorCode: CATEGORY_SLUG_EXISTS
+                message: Slug danh mục đã tồn tại: laptop
+                correlationId: db6ef274-129b-4e08-9fd1-cb4be6c1e345
+        "422":
+          description: Ngoại lệ logic (ví dụ danh mục cha được chỉ định đang ở trạng thái INACTIVE).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /admin/categories/{categoryId}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Category Admin
+      summary: Lấy chi tiết thông tin một danh mục
+      operationId: getCategoryById
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Lấy chi tiết thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+        "404":
+          description: Không tìm thấy danh mục.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - Category Admin
+      summary: Cập nhật thông tin danh mục sản phẩm
+      description: Chỉnh sửa các trường của danh mục. Không hỗ trợ đổi trực tiếp status qua đây. Khử vòng lặp phân cấp.
+      operationId: updateCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+      responses:
+        "200":
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+        "400":
+          description: Bản ghi sai định dạng.
+        "404":
+          description: Không tìm thấy danh mục hoặc danh mục cha cập nhật.
+        "422":
+          description: Phát hiện vòng lặp phân cấp (Category Cycle).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /admin/categories/{categoryId}/status:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - Category Admin
+      summary: Thay đổi trạng thái hoạt động của danh mục
+      description: Kích hoạt (ACTIVE) hoặc hủy kích hoạt (INACTIVE) danh mục.
+      operationId: changeCategoryStatus
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE]
+      responses:
+        "200":
+          description: Thay đổi trạng thái thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+        "409":
+          description: Lỗi ràng buộc sản phẩm con đang hoạt động hoặc danh mục cha đang ẩn.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: newuser
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: newuser@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+          example: password123
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: loginuser
+        password:
+          type: string
+          example: password123
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - tokenType
+        - username
+        - role
+      properties:
+        accessToken:
+          type: string
+          description: JWT Access Token dùng cho các API yêu cầu xác thực
+          example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2dpbnVzZXIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc...
+        refreshToken:
+          type: string
+          description: Token dài hạn để refresh Token Access
+          example: bda3e8c9-fa20-4b2a-87ef...
+        tokenType:
+          type: string
+          example: Bearer
+        username:
+          type: string
+          example: loginuser
+        role:
+          type: string
+          example: USER
+    ApiError:
+      type: object
+      required:
+        - errorCode
+        - message
+        - correlationId
+      properties:
+        errorCode:
+          type: string
+          description: Mã lỗi định danh nghiệp vụ hoặc hệ thống.
+          example: BAD_REQUEST
+        message:
+          type: string
+          description: Chi tiết thông tin lỗi hoặc thông báo hiển thị cho người dùng.
+          example: Invalid username or password
+        correlationId:
+          type: string
+          format: uuid
+          description: Mã UUID duy nhất gắn liền với log lỗi để phục vụ việc truy vết từ quản trị viên.
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Tập hợp các lỗi validation của từng trường nghiệp vụ (chỉ hiển thị khi errorCode là VALIDATION_FAILED).
+          example:
+            username: Username is required
+            password: Password is required
+    CategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+          example: Điện thoại
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
+        description:
+          type: string
+          example: Danh mục các dòng điện thoại di động thông minh
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          default: ACTIVE
+          example: ACTIVE
+        sortOrder:
+          type: integer
+          minimum: 0
+          default: 0
+          example: 0
+
+    CategoryResponse:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - status
+        - sortOrder
+        - subCategories
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          example: null
+        name:
+          type: string
+          example: Điện thoại
+        slug:
+          type: string
+          example: dien-thoai
+        description:
+          type: string
+          nullable: true
+          example: Danh mục điện thoại
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          example: ACTIVE
+        sortOrder:
+          type: integer
+          example: 0
+        subCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryResponse"
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-07-16T15:00:00Z
+          type: string
+          format: date-time
+          example: 2026-07-16T15:00:00Z
+    TokenRefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+    LogoutRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+    EmailVerificationRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+    EmailVerificationConfirmRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetConfirmRequest:
+      type: object
+      required:
+        - token
+        - newPassword
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+        accountStatus:
+          type: string
+        emailVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+    UserProfileUpdateRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+

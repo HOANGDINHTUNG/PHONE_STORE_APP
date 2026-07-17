@@ -13,6 +13,14 @@
 - `spring-security-test`
 - Testcontainers JUnit/MySQL cho integration test
 
+## OpenAPI/Swagger
+
+- Chọn `springdoc-openapi-starter-webmvc-ui` cho Spring MVC hoặc `springdoc-openapi-starter-webflux-ui` cho WebFlux, không thêm cả hai.
+- Tra `https://springdoc.org/` và pin version tương thích Spring Boot; Boot 3.5.x dùng dòng 2.8.x, Boot 4.x dùng dòng 3.x theo matrix hiện hành.
+- Không dùng Springfox, version động hoặc thêm Swagger UI/Scalar trùng lặp.
+- Contract-first không cần runtime-generated `/v3/api-docs` làm source; Swagger UI có thể đọc runtime copy của `docs/api/openapi.yaml`.
+- Code-first chỉ dùng khi ADR đã chọn và CI export/lint/diff spec đã sinh.
+
 ## Chính sách
 
 - Không khai báo version riêng cho dependency đã do BOM quản lý.

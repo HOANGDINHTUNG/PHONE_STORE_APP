@@ -9,6 +9,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -33,15 +37,42 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(length = 20)
+    private String phone;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    @Column(name = "account_status", nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
+
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
+    @Column(name = "phone_verified_at")
+    private LocalDateTime phoneVerifiedAt;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @Column(name = "failed_login_count", nullable = false)
+    private int failedLoginCount = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
     public User(String username, String email, String passwordHash, String role) {
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
         this.active = true;
+        this.accountStatus = AccountStatus.PENDING_VERIFICATION; // Auth-001 spec requires PENDING_VERIFICATION initially
     }
     
     public void deactivate() {
         this.active = false;
+        this.accountStatus = AccountStatus.DISABLED;
     }
 }

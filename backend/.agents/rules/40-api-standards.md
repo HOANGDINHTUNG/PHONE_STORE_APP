@@ -87,6 +87,26 @@ Không được duy trì hai nguồn sự thật độc lập giữa:
 
 Nếu dự án chọn sinh OpenAPI từ code, quyết định đó phải được ghi trong ADR và bản OpenAPI đã sinh phải được kiểm tra trong CI. Không được vừa sửa file contract bằng tay vừa coi annotation là nguồn sự thật.
 
+### 4.1.1. Swagger UI và springdoc
+
+Swagger UI là công cụ render/thử contract, không tự trở thành nguồn sự thật.
+
+Mặc định contract-first:
+
+- Swagger UI đọc `docs/api/openapi.yaml` hoặc runtime copy được build tự động từ chính file đó;
+- runtime copy là generated artifact và không được sửa tay;
+- không bật `/v3/api-docs` như một contract song song nếu nó được sinh từ annotation khác với YAML;
+- Controller/DTO phải được conformance test với YAML.
+
+Code-first chỉ được dùng khi có ADR:
+
+- annotation đặt trên `*Api` interface tại HTTP boundary của module sở hữu endpoint;
+- Controller implementation implements interface và không khai báo mapping/annotation trùng;
+- spec sinh ra phải được export, lint, diff và lưu làm CI artifact;
+- không tiếp tục sửa tay `docs/api/openapi.yaml` như một nguồn độc lập.
+
+Không được đổi cấu trúc package Modular Monolith chỉ để tích hợp Swagger. Springdoc starter phải khớp Spring Boot và WebMVC/WebFlux thực tế, được pin version và không tồn tại cùng Springfox/UI trùng lặp.
+
 ### 4.2. Phiên bản OpenAPI
 
 - Baseline mặc định: `openapi: 3.1.2`.
@@ -1350,6 +1370,9 @@ Không lạm dụng `allOf` hoặc polymorphism làm codegen khó hiểu.
 - Swagger UI/API docs trên production phải tắt hoặc bảo vệ theo `20-security-guardrails.md`.
 - Không đưa internal server URL, secret, example token thật hoặc PII vào spec.
 - Internal/admin API docs phải có access control phù hợp.
+- Try it out gửi request thật; operation ghi chỉ được thử trên database/provider cô lập, không trên production hoặc shared staging.
+- `persist-authorization` chỉ bật local/demo và không được dùng với token production.
+- Contract-first phải bảo vệ cả runtime copy path như `/openapi/**`, không chỉ `/v3/api-docs/**`.
 
 ### 25.4. CI
 
@@ -1362,6 +1385,7 @@ CI phải:
 - chạy breaking-change diff với contract baseline;
 - chạy contract/API test;
 - thất bại khi implementation và contract drift vượt chính sách.
+- kiểm tra local/demo expose đúng docs và production không public Swagger/runtime spec ngoài policy.
 
 ---
 
@@ -1619,7 +1643,7 @@ AI agent phải thực hiện theo thứ tự:
 3. xác định resource, state transition và ownership;
 4. kiểm tra endpoint hiện có để tránh trùng;
 5. phân loại thay đổi breaking/non-breaking;
-6. cập nhật OpenAPI;
+6. xác định source of truth và cập nhật OpenAPI đúng nguồn;
 7. xác định method, status, header và idempotency;
 8. thiết kế request/response DTO tối thiểu;
 9. định nghĩa validation;
@@ -1628,7 +1652,7 @@ AI agent phải thực hiện theo thứ tự:
 12. thêm authorization;
 13. thêm transaction/locking theo rule database;
 14. thêm test;
-15. chạy contract lint/diff/test;
+15. chạy contract lint/ref/example/security/operationId, diff, conformance và profile exposure test;
 16. báo cáo thay đổi và rủi ro còn lại.
 
 Không được bắt đầu bằng cách sinh controller CRUD từ entity rồi mới “sửa dần”.

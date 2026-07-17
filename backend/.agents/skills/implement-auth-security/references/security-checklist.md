@@ -29,3 +29,11 @@
 - [ ] Rate limit cho login, refresh, reset và callback.
 - [ ] Test negative path và audit log không chứa token.
 
+## OpenAPI và Swagger
+
+- [ ] `bearerAuth` dùng HTTP bearer JWT; public/protected operation khớp SecurityFilterChain.
+- [ ] Chỉ permit docs path tối thiểu theo contract-first/code-first và profile.
+- [ ] Try it out không bypass role, ownership hoặc state guard.
+- [ ] Example/config không chứa token, secret, PII hoặc production URL nội bộ.
+- [ ] Production tắt/bảo vệ Swagger UI, `/v3/api-docs/**` và `/openapi/**`.
+- [ ] `persist-authorization` chỉ bật local/demo.

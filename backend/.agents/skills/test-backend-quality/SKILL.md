@@ -5,7 +5,7 @@ description: Lập chiến lược, viết và chạy kiểm thử backend Sprin
 
 # Test Backend Quality
 
-Đọc rule 50 và các rule/domain skill liên quan trước khi chọn test.
+Đọc rule 50 và các rule/domain skill liên quan trước khi chọn test. Với API/OpenAPI, đọc `document-openapi-swagger` và source-of-truth đã chọn.
 
 ## Quy trình
 
@@ -17,15 +17,16 @@ description: Lập chiến lược, viết và chạy kiểm thử backend Sprin
 6. Viết web/data slice theo [slice-testing.md](references/slice-testing.md).
 7. Dùng MySQL thật qua Testcontainers theo [integration-testing.md](references/integration-testing.md).
 8. Bao phủ quyền và negative path theo [security-testing.md](references/security-testing.md).
-9. Áp dụng gate trong [quality-gates.md](references/quality-gates.md).
-10. Dùng [test-case-template.md](assets/test-case-template.md) cho case phức tạp.
-11. Chạy quality gate chuẩn:
+9. Với OpenAPI, chạy parse/ref/example/operationId/security/breaking diff và implementation conformance theo `.agents/skills/document-openapi-swagger/references/contract-verification.md`.
+10. Áp dụng gate trong [quality-gates.md](references/quality-gates.md).
+11. Dùng [test-case-template.md](assets/test-case-template.md) cho case phức tạp.
+12. Chạy quality gate chuẩn:
 
     ```bash
     python3 scripts/run_quality_gate.py <project-root> --execute
     ```
 
-12. Khi cần mutation testing:
+13. Khi cần mutation testing:
 
     ```bash
     python3 scripts/run_quality_gate.py <project-root> \
@@ -49,4 +50,5 @@ description: Lập chiến lược, viết và chạy kiểm thử backend Sprin
 - Jazzer chỉ fuzz code có input không tin cậy như JSON, token, callback, parser, validator và mapper.
 - Fuzz test không được gọi internet, shared database hoặc production service.
 - Mọi crash input tìm được phải được chuyển thành regression test có thể tái hiện.
+- Swagger UI mở được không chứng minh contract đúng; phải test spec, conformance và production exposure.
 - Pin version PITest, jqwik và Jazzer; không dùng `latest` hoặc version động.

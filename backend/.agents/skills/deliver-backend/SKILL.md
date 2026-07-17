@@ -5,7 +5,7 @@ description: Containerize, kiểm tra và bàn giao backend Spring qua Docker, c
 
 # Deliver Backend
 
-Đọc rules 20/50/60, project NFR và mọi skill liên quan thay đổi trước release.
+Đọc rules 20/40/50/60, project NFR và mọi skill liên quan thay đổi trước release. Đọc `document-openapi-swagger` khi artifact chứa Swagger UI hoặc OpenAPI runtime copy.
 
 ## Quy trình
 
@@ -14,9 +14,10 @@ description: Containerize, kiểm tra và bàn giao backend Spring qua Docker, c
 3. Thiết kế biến môi trường/secret theo [environment-deployment.md](references/environment-deployment.md).
 4. Xây pipeline theo [ci-cd.md](references/ci-cd.md).
 5. Thực hiện [release-checklist.md](references/release-checklist.md).
-6. Hoàn thiện [rollback-plan.md](references/rollback-plan.md).
-7. Chạy `python3 scripts/validate_deployment.py <project-root>`.
-8. Build đúng artifact, scan image, chạy container smoke test và ghi bằng chứng.
+6. Xác minh production tắt/bảo vệ Swagger UI, `/v3/api-docs/**` và `/openapi/**`; không để token/example/URL nội bộ trong spec.
+7. Hoàn thiện [rollback-plan.md](references/rollback-plan.md).
+8. Chạy `python3 scripts/validate_deployment.py <project-root>`.
+9. Build đúng artifact, scan image, chạy container smoke test và ghi bằng chứng.
 
 ## Ràng buộc
 
@@ -25,4 +26,3 @@ description: Containerize, kiểm tra và bàn giao backend Spring qua Docker, c
 - Migration phải tương thích với app cũ/mới trong rollout.
 - Không deploy nếu không có owner, quan sát, smoke test và rollback/forward-fix.
 - Không tự thao tác production; mọi thay đổi production cần quy trình/phê duyệt của dự án.
-

@@ -5,7 +5,7 @@ description: Thiết kế, triển khai và review REST API versioned cho backen
 
 # Design REST API
 
-Đọc rules 40, 20, 50, 60, project context và module skill liên quan.
+Đọc rules 40, 20, 50, 60, project context và module skill liên quan. Khi tác vụ chạm OpenAPI/Swagger, đọc thêm `document-openapi-swagger` và xác định source of truth trước khi sửa.
 
 ## Quy trình
 
@@ -14,7 +14,7 @@ description: Thiết kế, triển khai và review REST API versioned cho backen
 3. Thiết kế list endpoint theo [pagination-filtering.md](references/pagination-filtering.md).
 4. Chuẩn hóa lỗi theo [validation-errors.md](references/validation-errors.md).
 5. Đánh giá compatibility bằng [api-versioning.md](references/api-versioning.md).
-6. Viết OpenAPI/endpoint doc từ [endpoint-documentation.md](assets/endpoint-documentation.md) trước hoặc cùng code.
+6. Viết OpenAPI/endpoint doc từ [endpoint-documentation.md](assets/endpoint-documentation.md) trước hoặc cùng code. Mặc định sửa `docs/api/openapi.yaml`; chỉ dùng API-interface annotation khi có ADR code-first.
 7. Chạy `python3 scripts/scan_endpoints.py <project-root>`.
 8. Viết controller slice, authorization và integration/contract test.
 
@@ -26,4 +26,5 @@ description: Thiết kế, triển khai và review REST API versioned cho backen
 - Endpoint ghi quan trọng hỗ trợ idempotency/optimistic concurrency theo use case.
 - Sort/filter dùng allowlist; danh sách luôn phân trang.
 - Breaking change cần version/deprecation/migration plan.
-
+- Không duy trì contract YAML viết tay và runtime annotation như hai nguồn sự thật độc lập.
+- Không thay đổi package module chỉ để tách Swagger annotation; tuân cấu trúc thật của codebase.

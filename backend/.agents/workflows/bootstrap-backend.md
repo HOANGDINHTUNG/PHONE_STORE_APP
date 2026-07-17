@@ -13,8 +13,8 @@ Nếu thiếu version, tra tài liệu chính thức và compatibility matrix; k
 
 ## Bắt buộc đọc
 
-- Rules: 00, 10, 20, 30, 50, 60.
-- Skills: `phone-store-project-context`, `bootstrap-spring-backend`, `enforce-backend-architecture`, `test-backend-quality`.
+- Rules: 00, 10, 20, 30, 40, 50, 60.
+- Skills: `phone-store-project-context`, `bootstrap-spring-backend`, `document-openapi-swagger`, `enforce-backend-architecture`, `test-backend-quality`.
 
 ## Thực hiện
 
@@ -23,10 +23,11 @@ Nếu thiếu version, tra tài liệu chính thức và compatibility matrix; k
 3. Tạo Gradle Wrapper, Java toolchain 21 và dependency tối thiểu.
 4. Tạo package theo module/feature, profile môi trường và config placeholder.
 5. Cấu hình MySQL, Flyway, Security deny-by-default, Actuator và error baseline.
-6. Tạo test smoke/context và migration baseline nhỏ nhất.
-7. Chạy validator Gradle/config/architecture/security.
-8. Chạy `./gradlew test bootJar`.
-9. Cập nhật docs architecture, database, testing và runbook local.
+6. Tạo OpenAPI contract-first baseline và Swagger UI local/demo theo source/profile policy; không public production docs.
+7. Tạo test smoke/context, contract và migration baseline nhỏ nhất.
+8. Chạy validator Gradle/config/architecture/security/OpenAPI.
+9. Chạy `./gradlew test bootJar`.
+10. Cập nhật docs architecture, API, database, testing và runbook local.
 
 ## Dừng an toàn
 
@@ -35,4 +36,3 @@ Dừng trước khi ghi đè dự án, chọn version chưa xác minh, thêm sec
 ## Báo cáo
 
 Liệt kê file thay đổi, version, lệnh đã chạy, kết quả test, cảnh báo còn lại và bước tiếp theo.
-

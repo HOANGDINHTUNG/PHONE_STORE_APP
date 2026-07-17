@@ -431,6 +431,14 @@ Controller KHÔNG ĐƯỢC:
 
 Controller phải mỏng và dễ đọc.
 
+Đối với OpenAPI/Swagger:
+
+- mặc định contract nằm tại `docs/api/openapi.yaml`, không cần đưa annotation mô tả vào Controller;
+- nếu ADR đã chọn code-first, đặt mapping/binding/validation và OpenAPI annotation trên `*Api` interface trong module sở hữu endpoint;
+- Controller implementation giữ `@RestController`, implements interface, gọi Service và không khai báo mapping trùng;
+- không tạo package toàn cục mới hoặc di chuyển module chỉ để gom Swagger annotation;
+- không đưa Swagger annotation vào Entity, domain, Service hoặc Repository.
+
 Sử dụng:
 
 - `@PathVariable` cho định danh nằm trong đường dẫn.

@@ -1,5 +1,11 @@
 # Endpoint: <METHOD> <PATH>
 
+## Contract source
+
+- Strategy: contract-first mặc định hoặc code-first có ADR.
+- Source artifact/API interface:
+- Breaking-change assessment:
+
 ## Mục đích
 
 <Use case và actor>
@@ -46,4 +52,3 @@
 - Validation:
 - Authorization/ownership:
 - Conflict/idempotency:
-

@@ -8,14 +8,14 @@ Version/revision, scope, target environment, release window, owner và change ap
 
 ## Bắt buộc đọc
 
-Rules 20/30/50/60; `deliver-backend`, `test-backend-quality`, `design-database-migrations`, `optimize-observability` và domain skill bị tác động.
+Rules 20/30/40/50/60; `deliver-backend`, `document-openapi-swagger`, `test-backend-quality`, `design-database-migrations`, `optimize-observability` và domain skill bị tác động.
 
 ## Thực hiện
 
 1. Xác nhận scope/release notes và worktree/revision sạch theo quy trình.
 2. Chạy full quality gate và security/dependency/image scan.
 3. Build artifact/image một lần; gắn tag immutable, checksum/SBOM.
-4. Review config/secret/permission và production profile.
+4. Review config/secret/permission và production profile; xác minh Swagger UI, runtime docs và external spec path đã tắt/bảo vệ đúng policy.
 5. Rehearse migration/upgrade, ước lượng lock và xác nhận compatibility app cũ/mới.
 6. Deploy staging bằng cùng artifact; chạy smoke/integration nghiệp vụ.
 7. Xác nhận dashboard, alert, runbook, rollback trigger và decision owner.
@@ -30,4 +30,3 @@ Dừng nếu gate fail, artifact khác staging, migration không tương thích,
 ## Báo cáo
 
 Version/artifact, gate evidence, migration, config, smoke result, metric theo dõi, quyết định release/rollback và issue còn lại.
-

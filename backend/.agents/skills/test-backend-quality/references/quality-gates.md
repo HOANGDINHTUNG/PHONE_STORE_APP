@@ -7,6 +7,8 @@
 - Migration validator và schema test pass.
 - Security/dependency scan không có finding vượt policy.
 - API/OpenAPI diff được review.
+- OpenAPI parse/ref/example/security/duplicate operationId pass; implementation conformance không drift.
+- Swagger/docs profile test chứng minh local/demo được bật và production không public ngoài policy.
 - Không có test disabled mới không có lý do/issue.
 - Coverage của code mới đạt ngưỡng dự án và bao phủ branch rủi ro.
 - Docs/ADR/runbook được cập nhật nếu tác động.

@@ -25,8 +25,8 @@ description: Thiết kế và kiểm soát kiến trúc backend Spring theo modu
 - Không trả entity persistence ra API.
 - Tránh package `common` thành nơi chứa mọi thứ; chỉ chia sẻ primitive đã ổn định.
 - Dùng event/outbox khi cần nhất quán cuối cùng xuyên module.
+- OpenAPI/Swagger chỉ nằm ở API boundary. `*Api` interface code-first phải ở module sở hữu Controller; không tạo package toàn cục mới hoặc đưa annotation vào domain/entity.
 
 ## Báo cáo
 
 Nêu boundary trước/sau, dependency mới, invariant được bảo vệ, test kiến trúc và rủi ro migration.
-

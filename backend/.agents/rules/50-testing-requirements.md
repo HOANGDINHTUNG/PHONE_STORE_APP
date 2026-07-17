@@ -1482,6 +1482,9 @@ Contract suite phải:
 - kiểm tra security declaration;
 - kiểm tra ProblemDetail;
 - chạy breaking-change diff.
+- xác nhận một source of truth duy nhất; không validate YAML và runtime annotation như hai contract độc lập chưa có ADR.
+- kiểm tra Swagger UI trỏ đúng contract source hoặc runtime spec đã được phê duyệt.
+- kiểm tra local/demo expose đúng docs và production tắt/bảo vệ `/swagger-ui/**`, `/v3/api-docs/**`, `/openapi/**` theo policy.
 
 ### 27.2. Implementation conformance
 
@@ -1493,6 +1496,8 @@ Phải có test chứng minh:
 - error code/type đã công bố;
 - enum và nullable đúng;
 - ID/money/time đúng.
+- public/protected operation trong OpenAPI khớp SecurityFilterChain và method/service authorization.
+- Try it out demo không trỏ production database/provider; integration test không dựa vào shared environment.
 
 ### 27.3. Mobile compatibility
 

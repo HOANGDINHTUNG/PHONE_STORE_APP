@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/phone_store?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:09042006ha$$Tung}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
 jwt:
-  secret: ${JWT_SECRET:8a623199859f5b66dcc9f9f9dccc41a6461f364022a10cd6a8d6f58cb0b64d1f5e27a6c93433}
-  expirationMs: 3600000
+  secret: ${JWT_SECRET}
+  expirationMs: ${JWT_EXPIRATION_MS}
