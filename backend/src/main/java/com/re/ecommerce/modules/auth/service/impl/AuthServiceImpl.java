@@ -27,6 +27,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final com.re.ecommerce.modules.auth.repository.CustomerProfileRepository customerProfileRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -53,6 +54,12 @@ public class AuthServiceImpl implements AuthService {
                 "USER"
         );
         userRepository.save(user);
+
+        // Explicitly create CustomerProfile for CUSTOMER (USER role in initial design)
+        if ("USER".equals(user.getRole())) {
+            CustomerProfile customerProfile = new CustomerProfile(user, generateCustomerCode(user.getId()));
+            customerProfileRepository.save(customerProfile);
+        }
 
         // Generate email verification token conceptually (email sending would be async)
         createEmailVerificationToken(user);
@@ -282,5 +289,10 @@ public class AuthServiceImpl implements AuthService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found", e);
         }
+    }
+
+    private String generateCustomerCode(UUID userId) {
+        String uuidStr = userId.toString().replaceAll("-", "").toUpperCase();
+        return "CUS" + uuidStr.substring(0, 10);
     }
 }
