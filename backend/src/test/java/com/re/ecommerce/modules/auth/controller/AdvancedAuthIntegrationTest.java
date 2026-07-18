@@ -35,31 +35,48 @@ public class AdvancedAuthIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private RefreshTokenRepository refreshTokenRepository;
     
     @Autowired
     private com.re.ecommerce.modules.auth.repository.EmailVerificationTokenRepository emailVerificationTokenRepository;
     
     @Autowired
+    private com.re.ecommerce.modules.auth.repository.CustomerProfileRepository customerProfileRepository;
+
+    @Autowired
     private com.re.ecommerce.modules.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
 
     @BeforeEach
-    void setUp() {
-        refreshTokenRepository.deleteAll();
-        emailVerificationTokenRepository.deleteAll();
-        passwordResetTokenRepository.deleteAll();
-        userRepository.deleteAll();
-    }
+    void setUp() throws Exception {
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
+        jdbcTemplate.execute("TRUNCATE TABLE password_reset_tokens RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE email_verification_tokens RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE refresh_tokens RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE customer_profiles RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE staff_profiles RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE shipping_addresses RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE users RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE positions RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE departments RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE roles RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE permissions RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE categories RESTART IDENTITY");
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
+
+}
 
     @Test
     void shouldLockAccountAfterMaxFailedLogins() throws Exception {
-        RegisterRequest registerRequest = new RegisterRequest("lockoutuser", "lockout@example.com", "password123");
+        RegisterRequest registerRequest = new RegisterRequest("Lockout User", "lockout@example.com", "password123", null, true);
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        LoginRequest wrongLogin = new LoginRequest("lockoutuser", "wrongpassword");
+        LoginRequest wrongLogin = new LoginRequest("lockout", "wrongpassword");
 
         // 5 failed attempts
         for (int i = 0; i < 5; i++) {
@@ -78,7 +95,7 @@ public class AdvancedAuthIntegrationTest {
 
     @Test
     void shouldRotateTokenAndPreventReuse() throws Exception {
-        RegisterRequest registerRequest = new RegisterRequest("rotateuser", "rotate@example.com", "password123");
+        RegisterRequest registerRequest = new RegisterRequest("Rotate User", "rotate@example.com", "password123", null, true);
         MvcResult registerResult = mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
@@ -113,3 +130,7 @@ public class AdvancedAuthIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 }
+
+
+
+

@@ -1,0 +1,265 @@
+﻿> Task :compileJava UP-TO-DATE
+> Task :copyOpenApiSpec UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+
+> Task :compileTestJava
+./gradlew : D:\Documents\WED_PHONE_STORE\backend\src\te
+st\java\com\re\ecommerce\modules\auth\controller\AdminU
+serControllerTest.java:51: error: cannot find symbol
+At line:1 char:1
++ ./gradlew compileTestJava 2>&1 | Out-File -FilePath 
+"compile_errors.t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\Docume 
+   nts\WE...not find symbol:String) [], RemoteExcepti  
+  on
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+        assertThat(response.getBody().getUsername()).is
+EqualTo("test");
+                                     ^
+  symbol:   method getUsername()
+  location: class UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\controller\AdminUserControlle
+rTest.java:57: error: constructor 
+UserUpdateAdminRequest in record 
+UserUpdateAdminRequest cannot be applied to given 
+types;
+        UserUpdateAdminRequest req = new 
+UserUpdateAdminRequest();
+                                     ^
+  required: String,String,String
+  found:    no arguments
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\controller\AdminUserControlle
+rTest.java:65: error: cannot find symbol
+        assertThat(response.getBody().getUsername()).is
+EqualTo("updated");
+                                     ^
+  symbol:   method getUsername()
+  location: class UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\controller\AdminUserControlle
+rTest.java:78: error: cannot find symbol
+        assertThat(response.getBody().getAccountStatus(
+)).isEqualTo("DISABLED");
+                                     ^
+  symbol:   method getAccountStatus()
+  location: class UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:70: error: cannot find symbol
+        assertThat(response.getUsername()).isEqualTo(te
+stUser.getUsername());
+                           ^
+  symbol:   method getUsername()
+  location: variable response of type UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:71: error: cannot find symbol
+        assertThat(response.getCustomerCode()).isEqualT
+o("CUST-100");
+                           ^
+  symbol:   method getCustomerCode()
+  location: variable response of type UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:72: error: cannot find symbol
+        
+assertThat(response.getFullName()).isEqualTo("John 
+Doe");
+                           ^
+  symbol:   method getFullName()
+  location: variable response of type UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:84: error: constructor 
+UserProfileUpdateRequest in record 
+UserProfileUpdateRequest cannot be applied to given 
+types;
+        UserProfileUpdateRequest request = new 
+UserProfileUpdateRequest(
+                                           ^
+  required: String,String,String,LocalDate,String
+  found:    
+String,String,LocalDate,String,String,boolean
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:108: error: constructor 
+UserProfileUpdateRequest in record 
+UserProfileUpdateRequest cannot be applied to given 
+types;
+        UserProfileUpdateRequest request = new 
+UserProfileUpdateRequest(
+                                           ^
+  required: String,String,String,LocalDate,String
+  found:    <null>,String,<null>,<null>,<null>,<null>
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:124: error: constructor 
+UserProfileUpdateRequest in record 
+UserProfileUpdateRequest cannot be applied to given 
+types;
+        UserProfileUpdateRequest request = new 
+UserProfileUpdateRequest(
+                                           ^
+  required: String,String,String,LocalDate,String
+  found:    <null>,String,<null>,<null>,<null>,<null>
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:154: error: cannot find symbol
+        assertThat(resultStatus.get(0).getUsername()).i
+sEqualTo("testuser");
+                                      ^
+  symbol:   method getUsername()
+  location: class UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:158: error: cannot find symbol
+        assertThat(resultKeyword.get(0).getUsername()).
+isEqualTo("admin");
+                                       ^
+  symbol:   method getUsername()
+  location: class UserResponse
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:181: error: constructor 
+UserUpdateAdminRequest in record 
+UserUpdateAdminRequest cannot be applied to given 
+types;
+        UserUpdateAdminRequest request = new 
+UserUpdateAdminRequest();
+                                         ^
+  required: String,String,String
+  found:    no arguments
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:182: error: cannot find symbol
+        request.setFullName("Admin Update");
+               ^
+  symbol:   method setFullName(String)
+  location: variable request of type 
+UserUpdateAdminRequest
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:183: error: cannot find symbol
+        request.setPhone("0988888888");
+               ^
+  symbol:   method setPhone(String)
+  location: variable request of type 
+UserUpdateAdminRequest
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:184: error: cannot find symbol
+        request.setAvatarUrl("admin-avatar.jpg");
+               ^
+  symbol:   method setAvatarUrl(String)
+  location: variable request of type 
+UserUpdateAdminRequest
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:187: error: cannot find symbol
+        when(userRepository.existsByPhone(request.getPh
+one())).thenReturn(false);
+                                                 ^
+  symbol:   method getPhone()
+  location: variable request of type 
+UserUpdateAdminRequest
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:201: error: constructor 
+UserUpdateAdminRequest in record 
+UserUpdateAdminRequest cannot be applied to given 
+types;
+        UserUpdateAdminRequest request = new 
+UserUpdateAdminRequest();
+                                         ^
+  required: String,String,String
+  found:    no arguments
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:202: error: cannot find symbol
+        request.setPhone("0988888888");
+               ^
+  symbol:   method setPhone(String)
+  location: variable request of type 
+UserUpdateAdminRequest
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:205: error: cannot find symbol
+        when(userRepository.existsByPhone(request.getPh
+one())).thenReturn(true);
+                                                 ^
+  symbol:   method getPhone()
+  location: variable request of type 
+UserUpdateAdminRequest
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:212: error: constructor 
+UserUpdateAdminRequest in record 
+UserUpdateAdminRequest cannot be applied to given 
+types;
+        UserUpdateAdminRequest request = new 
+UserUpdateAdminRequest();
+                                         ^
+  required: String,String,String
+  found:    no arguments
+  reason: actual and formal argument lists differ in 
+length
+D:\Documents\WED_PHONE_STORE\backend\src\test\java\com\
+re\ecommerce\modules\auth\service\impl\UserServiceImplT
+est.java:213: error: cannot find symbol
+        request.setPhone(testUser.getPhone());
+               ^
+  symbol:   method setPhone(String)
+  location: variable request of type 
+UserUpdateAdminRequest
+Note: D:\Documents\WED_PHONE_STORE\backend\src\test\jav
+a\com\re\ecommerce\modules\auth\controller\AdminUserCon
+trollerTest.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22 errors
+
+> Task :compileTestJava FAILED
+
+[Incubating] Problems report is available at: file:///D:/Documents/WED_PHONE_STORE/backend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileTestJava' 
+(registered by plugin class 
+'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  D:\Documents\WED_PHONE_STORE\backend\src\test\java\co
+m\re\ecommerce\modules\auth\controller\AdminUserControl
+lerTest.java:51: error: cannot find symbol
+          assertThat(response.getBody().getUsername()).
+isEqualTo("test");
+                                       ^
+    symbol:   method getUsername()
+    location: class UserResponse
+  22 errors
+
+* Try:
+> Check your code and dependencies to fix the 
+compilation error(s)
+> Run with --scan to get full insights from a Build 
+Scan (powered by Develocity).
+
+BUILD FAILED in 5s
+4 actionable tasks: 1 executed, 3 up-to-date

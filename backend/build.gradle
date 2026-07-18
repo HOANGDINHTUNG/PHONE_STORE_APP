@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.0'
 	id 'io.spring.dependency-management' version '1.1.7'
-	// id 'info.solidsoft.pitest' version '1.15.0' // Temporary disabled due to ReportingExtension.baseDir issue in Gradle 8
+	id 'jacoco'
 }
 
 group = 'com.re.ecommerce'
@@ -60,6 +60,26 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                'com/re/ecommerce/modules/**/dto/**',
+                'com/re/ecommerce/modules/**/entity/**',
+                'com/re/ecommerce/common/exception/**',
+                'com/re/ecommerce/common/entity/**',
+                'com/re/ecommerce/BackendApplication.class'
+            ])
+        }))
+    }
 }
 
 tasks.register('copyOpenApiSpec', Copy) {

@@ -10,7 +10,9 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "email_verification_tokens")
+@Table(name = "email_verification_tokens", indexes = {
+    @Index(name = "idx_email_veri_user_id", columnList = "user_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

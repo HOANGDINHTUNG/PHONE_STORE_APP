@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -125,6 +126,18 @@ public class GlobalExceptionHandler {
                 .build();
         
         log.warn("Validation Failed [{}]: {}", response.getCorrelationId(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .errorCode("BAD_REQUEST")
+                .message("Dữ liệu đầu vào không đúng định dạng.")
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+        
+        log.warn("Type Mismatch [{}]: {}", response.getCorrelationId(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

@@ -23,4 +23,6 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     List<Category> findRootCategoriesByStatus(@Param("status") CategoryStatus status);
     
     boolean existsByParentIdAndStatus(UUID parentId, CategoryStatus status);
+    
+    List<Category> findByStatus(CategoryStatus status);
 }

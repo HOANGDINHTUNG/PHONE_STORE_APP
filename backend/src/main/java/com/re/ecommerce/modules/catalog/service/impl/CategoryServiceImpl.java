@@ -122,9 +122,15 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> getActiveCategoryTree() {
-        List<Category> roots = categoryRepository.findRootCategoriesByStatus(CategoryStatus.ACTIVE);
-        return roots.stream()
-                .map(this::mapToResponseWithChildrenTreeRecursively)
+        List<Category> allActiveCategories = categoryRepository.findByStatus(CategoryStatus.ACTIVE);
+        
+        Map<UUID, List<Category>> childrenMap = allActiveCategories.stream()
+                .filter(c -> c.getParent() != null)
+                .collect(Collectors.groupingBy(c -> c.getParent().getId()));
+
+        return allActiveCategories.stream()
+                .filter(c -> c.getParent() == null)
+                .map(root -> buildCategoryResponseTree(root, childrenMap, new HashSet<>()))
                 .sorted(Comparator.comparingInt(CategoryResponse::sortOrder))
                 .collect(Collectors.toList());
     }
@@ -195,51 +201,28 @@ public class CategoryServiceImpl implements CategoryService {
         );
     }
 
-    private CategoryResponse mapToResponseWithChildrenTreeRecursively(Category category) {
-        return mapToResponseWithChildrenTreeRecursively(category, new HashSet<>());
-    }
-
-    private CategoryResponse mapToResponseWithChildrenTreeRecursively(Category category, Set<UUID> visited) {
+    private CategoryResponse buildCategoryResponseTree(Category category, Map<UUID, List<Category>> childrenMap, Set<UUID> visited) {
         if (category == null) return null;
-        
         UUID parentId = category.getParent() != null ? category.getParent().getId() : null;
-        
-        // Loop protection
+
         if (visited.contains(category.getId())) {
-            log.warn("Detect infinite parent loop in Category tree for ID: {}", category.getId());
-            return new CategoryResponse(
-                    category.getId(),
-                    parentId,
-                    category.getName(),
-                    category.getSlug(),
-                    category.getDescription(),
-                    category.getStatus(),
-                    category.getSortOrder(),
-                    new ArrayList<>(),
-                    category.getCreatedAt(),
-                    category.getUpdatedAt()
-            );
+             log.warn("Detect infinite parent loop in Category tree for ID: {}", category.getId());
+             return new CategoryResponse(
+                    category.getId(), parentId, category.getName(), category.getSlug(), category.getDescription(), 
+                    category.getStatus(), category.getSortOrder(), new ArrayList<>(), category.getCreatedAt(), category.getUpdatedAt()
+             );
         }
-        
         visited.add(category.getId());
         
-        List<CategoryResponse> children = category.getSubCategories().stream()
-                .filter(c -> c.getStatus() == CategoryStatus.ACTIVE)
-                .map(child -> mapToResponseWithChildrenTreeRecursively(child, new HashSet<>(visited)))
-                .sorted(Comparator.comparingInt(CategoryResponse::sortOrder))
-                .collect(Collectors.toList());
+        List<Category> childrenNodes = childrenMap.getOrDefault(category.getId(), new ArrayList<>());
+        List<CategoryResponse> childrenResp = childrenNodes.stream()
+            .map(child -> buildCategoryResponseTree(child, childrenMap, new HashSet<>(visited)))
+            .sorted(Comparator.comparingInt(CategoryResponse::sortOrder))
+            .collect(Collectors.toList());
 
         return new CategoryResponse(
-                category.getId(),
-                parentId,
-                category.getName(),
-                category.getSlug(),
-                category.getDescription(),
-                category.getStatus(),
-                category.getSortOrder(),
-                children,
-                category.getCreatedAt(),
-                category.getUpdatedAt()
+                category.getId(), parentId, category.getName(), category.getSlug(), category.getDescription(), 
+                category.getStatus(), category.getSortOrder(), childrenResp, category.getCreatedAt(), category.getUpdatedAt()
         );
     }
 }

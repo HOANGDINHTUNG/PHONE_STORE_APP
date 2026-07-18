@@ -40,24 +40,29 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Username is already taken");
-        }
+        String generatedUsername = generateUniqueUsername(request.email());
+
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("Email is already registered");
         }
+        if (request.phone() != null && !request.phone().isBlank() && userRepository.existsByPhone(request.phone())) {
+            throw new IllegalArgumentException("Phone is already registered");
+        }
 
         User user = new User(
-                request.username(),
+                generatedUsername,
                 request.email(),
                 passwordEncoder.encode(request.password()),
                 "USER"
         );
+        user.setPhone(request.phone());
         userRepository.save(user);
 
         // Explicitly create CustomerProfile for CUSTOMER (USER role in initial design)
         if ("USER".equals(user.getRole())) {
             CustomerProfile customerProfile = new CustomerProfile(user, generateCustomerCode(user.getId()));
+            customerProfile.setFullName(request.fullName());
+            customerProfile.setMarketingOptIn(Boolean.TRUE.equals(request.marketingOptIn()));
             customerProfileRepository.save(customerProfile);
         }
 
@@ -294,5 +299,22 @@ public class AuthServiceImpl implements AuthService {
     private String generateCustomerCode(UUID userId) {
         String uuidStr = userId.toString().replaceAll("-", "").toUpperCase();
         return "CUS" + uuidStr.substring(0, 10);
+    }
+
+    private String generateUniqueUsername(String email) {
+        String base = email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        if (base.length() < 3) base = base + "user";
+        
+        String username = base;
+        int maxAttempts = 10;
+        int attempt = 0;
+        
+        while (userRepository.existsByUsername(username) && attempt < maxAttempts) {
+            String randomStr = UUID.randomUUID().toString().substring(0, 4);
+            username = base + randomStr;
+            attempt++;
+        }
+        
+        return username;
     }
 }

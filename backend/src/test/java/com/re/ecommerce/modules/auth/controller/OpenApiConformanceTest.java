@@ -3,7 +3,6 @@ package com.re.ecommerce.modules.auth.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.re.ecommerce.modules.auth.dto.request.LoginRequest;
 import com.re.ecommerce.modules.auth.dto.request.RegisterRequest;
-import com.re.ecommerce.modules.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,23 +31,24 @@ public class OpenApiConformanceTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private com.re.ecommerce.modules.auth.repository.RefreshTokenRepository refreshTokenRepository;
-    
-    @Autowired
-    private com.re.ecommerce.modules.auth.repository.EmailVerificationTokenRepository emailVerificationTokenRepository;
-    
-    @Autowired
-    private com.re.ecommerce.modules.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {
-        refreshTokenRepository.deleteAll();
-        emailVerificationTokenRepository.deleteAll();
-        passwordResetTokenRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
+        jdbcTemplate.execute("TRUNCATE TABLE password_reset_tokens RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE email_verification_tokens RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE refresh_tokens RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE customer_profiles RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE staff_profiles RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE shipping_addresses RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE users RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE positions RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE departments RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE roles RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE permissions RESTART IDENTITY");
+        jdbcTemplate.execute("TRUNCATE TABLE categories RESTART IDENTITY");
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
     }
 
     @Nested
@@ -56,7 +56,7 @@ public class OpenApiConformanceTest {
 
         @Test
         void shouldReturn400ValidationFailedOnEmptyRequestFields() throws Exception {
-            RegisterRequest request = new RegisterRequest("", "invalid-email", "short");
+            RegisterRequest request = new RegisterRequest("", "invalid-email", "short", null, true);
 
             mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -67,7 +67,7 @@ public class OpenApiConformanceTest {
                     .andExpect(jsonPath("$.correlationId").exists())
                     .andExpect(jsonPath("$.fieldErrors").value(
                             allOf(
-                                    hasKey("username"),
+                                    hasKey("fullName"),
                                     hasKey("email"),
                                     hasKey("password")
                             )
@@ -75,36 +75,16 @@ public class OpenApiConformanceTest {
         }
 
         @Test
-        void shouldReturn400BadRequestOnTakenUsername() throws Exception {
-            // Register first user
-            RegisterRequest request1 = new RegisterRequest("testuser", "test1@example.com", "password123");
-            mockMvc.perform(post("/api/v1/auth/register")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request1)))
-                    .andExpect(status().isCreated());
-
-            // Attempt to register second user with same username
-            RegisterRequest request2 = new RegisterRequest("testuser", "test2@example.com", "password123");
-            mockMvc.perform(post("/api/v1/auth/register")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request2)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"))
-                    .andExpect(jsonPath("$.message").value("Username is already taken"))
-                    .andExpect(jsonPath("$.correlationId").exists());
-        }
-
-        @Test
         void shouldReturn400BadRequestOnRegisteredEmail() throws Exception {
             // Register first user
-            RegisterRequest request1 = new RegisterRequest("testuser1", "test@example.com", "password123");
+            RegisterRequest request = new RegisterRequest("testuser", "test1@example.com", "password123", null, true);
             mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request1)))
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated());
 
             // Attempt to register second user with same email
-            RegisterRequest request2 = new RegisterRequest("testuser2", "test@example.com", "password123");
+            RegisterRequest request2 = new RegisterRequest("testuser2", "test1@example.com", "password123", null, true);
             mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request2)))

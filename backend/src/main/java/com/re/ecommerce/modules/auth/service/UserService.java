@@ -12,5 +12,8 @@ public interface UserService {
     UserResponse updateCurrentUserProfile(String username, UserProfileUpdateRequest request);
     List<UserResponse> listUsers(String keyword, AccountStatus status);
     UserResponse getUserById(UUID userId);
+    
+    UserResponse adminUpdateUser(UUID userId, com.re.ecommerce.modules.auth.dto.request.UserUpdateAdminRequest request);
+
     UserResponse changeUserStatus(UUID userId, AccountStatus status);
 }

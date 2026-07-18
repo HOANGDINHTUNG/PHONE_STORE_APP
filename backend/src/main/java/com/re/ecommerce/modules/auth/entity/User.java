@@ -4,6 +4,7 @@ import com.re.ecommerce.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,9 @@ import jakarta.persistence.Enumerated;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_phone", columnList = "phone")
+})
 @Getter
 @Setter
 // Hạ quyền xuống chỉ cho Hibernate sử dụng thôi, tránh mấy tầng khác sử dụng gây ra dữ liệu rác

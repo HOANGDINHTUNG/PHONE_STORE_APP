@@ -32,6 +32,14 @@ public class AdminUserController {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
+    @PatchMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')") // USER_UPDATE
+    public ResponseEntity<UserResponse> updateUser(
+            @PathVariable UUID userId,
+            @RequestBody com.re.ecommerce.modules.auth.dto.request.UserUpdateAdminRequest request) {
+        return ResponseEntity.ok(userService.adminUpdateUser(userId, request));
+    }
+
     @PatchMapping("/{userId}/status")
     @PreAuthorize("hasAuthority('ADMIN')") // USER_DISABLE
     public ResponseEntity<UserResponse> changeUserStatus(

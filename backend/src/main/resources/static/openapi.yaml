@@ -287,6 +287,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponse"
+    patch:
+      tags:
+        - Admin User Management
+      summary: Sửa thông tin tài khoản
+      operationId: adminUpdateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateAdminRequest"
+      responses:
+        "200":
+          description: Cập nhật thông tin tài khoản thành công.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Format data lỗi.
+        "409":
+          description: Lỗi nghiệp vụ (trùng phone).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /admin/users/{userId}/status:
     patch:
       tags:
@@ -330,7 +365,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CategoryResponse"
-
   /admin/categories:
     get:
       security:
@@ -365,7 +399,6 @@ paths:
           description: Chưa xác thực token truy cập.
         "403":
           description: Không có quyền truy cập.
-
     post:
       security:
         - bearerAuth: []
@@ -399,20 +432,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-          examples:
-            SlugExists:
-              summary: Slug danh mục đã tồn tại
-              value:
-                errorCode: CATEGORY_SLUG_EXISTS
-                message: Slug danh mục đã tồn tại: laptop
-                correlationId: db6ef274-129b-4e08-9fd1-cb4be6c1e345
+              examples:
+                SlugExists:
+                  summary: Slug danh mục đã tồn tại
+                  value:
+                    errorCode: CATEGORY_SLUG_EXISTS
+                    message: "Slug danh mục đã tồn tại: laptop"
+                    correlationId: db6ef274-129b-4e08-9fd1-cb4be6c1e345
         "422":
           description: Ngoại lệ logic (ví dụ danh mục cha được chỉ định đang ở trạng thái INACTIVE).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-
   /admin/categories/{categoryId}:
     get:
       security:
@@ -480,7 +512,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-
   /admin/categories/{categoryId}/status:
     patch:
       security:
@@ -685,9 +716,6 @@ components:
           type: string
           format: date-time
           example: 2026-07-16T15:00:00Z
-          type: string
-          format: date-time
-          example: 2026-07-16T15:00:00Z
     TokenRefreshRequest:
       type: object
       required:
@@ -766,4 +794,12 @@ components:
           type: string
         avatarUrl:
           type: string
-
+    UserUpdateAdminRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string

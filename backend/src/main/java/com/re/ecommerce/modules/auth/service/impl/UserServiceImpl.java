@@ -21,13 +21,16 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final com.re.ecommerce.modules.auth.repository.CustomerProfileRepository customerProfileRepository;
 
     @Override
     @Transactional(readOnly = true)
     public UserResponse getCurrentUserProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Người dùng không tồn tại."));
-        return mapToResponse(user);
+        
+        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        return mapToResponse(user, profile);
     }
 
     @Override
@@ -51,7 +54,22 @@ public class UserServiceImpl implements UserService {
         }
 
         User saved = userRepository.save(user);
-        return mapToResponse(saved);
+        
+        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        if (profile != null) {
+            if (request.fullName() != null && !request.fullName().isBlank()) {
+                profile.setFullName(request.fullName());
+            }
+            if (request.dateOfBirth() != null) {
+                profile.setDateOfBirth(request.dateOfBirth());
+            }
+            if (request.gender() != null && !request.gender().isBlank()) {
+                profile.setGender(request.gender());
+            }
+            profile = customerProfileRepository.save(profile);
+        }
+
+        return mapToResponse(saved, profile);
     }
 
     @Override
@@ -63,7 +81,7 @@ public class UserServiceImpl implements UserService {
                 .filter(u -> keyword == null || keyword.isEmpty() ||
                         u.getUsername().toLowerCase().contains(keyword.toLowerCase()) ||
                         u.getEmail().toLowerCase().contains(keyword.toLowerCase()))
-                .map(this::mapToResponse)
+                .map(u -> mapToResponse(u, customerProfileRepository.findById(u.getId()).orElse(null)))
                 .collect(Collectors.toList());
     }
 
@@ -72,7 +90,37 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserById(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Người dùng không tồn tại."));
-        return mapToResponse(user);
+        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        return mapToResponse(user, profile);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse adminUpdateUser(UUID userId, com.re.ecommerce.modules.auth.dto.request.UserUpdateAdminRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Người dùng không tồn tại."));
+
+        if (request.phone() != null && !request.phone().equals(user.getPhone())) {
+            if (!request.phone().isBlank() && userRepository.existsByPhone(request.phone())) {
+                throw new BusinessConflictException("PHONE_EXISTS", "Số điện thoại đã được sử dụng.");
+            }
+            user.setPhone(request.phone());
+            user.setPhoneVerifiedAt(null);
+        }
+
+        if (request.avatarUrl() != null && !request.avatarUrl().isBlank()) {
+            user.setAvatarUrl(request.avatarUrl());
+        }
+
+        User saved = userRepository.save(user);
+        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+
+        if (profile != null && request.fullName() != null && !request.fullName().isBlank()) {
+            profile.setFullName(request.fullName());
+            profile = customerProfileRepository.save(profile);
+        }
+
+        return mapToResponse(saved, profile);
     }
 
     @Override
@@ -91,10 +139,11 @@ public class UserServiceImpl implements UserService {
         }
 
         User saved = userRepository.save(user);
-        return mapToResponse(saved);
+        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        return mapToResponse(saved, profile);
     }
 
-    private UserResponse mapToResponse(User user) {
+    private UserResponse mapToResponse(User user, com.re.ecommerce.modules.auth.entity.CustomerProfile profile) {
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
@@ -106,7 +155,12 @@ public class UserServiceImpl implements UserService {
                 user.getEmailVerifiedAt(),
                 user.getPhoneVerifiedAt(),
                 user.getLastLoginAt(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                profile != null ? profile.getCustomerCode() : null,
+                profile != null ? profile.getFullName() : null,
+                profile != null ? profile.getDateOfBirth() : null,
+                profile != null ? profile.getGender() : null,
+                profile != null ? profile.isMarketingOptIn() : null
         );
     }
 }
