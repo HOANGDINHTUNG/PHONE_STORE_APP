@@ -2,15 +2,12 @@ package com.re.ecommerce.modules.staff.controller;
 
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.re.ecommerce.modules.auth.repository.UserRepository;
-import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
 import com.re.ecommerce.modules.staff.dto.request.StaffProfileRequest;
 import com.re.ecommerce.modules.staff.entity.Department;
 import com.re.ecommerce.modules.staff.entity.OrganizationStatus;
 import com.re.ecommerce.modules.staff.entity.Position;
 import com.re.ecommerce.modules.staff.repository.DepartmentRepository;
 import com.re.ecommerce.modules.staff.repository.PositionRepository;
-import com.re.ecommerce.modules.staff.repository.StaffProfileRepository;
 import com.re.ecommerce.security.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -43,16 +39,7 @@ public class StaffControllerIntegrationTest {
     private PositionRepository positionRepository;
 
     @Autowired
-    private StaffProfileRepository staffProfileRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private CustomerProfileRepository customerProfileRepository;
 
     @Autowired
     private JwtUtils jwtUtils;

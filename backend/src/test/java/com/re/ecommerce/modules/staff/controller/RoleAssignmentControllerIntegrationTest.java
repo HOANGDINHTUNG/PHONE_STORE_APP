@@ -4,7 +4,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
-import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
 import com.re.ecommerce.modules.staff.dto.request.UserRoleRequest;
 import com.re.ecommerce.modules.staff.entity.OrganizationStatus;
 import com.re.ecommerce.modules.staff.entity.Role;
@@ -20,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -44,9 +42,6 @@ public class RoleAssignmentControllerIntegrationTest {
 
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private CustomerProfileRepository customerProfileRepository;
 
     @Autowired
     private RoleRepository roleRepository;

@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.re.ecommerce.modules.auth.dto.request.LoginRequest;
 import com.re.ecommerce.modules.auth.dto.request.RegisterRequest;
 import com.re.ecommerce.modules.auth.dto.request.UserProfileUpdateRequest;
-import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
-import com.re.ecommerce.modules.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,22 +34,7 @@ public class ProfileControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private CustomerProfileRepository customerProfileRepository;
-
-    @Autowired
-    private com.re.ecommerce.modules.auth.repository.EmailVerificationTokenRepository emailVerificationTokenRepository;
-
-    @Autowired
-    private com.re.ecommerce.modules.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private com.re.ecommerce.modules.auth.repository.RefreshTokenRepository refreshTokenRepository;
 
     private String userToken;
 

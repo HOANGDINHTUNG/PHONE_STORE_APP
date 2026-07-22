@@ -433,11 +433,10 @@ Controller phải mỏng và dễ đọc.
 
 Đối với OpenAPI/Swagger:
 
-- mặc định contract nằm tại `docs/api/openapi.yaml`, không cần đưa annotation mô tả vào Controller;
-- nếu ADR đã chọn code-first, đặt mapping/binding/validation và OpenAPI annotation trên `*Api` interface trong module sở hữu endpoint;
-- Controller implementation giữ `@RestController`, implements interface, gọi Service và không khai báo mapping trùng;
-- không tạo package toàn cục mới hoặc di chuyển module chỉ để gom Swagger annotation;
-- không đưa Swagger annotation vào Entity, domain, Service hoặc Repository.
+- **BẮT BUỘC Contract-First**: Nguồn sự thật duy nhất nằm tại `docs/api/openapi.yaml`.
+- KHÔNG sử dụng annotation sinh mã tự động.
+- BẮT BUỘC cấu hình `springdoc.api-docs.enabled=false` để tắt engine dò quét tự động của Springdoc, chỉ sử dụng tính năng UI để serve file tĩnh.
+- Không đưa Swagger annotation vào Entity, domain, Service, Repository, DTO hoặc Controller.
 
 Sử dụng:
 

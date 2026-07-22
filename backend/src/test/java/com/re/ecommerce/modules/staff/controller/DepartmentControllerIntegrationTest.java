@@ -25,9 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class DepartmentControllerIntegrationTest {
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
-
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,7 +41,6 @@ public class DepartmentControllerIntegrationTest {
     private JwtUtils jwtUtils;
 
     private String adminToken;
-    private String userToken;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -62,7 +60,6 @@ public class DepartmentControllerIntegrationTest {
         jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
 
 adminToken = jwtUtils.generateToken("adminuser", "ADMIN");
-        userToken = jwtUtils.generateToken("regularuser", "USER");
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.re.ecommerce.modules.staff.entity.OrganizationStatus;
 import com.re.ecommerce.modules.staff.service.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/positions")
 @RequiredArgsConstructor
+@Slf4j
 public class PositionController {
     
     private final PositionService positionService;
@@ -29,12 +31,14 @@ public class PositionController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
+        log.debug("Pulling hierarchical positions. Dep. ID: {}, State: {}, Page params: {}", departmentId, status, page);
         return ResponseEntity.ok(positionService.listPositions(departmentId, status, keyword, page, size));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('POSITION_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PositionResponse> createPosition(@Valid @RequestBody PositionRequest request) {
+        log.info("Defining core functionality scope mapped node Position title.");
         PositionResponse response = positionService.createPosition(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -44,6 +48,7 @@ public class PositionController {
     public ResponseEntity<PositionResponse> updatePosition(
             @PathVariable UUID positionId,
             @Valid @RequestBody PositionRequest request) {
+        log.info("Recasting physical attributes array applied dynamically to Node Position ID: {}", positionId);
         return ResponseEntity.ok(positionService.updatePosition(positionId, request));
     }
 
@@ -52,6 +57,7 @@ public class PositionController {
     public ResponseEntity<PositionResponse> changePositionStatus(
             @PathVariable UUID positionId,
             @RequestParam OrganizationStatus status) {
+        log.info("Manually re-verifying constraints mapping for explicit Role State: {} mapped -> Target: {}", positionId, status);
         return ResponseEntity.ok(positionService.changeStatus(positionId, status));
     }
 }

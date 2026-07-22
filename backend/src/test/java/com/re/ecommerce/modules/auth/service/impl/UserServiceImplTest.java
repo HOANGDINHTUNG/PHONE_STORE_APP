@@ -192,6 +192,7 @@ class UserServiceImplTest {
 
         UserResponse response = userService.adminUpdateUser(testUser.getId(), request);
 
+        assertThat(response).isNotNull();
         assertThat(testUser.getPhone()).isEqualTo("0988888888");
         assertThat(testProfile.getFullName()).isEqualTo("Admin Update");
         verify(userRepository).save(testUser);

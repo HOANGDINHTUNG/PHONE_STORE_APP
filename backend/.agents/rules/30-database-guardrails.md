@@ -84,7 +84,8 @@ Phiên bản MySQL phải:
 - Được kiểm tra tương thích với Spring Boot và Hibernate.
 - Không sử dụng tag Docker không cố định như `latest`.
 
-Flyway migration là nguồn sự thật của database schema.
+Flyway migration là nguồn sự thật duy nhất và bất biến của database schema.
+LUẬT SẮT (IMMUTABLE MIGRATION): Cấm tuyệt đối việc chỉnh sửa các file Migration `V_xxx.sql` đã qua phân phối. Mọi thay đổi schema (Create Table, Alter Table, Drop FK) phải được tạo thành file mới tiến lên (ví dụ `V9__...`). Agent không bao giờ được dùng công cụ replace nội dung để sửa file migration SQL cũ vì sẽ làm nổ checksum Flyway.
 
 Thứ tự nguồn sự thật:
 

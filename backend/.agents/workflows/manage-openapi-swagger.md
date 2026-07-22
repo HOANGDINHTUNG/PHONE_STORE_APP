@@ -20,8 +20,8 @@ Rules 00/10/20/40/50/60/70; `phone-store-project-context`, `document-openapi-swa
 
 1. Chốt một source of truth; mặc định `docs/api/openapi.yaml`.
 2. Pin đúng springdoc starter theo Spring Boot và WebMVC/WebFlux thực tế.
-3. Hoàn thiện contract: tags, operationId, JWT, schema, examples, errors, pagination, multipart, idempotency và deprecation đã xác minh.
-4. Cấu hình Swagger UI local/demo; không refactor package hoặc duplicate mapping.
+3. Hoàn thiện contract: tags, operationId, JWT, schema, pagination, multipart, idempotency và deprecation đã xác minh. Đặc biệt **BẮT BUỘC** khai báo `properties` rõ ràng kèm `example` phong phú (dữ liệu mẫu) cho tất cả các Schema (Request và Response) để người dùng có thể test dễ dàng trên Swagger UI.
+4. Cấu hình Swagger UI local/demo; không refactor package hoặc duplicate mapping. **LUÔN ĐỒNG BỘ** file YAML tĩnh bằng lệnh copy từ `docs/api/openapi.yaml` sang `src/main/resources/static/openapi.yaml` sau mỗi lần cập nhật.
 5. Cấu hình `swagger-demo` với database/provider cô lập; cảnh báo Try it out có side effect.
 6. Tắt/bảo vệ UI, runtime docs và external spec path trong production.
 7. Thêm lint, duplicate operationId, breaking diff, implementation conformance và profile exposure tests.

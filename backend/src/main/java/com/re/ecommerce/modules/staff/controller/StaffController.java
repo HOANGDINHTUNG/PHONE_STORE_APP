@@ -8,6 +8,7 @@ import com.re.ecommerce.modules.staff.entity.EmploymentStatus;
 import com.re.ecommerce.modules.staff.service.StaffService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/staff")
 @RequiredArgsConstructor
+@Slf4j
 public class StaffController {
 
     private final StaffService staffService;
@@ -28,19 +30,23 @@ public class StaffController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
+        log.debug("Staff mapping parameters listing queries values lists bounds parameters variables lists sets UID metrics {}", keyword);
         return ResponseEntity.ok(staffService.listStaff(keyword, page, size));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('STAFF_CREATE') or hasRole('ADMIN')")
     public ResponseEntity<StaffProfileResponse> createStaff(@Valid @RequestBody StaffProfileRequest request) {
+        log.info("Admin building provisioning mappings logical layers IDs arrays sets boundaries mapping targeting target nodes");
         StaffProfileResponse response = staffService.createStaff(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_VIEW') or hasRole('ADMIN')")
-    public ResponseEntity<StaffProfileResponse> getStaffDetail(@PathVariable UUID userId) {
+    public ResponseEntity<StaffProfileResponse> getStaffDetail(
+            @PathVariable UUID userId) {
+        log.debug("User trace detail UID mapping target {}", userId);
         return ResponseEntity.ok(staffService.getStaffDetail(userId));
     }
 
@@ -49,6 +55,7 @@ public class StaffController {
     public ResponseEntity<StaffProfileResponse> updateStaffProfile(
             @PathVariable UUID userId,
             @Valid @RequestBody StaffProfileUpdateAdminRequest request) {
+        log.info("System administrator pushing UID matrix changes layers mappings targets definitions lists rules IDs: {}", userId);
         return ResponseEntity.ok(staffService.updateStaffProfile(userId, request));
     }
 
@@ -57,6 +64,7 @@ public class StaffController {
     public ResponseEntity<StaffProfileResponse> changeEmploymentStatus(
             @PathVariable UUID userId,
             @RequestParam EmploymentStatus status) {
+        log.info("Employment parameter mapping target UID state change mapping layers list value: UID: {}, Status: {}", userId, status);
         return ResponseEntity.ok(staffService.changeEmploymentStatus(userId, status));
     }
 }

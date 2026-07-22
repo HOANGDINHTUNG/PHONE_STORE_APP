@@ -5,6 +5,7 @@ import com.re.ecommerce.modules.staff.dto.response.UserRoleResponse;
 import com.re.ecommerce.modules.staff.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/users/{userId}/role-assignments")
 @RequiredArgsConstructor
+@Slf4j
 public class RoleAssignmentController {
 
     private final RoleService roleService;
@@ -24,7 +26,9 @@ public class RoleAssignmentController {
     // ASSIGN-001
     @GetMapping
     @PreAuthorize("hasAuthority('ASSIGN_MANAGE') or hasRole('ADMIN')")
-    public ResponseEntity<List<UserRoleResponse>> listAssignments(@PathVariable UUID userId) {
+    public ResponseEntity<List<UserRoleResponse>> listAssignments(
+            @PathVariable UUID userId) {
+        log.debug("Traversing bound auth role allocations targeting ID {}", userId);
         return ResponseEntity.ok(roleService.listAssignments(userId));
     }
 
@@ -37,6 +41,7 @@ public class RoleAssignmentController {
             Authentication auth) {
         
         String assignedBy = auth != null ? auth.getName() : "SYSTEM";
+        log.info("Agent '{}' linking new system limits arrays to UserId {}", assignedBy, userId);
         UserRoleResponse response = roleService.assignRole(userId, request, assignedBy);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -51,6 +56,7 @@ public class RoleAssignmentController {
             Authentication auth) {
             
         String revokedBy = auth != null ? auth.getName() : "SYSTEM";
+        log.warn("CRITICAL: Agent '{}' forcefully severing UID assignment UID map ID: {}. Reason: {}", revokedBy, assignmentId, reason);
         return ResponseEntity.ok(roleService.revokeAssignment(userId, assignmentId, revokedBy, reason));
     }
 }

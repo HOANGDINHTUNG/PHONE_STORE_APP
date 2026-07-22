@@ -1,4 +1,4 @@
-openapi: 3.1.0
+﻿openapi: 3.1.0
 
 info:
   title: Phone Store E-Commerce Platform API
@@ -10,12 +10,280 @@ servers:
     description: local dev server
 
 paths:
-  /auth/register:
+
+  /api/v1/departments:
+    get:
+      tags:
+        - Organization Management
+      summary: Láº¥y danh sÃ¡ch phÃ²ng ban
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Organization Management
+      summary: Táº¡o phÃ²ng ban má»›i
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentResponse'
+  /api/v1/departments/{id}:
+    put:
+      tags:
+        - Organization Management
+      summary: Cáº­p nháº­t phÃ²ng ban
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentResponse'
+  /api/v1/positions:
+    get:
+      tags:
+        - Organization Management
+      summary: Láº¥y danh sÃ¡ch chá»©c vá»¥
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Organization Management
+      summary: Táº¡o chá»©c vá»¥ má»›i
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionResponse'
+  /api/v1/roles:
+    get:
+      tags:
+        - Organization Management
+      summary: Danh sÃ¡ch Roles
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Organization Management
+      summary: Táº¡o Role má»›i
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleRequest'
+      responses:
+        '201':
+          description: Created
+  /api/v1/staff:
+    get:
+      tags:
+        - Organization Management
+      summary: Láº¥y danh sÃ¡ch nhÃ¢n viÃªn
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Organization Management
+      summary: Táº¡o nhÃ¢n viÃªn má»›i
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffRequest'
+      responses:
+        '201':
+          description: Created
+  /api/v1/warehouses:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Láº¥y danh sÃ¡ch kho bÃ£i
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Táº¡o kho bÃ£i má»›i
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+      responses:
+        '201':
+          description: Created
+  /api/v1/warehouses/{id}:
+    put:
+      tags:
+        - Procurement and Inventory
+      summary: Sá»­a thÃ´ng tin kho bÃ£i
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+      responses:
+        '200':
+          description: OK
+  /api/v1/suppliers:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Láº¥y danh sÃ¡ch NCC
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Táº¡o nhÃ  cung cáº¥p má»›i
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+      responses:
+        '201':
+          description: Created
+  /api/v1/suppliers/{id}:
+    put:
+      tags:
+        - Procurement and Inventory
+      summary: Cáº­p nháº­t nhÃ  cung cáº¥p
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+      responses:
+        '200':
+          description: OK
+  /api/v1/purchase-orders:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Láº¥y danh sÃ¡ch PO
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Táº¡o PO nháº­p hÃ ng
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+      responses:
+        '201':
+          description: Created
+  /api/v1/purchase-orders/{id}/approve:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Approve PO
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+  /api/v1/inventory/receipt/purchase-order/{poId}:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Nháº­n hÃ ng vÃ o kho tá»« PO (Inventory Ledger Tx)
+      parameters:
+        - name: poId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockImportRequest'
+      responses:
+        '200':
+          description: OK
+      /auth/register:
     post:
       tags:
         - Authentication
-      summary: Đăng ký tài khoản người dùng mới
-      description: Tạo một tài khoản người dùng mới với vai trò mặc định (USER). Trả về JWT Access Token nếu thành công.
+      summary: ÄÄƒng kÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng má»›i
+      description: Táº¡o má»™t tÃ i khoáº£n ngÆ°á»i dÃ¹ng má»›i vá»›i vai trÃ² máº·c Ä‘á»‹nh (USER). Tráº£ vá» JWT Access Token náº¿u thÃ nh cÃ´ng.
       operationId: registerUser
       requestBody:
         required: true
@@ -25,35 +293,35 @@ paths:
               $ref: "#/components/schemas/RegisterRequest"
       responses:
         "201":
-          description: Đăng ký thành công và đã tạo phiên đăng nhập.
+          description: ÄÄƒng kÃ½ thÃ nh cÃ´ng vÃ  Ä‘Ã£ táº¡o phiÃªn Ä‘Äƒng nháº­p.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Dữ liệu không hợp lệ hoặc lỗi nghiệp vụ (như trùng username/email, lỗi đăng ký).
+          description: Dá»¯ liá»‡u khÃ´ng há»£p lá»‡ hoáº·c lá»—i nghiá»‡p vá»¥ (nhÆ° trÃ¹ng username/email, lá»—i Ä‘Äƒng kÃ½).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
                 UsernameTaken:
-                  summary: Trùng tên đăng nhập
+                  summary: TrÃ¹ng tÃªn Ä‘Äƒng nháº­p
                   value:
                     errorCode: BAD_REQUEST
                     message: Username is already taken
                     correlationId: df185ee6-d7e7-494b-a63e-f1b203c9bf82
                 EmailRegistered:
-                  summary: Trùng địa chỉ email
+                  summary: TrÃ¹ng Ä‘á»‹a chá»‰ email
                   value:
                     errorCode: BAD_REQUEST
                     message: Email is already registered
                     correlationId: a5f2da51-419b-4e08-9fd1-cb4be6c1e345
                 ValidationFailed:
-                  summary: Lỗi validation dữ liệu đầu vào
+                  summary: Lá»—i validation dá»¯ liá»‡u Ä‘áº§u vÃ o
                   value:
                     errorCode: VALIDATION_FAILED
-                    message: Dữ liệu đầu vào không hợp lệ.
+                    message: Dá»¯ liá»‡u Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡.
                     fieldErrors:
                       username: Username must be between 3 and 100 characters
                       email: Invalid email format
@@ -63,8 +331,8 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Đăng nhập vào hệ thống
-      description: Xác thực bằng tên người dùng và mật khẩu để lấy mã JWT Access Token.
+      summary: ÄÄƒng nháº­p vÃ o há»‡ thá»‘ng
+      description: XÃ¡c thá»±c báº±ng tÃªn ngÆ°á»i dÃ¹ng vÃ  máº­t kháº©u Ä‘á»ƒ láº¥y mÃ£ JWT Access Token.
       operationId: loginUser
       requestBody:
         required: true
@@ -74,35 +342,35 @@ paths:
               $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: Đăng nhập thành công.
+          description: ÄÄƒng nháº­p thÃ nh cÃ´ng.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Đăng nhập thất bại (sai thông tin xác thực, tài khoản bị khoá, hoặc dữ liệu trống).
+          description: ÄÄƒng nháº­p tháº¥t báº¡i (sai thÃ´ng tin xÃ¡c thá»±c, tÃ i khoáº£n bá»‹ khoÃ¡, hoáº·c dá»¯ liá»‡u trá»‘ng).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
                 InvalidCredentials:
-                  summary: Sai tài khoản hoặc mật khẩu
+                  summary: Sai tÃ i khoáº£n hoáº·c máº­t kháº©u
                   value:
                     errorCode: BAD_REQUEST
                     message: Invalid username or password
                     correlationId: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
                 UserDeactivated:
-                  summary: Tài khoản đã bị vô hiệu hoá
+                  summary: TÃ i khoáº£n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hoÃ¡
                   value:
                     errorCode: BAD_REQUEST
                     message: User account is deactivated
                     correlationId: 2df3e485-bc75-4d0f-8973-455bdaef3841
                 ValidationFailed:
-                  summary: Trống trường thông tin bắt buộc
+                  summary: Trá»‘ng trÆ°á»ng thÃ´ng tin báº¯t buá»™c
                   value:
                     errorCode: VALIDATION_FAILED
-                    message: Dữ liệu đầu vào không hợp lệ.
+                    message: Dá»¯ liá»‡u Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡.
                     fieldErrors:
                       username: Username is required
                       password: Password is required
@@ -111,8 +379,8 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Khởi tạo lại Access Token mỡi
-      description: Dùng Refresh Token để lấy phiên mới.
+      summary: Khá»Ÿi táº¡o láº¡i Access Token má»¡i
+      description: DÃ¹ng Refresh Token Ä‘á»ƒ láº¥y phiÃªn má»›i.
       operationId: refreshToken
       requestBody:
         required: true
@@ -122,7 +390,7 @@ paths:
               $ref: "#/components/schemas/TokenRefreshRequest"
       responses:
         "200":
-          description: Refresh thành công.
+          description: Refresh thÃ nh cÃ´ng.
           content:
             application/json:
               schema:
@@ -131,7 +399,7 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Đăng xuất phiên hiện tại
+      summary: ÄÄƒng xuáº¥t phiÃªn hiá»‡n táº¡i
       operationId: logoutUser
       security:
         - BearerAuth: []
@@ -143,12 +411,12 @@ paths:
               $ref: "#/components/schemas/LogoutRequest"
       responses:
         "204":
-          description: Đã vô hiệu hoá Token thành công.
+          description: ÄÃ£ vÃ´ hiá»‡u hoÃ¡ Token thÃ nh cÃ´ng.
   /auth/email-verifications:
     post:
       tags:
         - Authentication
-      summary: Gửi lại email xác minh
+      summary: Gá»­i láº¡i email xÃ¡c minh
       operationId: resendVerificationEmail
       requestBody:
         required: true
@@ -158,12 +426,12 @@ paths:
               $ref: "#/components/schemas/EmailVerificationRequest"
       responses:
         "202":
-          description: Yêu cầu đã được chấp nhận.
+          description: YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c cháº¥p nháº­n.
   /auth/email-verifications/confirm:
     post:
       tags:
         - Authentication
-      summary: Xác minh địa chỉ email mới đăng ký
+      summary: XÃ¡c minh Ä‘á»‹a chá»‰ email má»›i Ä‘Äƒng kÃ½
       operationId: confirmEmail
       requestBody:
         required: true
@@ -173,12 +441,12 @@ paths:
               $ref: "#/components/schemas/EmailVerificationConfirmRequest"
       responses:
         "204":
-          description: Xác minh thành công.
+          description: XÃ¡c minh thÃ nh cÃ´ng.
   /auth/password-reset-requests:
     post:
       tags:
         - Authentication
-      summary: Yêu cầu đặt lại mật khẩu (quên mật khẩu)
+      summary: YÃªu cáº§u Ä‘áº·t láº¡i máº­t kháº©u (quÃªn máº­t kháº©u)
       operationId: requestPasswordReset
       requestBody:
         required: true
@@ -188,12 +456,12 @@ paths:
               $ref: "#/components/schemas/PasswordResetRequest"
       responses:
         "202":
-          description: Yêu cầu đã được chấp nhận.
+          description: YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c cháº¥p nháº­n.
   /auth/password-resets/confirm:
     post:
       tags:
         - Authentication
-      summary: Xác nhận đổi mật khẩu với Token OTP
+      summary: XÃ¡c nháº­n Ä‘á»•i máº­t kháº©u vá»›i Token OTP
       operationId: confirmPasswordReset
       requestBody:
         required: true
@@ -203,18 +471,18 @@ paths:
               $ref: "#/components/schemas/PasswordResetConfirmRequest"
       responses:
         "204":
-          description: Mật khẩu đổi thành công.
+          description: Máº­t kháº©u Ä‘á»•i thÃ nh cÃ´ng.
   /me:
     get:
       tags:
         - Profile
-      summary: Lấy hồ sơ tài khoản hiện hành
+      summary: Láº¥y há»“ sÆ¡ tÃ i khoáº£n hiá»‡n hÃ nh
       operationId: getCurrentProfile
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Hồ sơ thành công.
+          description: Há»“ sÆ¡ thÃ nh cÃ´ng.
           content:
             application/json:
               schema:
@@ -222,7 +490,7 @@ paths:
     patch:
       tags:
         - Profile
-      summary: Cập nhật hồ sơ tài khoản
+      summary: Cáº­p nháº­t há»“ sÆ¡ tÃ i khoáº£n
       operationId: updateCurrentProfile
       security:
         - BearerAuth: []
@@ -234,7 +502,7 @@ paths:
               $ref: "#/components/schemas/UserProfileUpdateRequest"
       responses:
         "200":
-          description: Cập nhật thành công.
+          description: Cáº­p nháº­t thÃ nh cÃ´ng.
           content:
             application/json:
               schema:
@@ -243,7 +511,7 @@ paths:
     get:
       tags:
         - Admin User Management
-      summary: Danh sách account người dùng
+      summary: Danh sÃ¡ch account ngÆ°á»i dÃ¹ng
       operationId: listUsers
       security:
         - BearerAuth: []
@@ -269,7 +537,7 @@ paths:
     get:
       tags:
         - Admin User Management
-      summary: Chi tiết tài khoản
+      summary: Chi tiáº¿t tÃ i khoáº£n
       operationId: getUser
       security:
         - BearerAuth: []
@@ -290,7 +558,7 @@ paths:
     patch:
       tags:
         - Admin User Management
-      summary: Sửa thông tin tài khoản
+      summary: Sá»­a thÃ´ng tin tÃ i khoáº£n
       operationId: adminUpdateUser
       security:
         - BearerAuth: []
@@ -309,15 +577,15 @@ paths:
               $ref: "#/components/schemas/UserUpdateAdminRequest"
       responses:
         "200":
-          description: Cập nhật thông tin tài khoản thành công.
+          description: Cáº­p nháº­t thÃ´ng tin tÃ i khoáº£n thÃ nh cÃ´ng.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponse"
         "400":
-          description: Format data lỗi.
+          description: Format data lá»—i.
         "409":
-          description: Lỗi nghiệp vụ (trùng phone).
+          description: Lá»—i nghiá»‡p vá»¥ (trÃ¹ng phone).
           content:
             application/json:
               schema:
@@ -326,7 +594,7 @@ paths:
     patch:
       tags:
         - Admin User Management
-      summary: Khóa mờ tài khoản
+      summary: KhÃ³a má» tÃ i khoáº£n
       operationId: changeUserStatus
       security:
         - BearerAuth: []
@@ -353,12 +621,12 @@ paths:
     get:
       tags:
         - Category
-      summary: Lấy cây danh mục sản phẩm đang hoạt động
-      description: Trả về danh sách cấp bậc cây danh mục đang hoạt động (ACTIVE). Phục vụ công khai cho khách hàng vãng lai.
+      summary: Láº¥y cÃ¢y danh má»¥c sáº£n pháº©m Ä‘ang hoáº¡t Ä‘á»™ng
+      description: Tráº£ vá» danh sÃ¡ch cáº¥p báº­c cÃ¢y danh má»¥c Ä‘ang hoáº¡t Ä‘á»™ng (ACTIVE). Phá»¥c vá»¥ cÃ´ng khai cho khÃ¡ch hÃ ng vÃ£ng lai.
       operationId: getActiveCategoryTree
       responses:
         "200":
-          description: Lấy cây danh mục thành công
+          description: Láº¥y cÃ¢y danh má»¥c thÃ nh cÃ´ng
           content:
             application/json:
               schema:
@@ -371,8 +639,8 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Liệt kê danh mục cho quản trị viên
-      description: Trả về toàn bộ danh mục sản phẩm (cả hoạt động và không hoạt động) kèm bộ lọc phục vụ quản lý sản phẩm.
+      summary: Liá»‡t kÃª danh má»¥c cho quáº£n trá»‹ viÃªn
+      description: Tráº£ vá» toÃ n bá»™ danh má»¥c sáº£n pháº©m (cáº£ hoáº¡t Ä‘á»™ng vÃ  khÃ´ng hoáº¡t Ä‘á»™ng) kÃ¨m bá»™ lá»c phá»¥c vá»¥ quáº£n lÃ½ sáº£n pháº©m.
       operationId: adminListCategories
       parameters:
         - name: status
@@ -388,7 +656,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Danh sách danh mục phản hồi thành công
+          description: Danh sÃ¡ch danh má»¥c pháº£n há»“i thÃ nh cÃ´ng
           content:
             application/json:
               schema:
@@ -396,16 +664,16 @@ paths:
                 items:
                   $ref: "#/components/schemas/CategoryResponse"
         "401":
-          description: Chưa xác thực token truy cập.
+          description: ChÆ°a xÃ¡c thá»±c token truy cáº­p.
         "403":
-          description: Không có quyền truy cập.
+          description: KhÃ´ng cÃ³ quyá»n truy cáº­p.
     post:
       security:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Tạo mới một danh mục sản phẩm
-      description: Tạo mới danh mục, tự động tạo slug từ tên danh mục. Cần quyền admin.
+      summary: Táº¡o má»›i má»™t danh má»¥c sáº£n pháº©m
+      description: Táº¡o má»›i danh má»¥c, tá»± Ä‘á»™ng táº¡o slug tá»« tÃªn danh má»¥c. Cáº§n quyá»n admin.
       operationId: createCategory
       requestBody:
         required: true
@@ -415,32 +683,32 @@ paths:
               $ref: "#/components/schemas/CategoryRequest"
       responses:
         "201":
-          description: Tạo danh mục mới thành công
+          description: Táº¡o danh má»¥c má»›i thÃ nh cÃ´ng
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "400":
-          description: Lỗi dữ liệu đầu vào không hợp lệ.
+          description: Lá»—i dá»¯ liá»‡u Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "409":
-          description: Trùng lặp slug danh mục sản phẩm.
+          description: TrÃ¹ng láº·p slug danh má»¥c sáº£n pháº©m.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
                 SlugExists:
-                  summary: Slug danh mục đã tồn tại
+                  summary: Slug danh má»¥c Ä‘Ã£ tá»“n táº¡i
                   value:
                     errorCode: CATEGORY_SLUG_EXISTS
-                    message: "Slug danh mục đã tồn tại: laptop"
+                    message: "Slug danh má»¥c Ä‘Ã£ tá»“n táº¡i: laptop"
                     correlationId: db6ef274-129b-4e08-9fd1-cb4be6c1e345
         "422":
-          description: Ngoại lệ logic (ví dụ danh mục cha được chỉ định đang ở trạng thái INACTIVE).
+          description: Ngoáº¡i lá»‡ logic (vÃ­ dá»¥ danh má»¥c cha Ä‘Æ°á»£c chá»‰ Ä‘á»‹nh Ä‘ang á»Ÿ tráº¡ng thÃ¡i INACTIVE).
           content:
             application/json:
               schema:
@@ -451,7 +719,7 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Lấy chi tiết thông tin một danh mục
+      summary: Láº¥y chi tiáº¿t thÃ´ng tin má»™t danh má»¥c
       operationId: getCategoryById
       parameters:
         - name: categoryId
@@ -462,13 +730,13 @@ paths:
             format: uuid
       responses:
         "200":
-          description: Lấy chi tiết thành công
+          description: Láº¥y chi tiáº¿t thÃ nh cÃ´ng
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "404":
-          description: Không tìm thấy danh mục.
+          description: KhÃ´ng tÃ¬m tháº¥y danh má»¥c.
           content:
             application/json:
               schema:
@@ -479,8 +747,8 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Cập nhật thông tin danh mục sản phẩm
-      description: Chỉnh sửa các trường của danh mục. Không hỗ trợ đổi trực tiếp status qua đây. Khử vòng lặp phân cấp.
+      summary: Cáº­p nháº­t thÃ´ng tin danh má»¥c sáº£n pháº©m
+      description: Chá»‰nh sá»­a cÃ¡c trÆ°á»ng cá»§a danh má»¥c. KhÃ´ng há»— trá»£ Ä‘á»•i trá»±c tiáº¿p status qua Ä‘Ã¢y. Khá»­ vÃ²ng láº·p phÃ¢n cáº¥p.
       operationId: updateCategory
       parameters:
         - name: categoryId
@@ -497,17 +765,17 @@ paths:
               $ref: "#/components/schemas/CategoryRequest"
       responses:
         "200":
-          description: Cập nhật thành công
+          description: Cáº­p nháº­t thÃ nh cÃ´ng
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "400":
-          description: Bản ghi sai định dạng.
+          description: Báº£n ghi sai Ä‘á»‹nh dáº¡ng.
         "404":
-          description: Không tìm thấy danh mục hoặc danh mục cha cập nhật.
+          description: KhÃ´ng tÃ¬m tháº¥y danh má»¥c hoáº·c danh má»¥c cha cáº­p nháº­t.
         "422":
-          description: Phát hiện vòng lặp phân cấp (Category Cycle).
+          description: PhÃ¡t hiá»‡n vÃ²ng láº·p phÃ¢n cáº¥p (Category Cycle).
           content:
             application/json:
               schema:
@@ -518,8 +786,8 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Thay đổi trạng thái hoạt động của danh mục
-      description: Kích hoạt (ACTIVE) hoặc hủy kích hoạt (INACTIVE) danh mục.
+      summary: Thay Ä‘á»•i tráº¡ng thÃ¡i hoáº¡t Ä‘á»™ng cá»§a danh má»¥c
+      description: KÃ­ch hoáº¡t (ACTIVE) hoáº·c há»§y kÃ­ch hoáº¡t (INACTIVE) danh má»¥c.
       operationId: changeCategoryStatus
       parameters:
         - name: categoryId
@@ -536,17 +804,214 @@ paths:
             enum: [ACTIVE, INACTIVE]
       responses:
         "200":
-          description: Thay đổi trạng thái thành công
+          description: Thay Ä‘á»•i tráº¡ng thÃ¡i thÃ nh cÃ´ng
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "409":
-          description: Lỗi ràng buộc sản phẩm con đang hoạt động hoặc danh mục cha đang ẩn.
+          description: Lá»—i rÃ ng buá»™c sáº£n pháº©m con Ä‘ang hoáº¡t Ä‘á»™ng hoáº·c danh má»¥c cha Ä‘ang áº©n.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+
+  /api/v1/orders/checkout:
+    post:
+      tags:
+        - Sales Order Management
+      summary: Táº¡o Ä‘Æ¡n hÃ ng tá»« giá» hÃ ng (Checkout)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+  /api/v1/me/orders:
+    get:
+      tags:
+        - Sales Order Management
+      summary: Láº¥y lá»‹ch sá»­ Ä‘Æ¡n hÃ ng cá»§a tÃ´i
+      responses:
+        '200':
+          description: OK
+  /api/v1/me/orders/{orderCode}:
+    get:
+      tags:
+        - Sales Order Management
+      summary: Chi tiáº¿t Ä‘Æ¡n hÃ ng cá»§a customer
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+  /api/v1/admin/orders:
+    get:
+      tags:
+        - Sales Order Management
+      summary: Danh sÃ¡ch Ä‘Æ¡n hÃ ng (váº­n hÃ nh)
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/orders/{orderId}/confirm:
+    post:
+      tags:
+        - Sales Order Management
+      summary: XÃ¡c nháº­n Ä‘Æ¡n hÃ ng (Duyá»‡t Ä‘Æ¡n)
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: OK
+
+/warranties/generate/{orderId}:
+  post:
+    tags:
+      - Warranty
+    summary: System Trigger - Sinh báº£o hÃ nh tá»± Ä‘á»™ng
+    responses:
+      "200":
+        description: OK
+/me/warranties:
+  get:
+    security:
+      - BearerAuth: []
+    tags:
+      - Warranty
+    summary: Láº¥y danh sÃ¡ch báº£o hÃ nh cÃ¡ nhÃ¢n
+    responses:
+      "200":
+        description: OK
+/warranties/{warrantyCode}/claims:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Warranty
+    summary: NhÃ¢n viÃªn báº£o hÃ nh táº¡o yÃªu cáº§u claim
+    responses:
+      "201":
+        description: Created
+/admin/warranty-claims/{claimId}/status:
+  patch:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Warranty
+    summary: Quáº£n lÃ½ thay Ä‘á»•i tráº¡ng thÃ¡i báº£o hÃ nh
+    responses:
+      "200":
+        description: OK
+/orders/{orderCode}/return-requests:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Return, Exchange and Refund
+    summary: Táº¡o yÃªu cáº§u Ä‘á»•i tráº£
+    responses:
+      "201":
+        description: Created
+/admin/return-requests/{returnId}/approve:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Return
+    summary: Duyá»‡t tráº£ hÃ ng
+    responses:
+      "200":
+        description: OK
+/admin/return-requests/{returnId}/reject:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Return
+    summary: Tá»« chá»‘i tráº£ hÃ ng
+    responses:
+      "200":
+        description: OK
+/admin/return-requests/{returnId}/receive:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Return
+    summary: Kho nháº­n láº¡i thiáº¿t bá»‹
+    responses:
+      "200":
+        description: OK
+/admin/return-requests/{returnId}/inspect:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Return
+    summary: Ká»¹ thuáº­t kiá»ƒm Ä‘á»‹nh
+    responses:
+      "200":
+        description: OK
+/admin/return-requests/{returnId}/complete:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Return
+    summary: HoÃ n táº¥t Ä‘á»•i tráº£
+    responses:
+      "200":
+        description: OK
+/admin/refunds:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Refund
+    summary: Táº¡o lá»‡nh hoÃ n tiá»n
+    responses:
+      "201":
+        description: Created
+/admin/refunds/{refundId}/approve:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Refund
+    summary: Duyá»‡t duyá»‡t hoÃ n tiá»n
+    responses:
+      "200":
+        description: OK
+/admin/refunds/{refundId}/confirm-manual:
+  post:
+    security:
+      - BearerAuth: []
+    tags:
+      - Admin Refund
+    summary: HoÃ n táº¥t chuyá»ƒn khoáº£n thá»§ cÃ´ng
+    responses:
+      "200":
+        description: OK
 
 components:
   securitySchemes:
@@ -555,6 +1020,283 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+
+    DepartmentRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "HR01"
+        name:
+          type: string
+          example: "PhÃ²ng NhÃ¢n Sá»±"
+        description:
+          type: string
+          example: "Quáº£n lÃ½ nhÃ¢n sá»± vÃ  tiá»n lÆ°Æ¡ng"
+      required: [code, name]
+    DepartmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        code:
+          type: string
+          example: "HR01"
+        name:
+          type: string
+          example: "PhÃ²ng NhÃ¢n Sá»±"
+        description:
+          type: string
+          example: "Quáº£n lÃ½ nhÃ¢n sá»± vÃ  tiá»n lÆ°Æ¡ng"
+    PositionRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "MGR"
+        name:
+          type: string
+          example: "TrÆ°á»Ÿng phÃ²ng"
+        description:
+          type: string
+          example: "Quáº£n lÃ½ chung"
+      required: [code, name]
+    PositionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        code:
+          type: string
+          example: "MGR"
+        name:
+          type: string
+          example: "TrÆ°á»Ÿng phÃ²ng"
+    RoleRequest:
+      type: object
+      properties:
+        roleCode:
+          type: string
+          example: "ADMIN"
+        name:
+          type: string
+          example: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng"
+        description:
+          type: string
+          example: "Full quyá»n"
+      required: [roleCode, name]
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        roleCode:
+          type: string
+          example: "ADMIN"
+        name:
+          type: string
+          example: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng"
+    StaffRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: "a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1"
+        departmentId:
+          type: string
+          format: uuid
+          example: "b1b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2"
+        positionId:
+          type: string
+          format: uuid
+          example: "c2b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c3"
+        employeeCode:
+          type: string
+          example: "EMP-001"
+        hireDate:
+          type: string
+          format: date
+          example: "2024-01-01"
+      required: [userId, departmentId, positionId, employeeCode, hireDate]
+    StaffResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        employeeCode:
+          type: string
+          example: "EMP-001"
+    WarehouseRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "WH-HCM-01"
+        name:
+          type: string
+          example: "Kho Tá»•ng TÃ¢n BÃ¬nh"
+        phone:
+          type: string
+          example: "0901234567"
+        address:
+          type: string
+          example: "KCN TÃ¢n BÃ¬nh, TPHCM"
+      required: [code, name]
+    WarehouseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        code:
+          type: string
+          example: "WH-HCM-01"
+        name:
+          type: string
+          example: "Kho Tá»•ng TÃ¢n BÃ¬nh"
+        phone:
+          type: string
+          example: "0901234567"
+        address:
+          type: string
+          example: "KCN TÃ¢n BÃ¬nh, TPHCM"
+    SupplierRequest:
+      type: object
+      properties:
+        supplierCode:
+          type: string
+          example: "VEND-APPLE"
+        name:
+          type: string
+          example: "Apple Vietnam LLC"
+        taxCode:
+          type: string
+          example: "0101234567"
+        contactName:
+          type: string
+          example: "Nguyá»…n VÄƒn A"
+        phone:
+          type: string
+          example: "0987654321"
+        email:
+          type: string
+          example: "contact@apple.vn"
+        address:
+          type: string
+          example: "Quáº­n 1, TP HCM"
+      required: [supplierCode, name]
+    SupplierResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        supplierCode:
+          type: string
+          example: "VEND-APPLE"
+        name:
+          type: string
+          example: "Apple Vietnam LLC"
+        taxCode:
+          type: string
+          example: "0101234567"
+        email:
+          type: string
+          example: "contact@apple.vn"
+    PurchaseOrderItemRequest:
+      type: object
+      properties:
+        productVariantId:
+          type: string
+          format: uuid
+          example: "d4b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c4"
+        orderedQuantity:
+          type: integer
+          example: 100
+        unitCost:
+          type: number
+          example: 25000000
+    PurchaseOrderRequest:
+      type: object
+      properties:
+        purchaseOrderCode:
+          type: string
+          example: "PO-2024-001"
+        supplierId:
+          type: string
+          format: uuid
+          example: "e5b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c5"
+        warehouseId:
+          type: string
+          format: uuid
+          example: "f6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c6"
+        expectedAt:
+          type: string
+          format: date-time
+          example: "2024-12-31T23:59:59Z"
+        note:
+          type: string
+          example: "Nháº­p lÃ´ iPhone 15 Pro Max cuá»‘i nÄƒm"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderItemRequest'
+      required: [purchaseOrderCode, supplierId, warehouseId, items]
+    PurchaseOrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        purchaseOrderCode:
+          type: string
+          example: "PO-2024-001"
+        status:
+          type: string
+          example: "DRAFT"
+        totalAmount:
+          type: number
+          example: 2500000000
+    StockImportItem:
+      type: object
+      properties:
+        purchaseOrderItemId:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 100
+        identifiers:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          example: [{"IMEI": "351234567890123"}, {"IMEI": "351234567890124"}]
+    StockImportRequest:
+      type: object
+      properties:
+        receivedBy:
+          type: string
+          format: uuid
+          example: "a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockImportItem'
+      required: [receivedBy, items]
     RegisterRequest:
       type: object
       required:
@@ -600,11 +1342,11 @@ components:
       properties:
         accessToken:
           type: string
-          description: JWT Access Token dùng cho các API yêu cầu xác thực
+          description: JWT Access Token dÃ¹ng cho cÃ¡c API yÃªu cáº§u xÃ¡c thá»±c
           example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2dpbnVzZXIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc...
         refreshToken:
           type: string
-          description: Token dài hạn để refresh Token Access
+          description: Token dÃ i háº¡n Ä‘á»ƒ refresh Token Access
           example: bda3e8c9-fa20-4b2a-87ef...
         tokenType:
           type: string
@@ -624,22 +1366,22 @@ components:
       properties:
         errorCode:
           type: string
-          description: Mã lỗi định danh nghiệp vụ hoặc hệ thống.
+          description: MÃ£ lá»—i Ä‘á»‹nh danh nghiá»‡p vá»¥ hoáº·c há»‡ thá»‘ng.
           example: BAD_REQUEST
         message:
           type: string
-          description: Chi tiết thông tin lỗi hoặc thông báo hiển thị cho người dùng.
+          description: Chi tiáº¿t thÃ´ng tin lá»—i hoáº·c thÃ´ng bÃ¡o hiá»ƒn thá»‹ cho ngÆ°á»i dÃ¹ng.
           example: Invalid username or password
         correlationId:
           type: string
           format: uuid
-          description: Mã UUID duy nhất gắn liền với log lỗi để phục vụ việc truy vết từ quản trị viên.
+          description: MÃ£ UUID duy nháº¥t gáº¯n liá»n vá»›i log lá»—i Ä‘á»ƒ phá»¥c vá»¥ viá»‡c truy váº¿t tá»« quáº£n trá»‹ viÃªn.
           example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
         fieldErrors:
           type: object
           additionalProperties:
             type: string
-          description: Tập hợp các lỗi validation của từng trường nghiệp vụ (chỉ hiển thị khi errorCode là VALIDATION_FAILED).
+          description: Táº­p há»£p cÃ¡c lá»—i validation cá»§a tá»«ng trÆ°á»ng nghiá»‡p vá»¥ (chá»‰ hiá»ƒn thá»‹ khi errorCode lÃ  VALIDATION_FAILED).
           example:
             username: Username is required
             password: Password is required
@@ -652,7 +1394,7 @@ components:
           type: string
           minLength: 2
           maxLength: 150
-          example: Điện thoại
+          example: Äiá»‡n thoáº¡i
         parentId:
           type: string
           format: uuid
@@ -660,7 +1402,7 @@ components:
           example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
         description:
           type: string
-          example: Danh mục các dòng điện thoại di động thông minh
+          example: Danh má»¥c cÃ¡c dÃ²ng Ä‘iá»‡n thoáº¡i di Ä‘á»™ng thÃ´ng minh
         status:
           type: string
           enum: [ACTIVE, INACTIVE]
@@ -693,14 +1435,14 @@ components:
           example: null
         name:
           type: string
-          example: Điện thoại
+          example: Äiá»‡n thoáº¡i
         slug:
           type: string
           example: dien-thoai
         description:
           type: string
           nullable: true
-          example: Danh mục điện thoại
+          example: Danh má»¥c Ä‘iá»‡n thoáº¡i
         status:
           type: string
           enum: [ACTIVE, INACTIVE]
@@ -803,3 +1545,89 @@ components:
           type: string
         avatarUrl:
           type: string
+    CheckoutRequest:
+      type: object
+      required:
+        - idempotencyKey
+      properties:
+        idempotencyKey:
+          type: string
+          example: xxyyzz
+        couponCode:
+          type: string
+        shippingAddressId:
+          type: string
+          format: uuid
+        guestName:
+          type: string
+        guestPhone:
+          type: string
+        guestEmail:
+          type: string
+        guestProvinceCode:
+          type: string
+        guestDistrictCode:
+          type: string
+        guestWardCode:
+          type: string
+        guestDetailAddress:
+          type: string
+        note:
+          type: string
+    OrderItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        variantName:
+          type: string
+        sku:
+          type: string
+        unitPrice:
+          type: number
+        quantity:
+          type: integer
+        discountAmount:
+          type: number
+        lineTotal:
+          type: number
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderCode:
+          type: string
+        customerId:
+          type: string
+          format: uuid
+        contactName:
+          type: string
+        contactPhone:
+          type: string
+        shippingDetailAddress:
+          type: string
+        currency:
+          type: string
+        subtotalAmount:
+          type: number
+        discountAmount:
+          type: number
+        shippingFee:
+          type: number
+        grandTotalAmount:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'
+

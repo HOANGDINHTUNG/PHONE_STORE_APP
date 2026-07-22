@@ -137,9 +137,9 @@ Một thay đổi API chưa hoàn tất nếu thiếu bất kỳ phần nào sau
 
 Tất cả API nghiệp vụ phải nằm dưới:
 
-~~~text
+```text
 /api/v1
-~~~
+```
 
 Không được trộn các cơ chế versioning khác nhau như:
 
@@ -154,14 +154,14 @@ Endpoint hạ tầng như health check có thể nằm ngoài `/api/v1`, nhưng 
 
 Mặc định:
 
-| Nhóm | Ví dụ | Ghi chú |
-| --- | --- | --- |
-| Public catalog | `/api/v1/products` | Không chứa dữ liệu nội bộ |
-| Authentication | `/api/v1/auth/login` | Ngoại lệ action-oriented có kiểm soát |
-| Current user | `/api/v1/me/orders` | Không nhận user ID từ client |
-| Customer resource | `/api/v1/orders/{orderId}` | Phải kiểm tra ownership |
-| Back office | `/api/v1/admin/products` | Path không thay thế authorization |
-| Provider webhook | `/api/v1/webhooks/payments/{provider}` | Xác minh chữ ký trên raw body |
+| Nhóm              | Ví dụ                                  | Ghi chú                               |
+| ----------------- | -------------------------------------- | ------------------------------------- |
+| Public catalog    | `/api/v1/products`                     | Không chứa dữ liệu nội bộ             |
+| Authentication    | `/api/v1/auth/login`                   | Ngoại lệ action-oriented có kiểm soát |
+| Current user      | `/api/v1/me/orders`                    | Không nhận user ID từ client          |
+| Customer resource | `/api/v1/orders/{orderId}`             | Phải kiểm tra ownership               |
+| Back office       | `/api/v1/admin/products`               | Path không thay thế authorization     |
+| Provider webhook  | `/api/v1/webhooks/payments/{provider}` | Xác minh chữ ký trên raw body         |
 
 `/admin` chỉ giúp tách contract và mục đích sử dụng. Nó không phải một cơ chế bảo mật.
 
@@ -185,24 +185,24 @@ URI phải:
 
 Đúng:
 
-~~~text
+```text
 GET    /api/v1/products
 GET    /api/v1/products/{productId}
 POST   /api/v1/carts/{cartId}/items
 PATCH  /api/v1/carts/{cartId}/items/{itemId}
 POST   /api/v1/orders/{orderId}/cancellations
 POST   /api/v1/payments/{paymentId}/refunds
-~~~
+```
 
 Sai:
 
-~~~text
+```text
 GET  /api/v1/getProducts
 POST /api/v1/createOrder
 POST /api/v1/orders/{id}/changeStatus
 GET  /api/v1/tbl_product/{id}
 GET  /api/v1/users?token=...
-~~~
+```
 
 ### 6.2. Identifier trong URI
 
@@ -216,13 +216,13 @@ GET  /api/v1/users?token=...
 
 Khi hành động có thể biểu diễn thành resource, phải ưu tiên resource:
 
-| Nghiệp vụ | Endpoint nên dùng |
-| --- | --- |
-| Yêu cầu hủy đơn | `POST /orders/{orderId}/cancellations` |
-| Tạo yêu cầu hoàn tiền | `POST /payments/{paymentId}/refunds` |
-| Áp mã giảm giá | `POST /carts/{cartId}/coupons` |
-| Gỡ mã giảm giá | `DELETE /carts/{cartId}/coupons/{code}` |
-| Điều chỉnh tồn kho | `POST /admin/inventory-adjustments` |
+| Nghiệp vụ             | Endpoint nên dùng                       |
+| --------------------- | --------------------------------------- |
+| Yêu cầu hủy đơn       | `POST /orders/{orderId}/cancellations`  |
+| Tạo yêu cầu hoàn tiền | `POST /payments/{paymentId}/refunds`    |
+| Áp mã giảm giá        | `POST /carts/{cartId}/coupons`          |
+| Gỡ mã giảm giá        | `DELETE /carts/{cartId}/coupons/{code}` |
+| Điều chỉnh tồn kho    | `POST /admin/inventory-adjustments`     |
 
 Không được cho client sửa trực tiếp các field trạng thái nhạy cảm bằng một endpoint PATCH tổng quát:
 
@@ -239,13 +239,13 @@ Các chuyển trạng thái phải đi qua use case chuyên biệt và kiểm tr
 
 Các action không tạo resource bền vững có thể dùng động từ khi đó là contract rõ ràng, ví dụ:
 
-~~~text
+```text
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
 POST /api/v1/auth/forgot-password
 POST /api/v1/auth/reset-password
-~~~
+```
 
 Không mở rộng ngoại lệ này tùy tiện sang nghiệp vụ khác.
 
@@ -283,9 +283,9 @@ Các POST quan trọng phải có cơ chế idempotency theo mục 18.
 
 Mặc định dùng JSON Merge Patch:
 
-~~~http
+```http
 Content-Type: application/merge-patch+json
-~~~
+```
 
 Quy tắc:
 
@@ -320,13 +320,13 @@ JSON Patch `application/json-patch+json` chỉ được dùng khi có nhu cầu 
 
 ### 8.1. Thành công
 
-| Code | Khi sử dụng |
-| --- | --- |
-| `200 OK` | GET thành công; mutation trả representation |
-| `201 Created` | Resource đã được tạo đồng bộ |
-| `202 Accepted` | Đã nhận job nhưng chưa hoàn tất |
-| `204 No Content` | Thành công và không có response body |
-| `304 Not Modified` | Conditional GET và representation chưa đổi |
+| Code               | Khi sử dụng                                 |
+| ------------------ | ------------------------------------------- |
+| `200 OK`           | GET thành công; mutation trả representation |
+| `201 Created`      | Resource đã được tạo đồng bộ                |
+| `202 Accepted`     | Đã nhận job nhưng chưa hoàn tất             |
+| `204 No Content`   | Thành công và không có response body        |
+| `304 Not Modified` | Conditional GET và representation chưa đổi  |
 
 Quy tắc:
 
@@ -337,21 +337,21 @@ Quy tắc:
 
 ### 8.2. Lỗi phía client
 
-| Code | Ý nghĩa trong dự án |
-| --- | --- |
-| `400 Bad Request` | JSON hỏng, parameter sai cú pháp, thiếu header bắt buộc |
-| `401 Unauthorized` | Thiếu hoặc token/xác thực không hợp lệ |
-| `403 Forbidden` | Đã xác thực nhưng không đủ quyền |
-| `404 Not Found` | Resource không tồn tại hoặc cần che giấu sự tồn tại |
-| `405 Method Not Allowed` | Method không được hỗ trợ |
-| `406 Not Acceptable` | Không thể trả media type client yêu cầu |
-| `409 Conflict` | Xung đột trạng thái, duplicate, stock conflict, operation đang xử lý |
-| `412 Precondition Failed` | `If-Match` không còn khớp |
-| `413 Content Too Large` | Body hoặc tệp vượt giới hạn |
-| `415 Unsupported Media Type` | `Content-Type` không được hỗ trợ |
-| `422 Unprocessable Content` | Body đúng cú pháp nhưng validation field/semantic thất bại |
-| `428 Precondition Required` | Endpoint yêu cầu `If-Match` nhưng client không gửi |
-| `429 Too Many Requests` | Bị rate limit |
+| Code                         | Ý nghĩa trong dự án                                                  |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `400 Bad Request`            | JSON hỏng, parameter sai cú pháp, thiếu header bắt buộc              |
+| `401 Unauthorized`           | Thiếu hoặc token/xác thực không hợp lệ                               |
+| `403 Forbidden`              | Đã xác thực nhưng không đủ quyền                                     |
+| `404 Not Found`              | Resource không tồn tại hoặc cần che giấu sự tồn tại                  |
+| `405 Method Not Allowed`     | Method không được hỗ trợ                                             |
+| `406 Not Acceptable`         | Không thể trả media type client yêu cầu                              |
+| `409 Conflict`               | Xung đột trạng thái, duplicate, stock conflict, operation đang xử lý |
+| `412 Precondition Failed`    | `If-Match` không còn khớp                                            |
+| `413 Content Too Large`      | Body hoặc tệp vượt giới hạn                                          |
+| `415 Unsupported Media Type` | `Content-Type` không được hỗ trợ                                     |
+| `422 Unprocessable Content`  | Body đúng cú pháp nhưng validation field/semantic thất bại           |
+| `428 Precondition Required`  | Endpoint yêu cầu `If-Match` nhưng client không gửi                   |
+| `429 Too Many Requests`      | Bị rate limit                                                        |
 
 Phân biệt:
 
@@ -365,12 +365,12 @@ Phân biệt:
 
 ### 8.3. Lỗi phía server hoặc upstream
 
-| Code | Khi sử dụng |
-| --- | --- |
-| `500 Internal Server Error` | Lỗi không dự kiến trong hệ thống |
-| `502 Bad Gateway` | Upstream trả phản hồi hỏng hoặc không hợp lệ |
-| `503 Service Unavailable` | Dịch vụ tạm thời không sẵn sàng |
-| `504 Gateway Timeout` | Upstream vượt timeout |
+| Code                        | Khi sử dụng                                  |
+| --------------------------- | -------------------------------------------- |
+| `500 Internal Server Error` | Lỗi không dự kiến trong hệ thống             |
+| `502 Bad Gateway`           | Upstream trả phản hồi hỏng hoặc không hợp lệ |
+| `503 Service Unavailable`   | Dịch vụ tạm thời không sẵn sàng              |
+| `504 Gateway Timeout`       | Upstream vượt timeout                        |
 
 Không biến lỗi upstream thành `400` để che giấu lỗi hệ thống. Không trả chi tiết nội bộ cho client.
 
@@ -392,9 +392,9 @@ Client có body JSON phải gửi `Content-Type` phù hợp.
 
 Client nên gửi:
 
-~~~http
+```http
 Accept: application/json
-~~~
+```
 
 Server phải:
 
@@ -406,21 +406,21 @@ Server phải:
 
 ### 9.3. Header quan trọng
 
-| Header | Mục đích |
-| --- | --- |
-| `Authorization` | Bearer access token |
-| `Content-Type` | Kiểu request/response body |
-| `Accept` | Media type client chấp nhận |
-| `Location` | URI resource/operation mới |
-| `ETag` | Version của representation |
-| `If-Match` | Optimistic concurrency khi ghi |
-| `If-None-Match` | Conditional GET |
-| `Idempotency-Key` | Chống lặp operation quan trọng |
-| `Retry-After` | Thời điểm/thời gian nên retry |
-| `X-Request-Id` | Correlation ID bên ngoài |
-| `Deprecation` | Thời điểm endpoint bị deprecate |
-| `Sunset` | Thời điểm endpoint dự kiến ngừng hoạt động |
-| `Link` | Liên kết deprecation, pagination hoặc tài liệu |
+| Header            | Mục đích                                       |
+| ----------------- | ---------------------------------------------- |
+| `Authorization`   | Bearer access token                            |
+| `Content-Type`    | Kiểu request/response body                     |
+| `Accept`          | Media type client chấp nhận                    |
+| `Location`        | URI resource/operation mới                     |
+| `ETag`            | Version của representation                     |
+| `If-Match`        | Optimistic concurrency khi ghi                 |
+| `If-None-Match`   | Conditional GET                                |
+| `Idempotency-Key` | Chống lặp operation quan trọng                 |
+| `Retry-After`     | Thời điểm/thời gian nên retry                  |
+| `X-Request-Id`    | Correlation ID bên ngoài                       |
+| `Deprecation`     | Thời điểm endpoint bị deprecate                |
+| `Sunset`          | Thời điểm endpoint dự kiến ngừng hoạt động     |
+| `Link`            | Liên kết deprecation, pagination hoặc tài liệu |
 
 Không đưa secret hoặc token vào custom header chỉ để tránh thiết kế request body đúng.
 
@@ -441,11 +441,11 @@ Không đưa secret hoặc token vào custom header chỉ để tránh thiết k
 
 ID trong JSON phải được biểu diễn dưới dạng **string**, kể cả khi database dùng `BIGINT`:
 
-~~~json
+```json
 {
   "id": "9827349827349827"
 }
-~~~
+```
 
 Lý do: tránh mất độ chính xác trên JavaScript/ReactJS/React Native và cho phép thay đổi chiến lược ID sau này.
 
@@ -455,14 +455,14 @@ Client không được thực hiện phép toán số học trên ID.
 
 Tiền phải dùng object rõ ràng:
 
-~~~json
+```json
 {
   "price": {
     "amount": "19990000",
     "currency": "VND"
   }
 }
-~~~
+```
 
 Quy tắc:
 
@@ -485,12 +485,12 @@ Quy tắc:
 
 Ví dụ:
 
-~~~json
+```json
 {
   "createdAt": "2026-07-15T09:30:45Z",
   "deliveryDate": "2026-07-18"
 }
-~~~
+```
 
 ### 10.5. Enum
 
@@ -537,7 +537,7 @@ Mỗi use case phải có request/response DTO phù hợp.
 
 Ưu tiên:
 
-~~~text
+```text
 CreateProductRequest
 UpdateProductRequest
 ProductSummaryResponse
@@ -546,7 +546,7 @@ CreateOrderRequest
 OrderResponse
 CreateRefundRequest
 RefundResponse
-~~~
+```
 
 Không dùng một `ProductDto` khổng lồ cho create, update, list, detail và admin.
 
@@ -581,14 +581,14 @@ Validation HTTP không thay thế validation domain.
 
 ### 12.2. Phân loại lỗi
 
-| Lỗi | Phản hồi |
-| --- | --- |
-| JSON sai cú pháp | `400` |
-| Sai kiểu path/query | `400` |
-| Thiếu header bắt buộc | `400` |
-| Body vi phạm constraint | `422` |
-| Dữ liệu hợp lệ nhưng state không cho phép | `409` |
-| Không đủ quyền | `403` |
+| Lỗi                                       | Phản hồi |
+| ----------------------------------------- | -------- |
+| JSON sai cú pháp                          | `400`    |
+| Sai kiểu path/query                       | `400`    |
+| Thiếu header bắt buộc                     | `400`    |
+| Body vi phạm constraint                   | `422`    |
+| Dữ liệu hợp lệ nhưng state không cho phép | `409`    |
+| Không đủ quyền                            | `403`    |
 
 ### 12.3. Unknown field
 
@@ -642,17 +642,17 @@ Ví dụ backend phải tự kiểm tra:
 
 Single-resource response trả trực tiếp representation:
 
-~~~json
+```json
 {
   "id": "prd_01J...",
   "name": "Điện thoại XYZ",
   "status": "ACTIVE"
 }
-~~~
+```
 
 Không bọc máy móc:
 
-~~~json
+```json
 {
   "success": true,
   "message": "Success",
@@ -660,7 +660,7 @@ Không bọc máy móc:
     "id": "prd_01J..."
   }
 }
-~~~
+```
 
 Lý do: HTTP status đã thể hiện thành công; envelope thừa làm phình contract và khác với RFC 9457 ở nhánh lỗi.
 
@@ -668,8 +668,9 @@ Lý do: HTTP status đã thể hiện thành công; envelope thừa làm phình 
 
 - Create: `201` + resource hoặc representation tối thiểu + `Location`.
 - Update có representation: `200`.
-- Update không cần representation: `204`.
+- Update không cần representation (REST chuẩn): BẮT BUỘC sử dụng kiểu `ResponseEntity<Void>` hoặc trả về `204 No Content`. Tuyệt đối CẤM trả về custom payload dạng rỗng như `EmptyJsonResponse` hoặc `{}`.
 - Không trả entity trước khi transaction thực sự hoàn tất.
+- Error Handling: Hệ thống Log và GlobalExceptionHandler BẮT BUỘC in ra `correlationId` (MDC) ở mọi luồng, phục vụ dò tìm lỗi (traceability) thay vì giấu lỗi hoặc ném 500 chung chung.
 - Không trả “thành công” nếu downstream critical operation chưa có trạng thái rõ ràng.
 
 ---
@@ -680,7 +681,7 @@ Lý do: HTTP status đã thể hiện thành công; envelope thừa làm phình 
 
 Collection response chuẩn:
 
-~~~json
+```json
 {
   "items": [
     {
@@ -699,7 +700,7 @@ Collection response chuẩn:
     "next": "/api/v1/products?page=2&size=20"
   }
 }
-~~~
+```
 
 Không expose trực tiếp Spring `Page` hoặc `Pageable` trong contract.
 
@@ -725,7 +726,7 @@ Dùng cursor cho:
 
 Ví dụ:
 
-~~~json
+```json
 {
   "items": [],
   "page": {
@@ -734,7 +735,7 @@ Ví dụ:
     "nextCursor": "opaque-value"
   }
 }
-~~~
+```
 
 Cursor phải:
 
@@ -751,9 +752,9 @@ Một endpoint không được trộn offset và cursor pagination.
 
 Quy ước:
 
-~~~text
+```text
 ?sort=createdAt,desc&sort=id,desc
-~~~
+```
 
 - Chỉ field trong allowlist được sort.
 - Direction chỉ nhận `asc` hoặc `desc`.
@@ -766,9 +767,9 @@ Quy ước:
 
 Filter phải là parameter có tên và được tài liệu hóa:
 
-~~~text
+```text
 ?brandId=br_01J...&status=ACTIVE&minPrice=5000000&maxPrice=20000000
-~~~
+```
 
 - Dùng allowlist.
 - Validation từng filter.
@@ -804,13 +805,13 @@ Nếu có `include`:
 
 Mọi lỗi API JSON phải dùng:
 
-~~~http
+```http
 Content-Type: application/problem+json
-~~~
+```
 
 Ví dụ:
 
-~~~json
+```json
 {
   "type": "https://api.example.com/problems/validation-failed",
   "title": "Validation failed",
@@ -829,21 +830,21 @@ Ví dụ:
     }
   ]
 }
-~~~
+```
 
 ### 15.2. Field chuẩn và extension
 
-| Field | Quy tắc |
-| --- | --- |
-| `type` | URI ổn định định danh loại lỗi |
-| `title` | Tiêu đề ngắn, ổn định |
-| `status` | Phải khớp HTTP status |
-| `detail` | Hướng dẫn an toàn cho occurrence hiện tại |
-| `instance` | URI occurrence, không chứa query nhạy cảm |
-| `code` | Mã máy đọc ổn định của dự án |
-| `traceId` | Correlate với log/trace |
-| `timestamp` | Instant UTC |
-| `errors` | Danh sách lỗi field khi phù hợp |
+| Field       | Quy tắc                                   |
+| ----------- | ----------------------------------------- |
+| `type`      | URI ổn định định danh loại lỗi            |
+| `title`     | Tiêu đề ngắn, ổn định                     |
+| `status`    | Phải khớp HTTP status                     |
+| `detail`    | Hướng dẫn an toàn cho occurrence hiện tại |
+| `instance`  | URI occurrence, không chứa query nhạy cảm |
+| `code`      | Mã máy đọc ổn định của dự án              |
+| `traceId`   | Correlate với log/trace                   |
+| `timestamp` | Instant UTC                               |
+| `errors`    | Danh sách lỗi field khi phù hợp           |
 
 Client phải dựa vào `type` hoặc `code`, không parse `title`, `detail` hoặc `message`.
 
@@ -879,7 +880,7 @@ Không được trả:
 
 Production fallback cho lỗi không dự kiến:
 
-~~~json
+```json
 {
   "type": "https://api.example.com/problems/internal-error",
   "title": "Internal server error",
@@ -888,7 +889,7 @@ Production fallback cho lỗi không dự kiến:
   "code": "INTERNAL_ERROR",
   "traceId": "01J2ABCDEF..."
 }
-~~~
+```
 
 Chi tiết thật chỉ có trong log bảo mật phù hợp.
 
@@ -953,13 +954,13 @@ Không bắt buộc cho GET/PUT/DELETE vốn đã có ngữ nghĩa idempotent, t
 
 ### 17.4. Hành vi server
 
-| Trường hợp | Hành vi |
-| --- | --- |
-| Key mới | Đánh dấu processing rồi thực hiện operation |
-| Key cũ, cùng fingerprint, đã hoàn tất | Trả lại kết quả đã lưu |
-| Key cũ, payload khác | `422` với `IDEMPOTENCY_KEY_REUSED` |
-| Cùng key đang xử lý | `409` với `IDEMPOTENCY_REQUEST_IN_PROGRESS` |
-| Thiếu key ở endpoint bắt buộc | `400` với `IDEMPOTENCY_KEY_REQUIRED` |
+| Trường hợp                            | Hành vi                                     |
+| ------------------------------------- | ------------------------------------------- |
+| Key mới                               | Đánh dấu processing rồi thực hiện operation |
+| Key cũ, cùng fingerprint, đã hoàn tất | Trả lại kết quả đã lưu                      |
+| Key cũ, payload khác                  | `422` với `IDEMPOTENCY_KEY_REUSED`          |
+| Cùng key đang xử lý                   | `409` với `IDEMPOTENCY_REQUEST_IN_PROGRESS` |
+| Thiếu key ở endpoint bắt buộc         | `400` với `IDEMPOTENCY_KEY_REQUIRED`        |
 
 Kết quả replay phải giữ nguyên status, response body và các header contract quan trọng.
 
@@ -994,9 +995,9 @@ Resource quản trị có nguy cơ lost update nên trả `ETag`, ví dụ:
 
 Client update phải gửi:
 
-~~~http
+```http
 If-Match: "17"
-~~~
+```
 
 Server:
 
@@ -1028,15 +1029,15 @@ Tồn kho, order status, payment và refund phải dùng command/state transitio
 
 ### 19.1. Phân loại response
 
-| Loại dữ liệu | Chính sách mặc định |
-| --- | --- |
+| Loại dữ liệu                  | Chính sách mặc định                                    |
+| ----------------------------- | ------------------------------------------------------ |
 | Public product/category/brand | Có thể cache ngắn hạn nếu có invalidation/revalidation |
-| Ảnh sản phẩm public | Cache dài hạn với URL versioned/content-addressed |
-| Cart | `private, no-store` |
-| Order/payment/refund | `private, no-store` |
-| Profile/address | `private, no-store` |
-| Auth/token/reset | `no-store` |
-| Admin data | `private, no-store` mặc định |
+| Ảnh sản phẩm public           | Cache dài hạn với URL versioned/content-addressed      |
+| Cart                          | `private, no-store`                                    |
+| Order/payment/refund          | `private, no-store`                                    |
+| Profile/address               | `private, no-store`                                    |
+| Auth/token/reset              | `no-store`                                             |
+| Admin data                    | `private, no-store` mặc định                           |
 
 Không cache public response chứa dữ liệu theo user.
 
@@ -1073,13 +1074,13 @@ không được giữ HTTP request vô hạn.
 
 Mẫu chuẩn:
 
-~~~http
+```http
 HTTP/1.1 202 Accepted
 Location: /api/v1/operations/op_01J...
 Retry-After: 3
-~~~
+```
 
-~~~json
+```json
 {
   "id": "op_01J...",
   "status": "PENDING",
@@ -1088,7 +1089,7 @@ Retry-After: 3
     "self": "/api/v1/operations/op_01J..."
   }
 }
-~~~
+```
 
 Operation status tối thiểu:
 
@@ -1171,14 +1172,14 @@ Retry phải:
 
 Ví dụ:
 
-~~~json
+```json
 {
   "id": "media_01J...",
   "url": "https://cdn.example.com/products/media_01J...",
   "contentType": "image/webp",
   "size": 245183
 }
-~~~
+```
 
 ### 22.2. Download
 
@@ -1240,7 +1241,7 @@ Nếu hệ thống gửi webhook:
 
 Ví dụ:
 
-~~~json
+```json
 {
   "eventId": "evt_01J...",
   "eventType": "ORDER.PAID",
@@ -1250,7 +1251,7 @@ Ví dụ:
     "orderId": "ord_01J..."
   }
 }
-~~~
+```
 
 ---
 
@@ -1723,7 +1724,7 @@ AI agent và developer không được:
 
 Nếu yêu cầu của task buộc phải lệch rule, AI agent phải dừng và báo:
 
-~~~text
+```text
 API RULE EXCEPTION
 
 - Rule bị ảnh hưởng:
@@ -1736,13 +1737,13 @@ API RULE EXCEPTION
 - Test bổ sung:
 - Kế hoạch loại bỏ ngoại lệ:
 - Người cần phê duyệt:
-~~~
+```
 
 AI agent không được tự coi yêu cầu mơ hồ là phê duyệt ngoại lệ.
 
 Khi hoàn thành thay đổi API, báo cáo tối thiểu:
 
-~~~text
+```text
 API CHANGE REPORT
 
 - Contract thay đổi:
@@ -1755,7 +1756,7 @@ API CHANGE REPORT
 - Tests đã chạy:
 - Migration/deprecation:
 - Rủi ro còn lại:
-~~~
+```
 
 ---
 

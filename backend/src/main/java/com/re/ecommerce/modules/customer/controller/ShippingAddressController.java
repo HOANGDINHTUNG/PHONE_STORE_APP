@@ -6,6 +6,7 @@ import com.re.ecommerce.modules.customer.dto.response.AddressResponse;
 import com.re.ecommerce.modules.customer.service.ShippingAddressService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,13 +19,16 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/me/shipping-addresses")
 @RequiredArgsConstructor
+@Slf4j
 public class ShippingAddressController {
 
     private final ShippingAddressService addressService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<List<AddressResponse>> listAddresses(@AuthenticationPrincipal String username) {
+    public ResponseEntity<List<AddressResponse>> listAddresses(
+            @AuthenticationPrincipal String username) {
+        log.debug("Listing shipping locations for authenticated user: {}", username);
         return ResponseEntity.ok(addressService.listAddresses(username));
     }
 
@@ -33,6 +37,7 @@ public class ShippingAddressController {
     public ResponseEntity<AddressResponse> createAddress(
             @AuthenticationPrincipal String username,
             @Valid @RequestBody AddressCreateRequest request) {
+        log.info("User {} adding new shipping address label", username);
         AddressResponse response = addressService.createAddress(username, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -42,6 +47,7 @@ public class ShippingAddressController {
     public ResponseEntity<AddressResponse> getAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username) {
+        log.debug("User {} querying unique address details for {}", username, id);
         return ResponseEntity.ok(addressService.getAddress(id, username));
     }
 
@@ -51,6 +57,7 @@ public class ShippingAddressController {
             @PathVariable UUID id,
             @AuthenticationPrincipal String username,
             @Valid @RequestBody AddressUpdateRequest request) {
+        log.info("User {} revising stored delivery metrics for coordinate ID: {}", username, id);
         return ResponseEntity.ok(addressService.updateAddress(id, username, request));
     }
 
@@ -59,6 +66,7 @@ public class ShippingAddressController {
     public ResponseEntity<Void> setDefaultAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username) {
+        log.info("Elevating coordinate {} to Default priority status for user: {}", id, username);
         addressService.setDefaultAddress(id, username);
         return ResponseEntity.noContent().build();
     }
@@ -68,6 +76,7 @@ public class ShippingAddressController {
     public ResponseEntity<Void> deleteAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username) {
+        log.info("Deleting mapped coordinate mapping {} belonging to customer {}", id, username);
         addressService.deleteAddress(id, username);
         return ResponseEntity.noContent().build();
     }

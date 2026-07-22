@@ -8,6 +8,7 @@ import com.re.ecommerce.modules.staff.entity.OrganizationStatus;
 import com.re.ecommerce.modules.staff.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
+@Slf4j
 public class RoleController {
     
     private final RoleService roleService;
@@ -31,6 +33,7 @@ public class RoleController {
             @RequestParam(required = false) OrganizationStatus status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "100") int size) {
+        log.debug("Tracing mapping definitions bound in the system for modules: {}", module);
         return ResponseEntity.ok(roleService.listPermissions(module, status, page, size));
     }
 
@@ -43,6 +46,7 @@ public class RoleController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
+        log.debug("Inspecting stored Role nodes mapping logic query for string values: {}", keyword);
         return ResponseEntity.ok(roleService.listRoles(roleType, status, keyword, page, size));
     }
 
@@ -50,6 +54,7 @@ public class RoleController {
     @PostMapping("/roles")
     @PreAuthorize("hasAuthority('ROLE_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleRequest request) {
+        log.info("Generating new mapping logical layers role parameters node target");
         return ResponseEntity.status(HttpStatus.CREATED).body(roleService.createRole(request));
     }
 
@@ -57,6 +62,7 @@ public class RoleController {
     @GetMapping("/roles/{roleId}")
     @PreAuthorize("hasAuthority('ROLE_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<RoleResponse> getRoleDetail(@PathVariable UUID roleId) {
+        log.debug("Detail lookup UID nodes mapped arrays logic properties matrices layers roles mapping bounds variables: {}", roleId);
         return ResponseEntity.ok(roleService.getRoleDetail(roleId));
     }
 
@@ -66,6 +72,7 @@ public class RoleController {
     public ResponseEntity<RoleResponse> updateRole(
             @PathVariable UUID roleId,
             @Valid @RequestBody RoleRequest request) {
+        log.info("Applying physical descriptions structural updates on mappings limit roles matrices layers nodes rules: {}", roleId);
         return ResponseEntity.ok(roleService.updateRole(roleId, request));
     }
 
@@ -75,6 +82,7 @@ public class RoleController {
     public ResponseEntity<RoleResponse> changeRoleStatus(
             @PathVariable UUID roleId,
             @RequestParam OrganizationStatus status) {
+        log.info("Role UID node mapping target {}: Changing status constraints variable to: {}", roleId, status);
         return ResponseEntity.ok(roleService.changeRoleStatus(roleId, status));
     }
 
@@ -84,6 +92,7 @@ public class RoleController {
     public ResponseEntity<RoleResponse> replacePermissions(
             @PathVariable UUID roleId,
             @RequestBody Set<UUID> permissionIds) {
+        log.warn("CRITICAL: Wiping out mappings boundaries variables and rewriting entirely logical structures for UID mapping bounds node maps rules: {}", roleId);
         return ResponseEntity.ok(roleService.replacePermissions(roleId, permissionIds));
     }
 }

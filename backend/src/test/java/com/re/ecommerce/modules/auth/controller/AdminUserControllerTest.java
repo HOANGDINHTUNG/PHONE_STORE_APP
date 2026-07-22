@@ -40,7 +40,7 @@ public class AdminUserControllerTest {
 
         ResponseEntity<List<UserResponse>> response = adminUserController.listUsers("test", AccountStatus.ACTIVE);
 
-        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).username()).isEqualTo("test");
     }
@@ -52,7 +52,7 @@ public class AdminUserControllerTest {
 
         ResponseEntity<UserResponse> response = adminUserController.getUser(id);
 
-        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().username()).isEqualTo("test");
     }
 
@@ -64,7 +64,7 @@ public class AdminUserControllerTest {
 
         ResponseEntity<UserResponse> response = adminUserController.updateUser(id, req);
 
-        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().username()).isEqualTo("updated");
     }
 
@@ -76,7 +76,7 @@ public class AdminUserControllerTest {
 
         ResponseEntity<UserResponse> response = adminUserController.changeUserStatus(id, AccountStatus.DISABLED);
 
-        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().accountStatus()).isEqualTo("DISABLED");
     }
 }

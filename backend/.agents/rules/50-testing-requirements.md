@@ -162,19 +162,19 @@ Một test tốt phải:
 
 ### 6.1. Ma trận bắt buộc
 
-| Tầng | Mục đích | Dependency thật | Tần suất |
-| --- | --- | --- | --- |
-| Static/architecture | Quy tắc code và module | Bytecode/source | Mọi PR |
-| Unit/domain | Logic thuần, invariant | Không Spring/DB | Mọi commit |
-| Slice | MVC, JSON, repository focus | Một phần Spring | Mọi PR |
-| DB integration | JPA, SQL, constraint, locking | MySQL container | Mọi PR |
-| Module/component | Nhiều bean/module phối hợp | Spring + MySQL + stub | Mọi PR |
-| Contract | OpenAPI/provider/consumer | Contract thật | Mọi PR |
-| Security | AuthN/AuthZ/ownership/input | Security chain thật | Mọi PR |
-| E2E critical | Luồng nghiệp vụ chính | App chạy thật | Main/release |
-| Migration | Empty DB và upgrade path | MySQL container | Mọi thay đổi DB |
-| Performance/resilience | SLO, tải, timeout, retry | Môi trường chuẩn | Nightly/release |
-| DAST/security scan | Kiểm tra runtime | App deploy cô lập | Scheduled/release |
+| Tầng                   | Mục đích                      | Dependency thật       | Tần suất          |
+| ---------------------- | ----------------------------- | --------------------- | ----------------- |
+| Static/architecture    | Quy tắc code và module        | Bytecode/source       | Mọi PR            |
+| Unit/domain            | Logic thuần, invariant        | Không Spring/DB       | Mọi commit        |
+| Slice                  | MVC, JSON, repository focus   | Một phần Spring       | Mọi PR            |
+| DB integration         | JPA, SQL, constraint, locking | MySQL container       | Mọi PR            |
+| Module/component       | Nhiều bean/module phối hợp    | Spring + MySQL + stub | Mọi PR            |
+| Contract               | OpenAPI/provider/consumer     | Contract thật         | Mọi PR            |
+| Security               | AuthN/AuthZ/ownership/input   | Security chain thật   | Mọi PR            |
+| E2E critical           | Luồng nghiệp vụ chính         | App chạy thật         | Main/release      |
+| Migration              | Empty DB và upgrade path      | MySQL container       | Mọi thay đổi DB   |
+| Performance/resilience | SLO, tải, timeout, retry      | Môi trường chuẩn      | Nightly/release   |
+| DAST/security scan     | Kiểm tra runtime              | App deploy cô lập     | Scheduled/release |
 
 ### 6.2. Test pyramid
 
@@ -234,38 +234,38 @@ Không copy cấu hình từ một phiên bản Spring khác mà chưa đọc t�
 
 Dự án nên tách tối thiểu:
 
-~~~text
+```text
 test
 integrationTest
 contractTest
 e2eTest
-~~~
+```
 
 Có thể bổ sung:
 
-~~~text
+```text
 securityTest
 performanceTest
 migrationTest
-~~~
+```
 
 Quy ước:
 
-| Task | Nội dung |
-| --- | --- |
-| `test` | Unit, domain, architecture, test rất nhanh |
+| Task              | Nội dung                                     |
+| ----------------- | -------------------------------------------- |
+| `test`            | Unit, domain, architecture, test rất nhanh   |
 | `integrationTest` | Spring slice, DB, component, API integration |
-| `contractTest` | OpenAPI, provider/consumer contract |
-| `migrationTest` | Flyway empty DB, upgrade và compatibility |
-| `e2eTest` | Luồng qua application đang chạy |
-| `securityTest` | Test chuyên sâu/DAST nếu tách riêng |
-| `performanceTest` | Load, stress, soak, benchmark có kiểm soát |
+| `contractTest`    | OpenAPI, provider/consumer contract          |
+| `migrationTest`   | Flyway empty DB, upgrade và compatibility    |
+| `e2eTest`         | Luồng qua application đang chạy              |
+| `securityTest`    | Test chuyên sâu/DAST nếu tách riêng          |
+| `performanceTest` | Load, stress, soak, benchmark có kiểm soát   |
 
 ### 8.2. Source set
 
 Nếu dùng Gradle JVM Test Suite:
 
-~~~text
+```text
 src/test/java
 src/test/resources
 src/integrationTest/java
@@ -274,7 +274,7 @@ src/contractTest/java
 src/contractTest/resources
 src/e2eTest/java
 src/e2eTest/resources
-~~~
+```
 
 Không trộn test rất chậm vào `test` làm feedback local mất kiểm soát.
 
@@ -301,23 +301,23 @@ Không trộn test rất chậm vào `test` làm feedback local mất kiểm so�
 
 Test package phải mirror production package:
 
-~~~text
+```text
 src/main/java/com/example/store/order/...
 src/test/java/com/example/store/order/...
-~~~
+```
 
 Không gom toàn bộ test vào package `tests` chung.
 
 ### 9.2. Tên class
 
-| Loại | Hậu tố |
-| --- | --- |
-| Unit/domain | `*Test` |
-| Integration | `*IntegrationTest` hoặc `*IT` |
-| Contract | `*ContractTest` |
-| E2E | `*E2ETest` |
-| Architecture | `*ArchitectureTest` |
-| Migration | `*MigrationTest` |
+| Loại         | Hậu tố                        |
+| ------------ | ----------------------------- |
+| Unit/domain  | `*Test`                       |
+| Integration  | `*IntegrationTest` hoặc `*IT` |
+| Contract     | `*ContractTest`               |
+| E2E          | `*E2ETest`                    |
+| Architecture | `*ArchitectureTest`           |
+| Migration    | `*MigrationTest`              |
 
 Build phải discover tên class nhất quán; không dựa vào tên ngẫu nhiên.
 
@@ -331,42 +331,42 @@ Tên test phải diễn đạt:
 
 Ví dụ:
 
-~~~java
+```java
 @Test
 void shouldRejectCheckoutWhenAvailableStockIsInsufficient() {
     // ...
 }
-~~~
+```
 
 Hoặc:
 
-~~~java
+```java
 @Test
 void checkout_withExpiredCoupon_returnsCouponExpiredProblem() {
     // ...
 }
-~~~
+```
 
 Không dùng:
 
-~~~text
+```text
 test1
 testHappy
 methodTest
 works
-~~~
+```
 
 ### 9.4. Nested test
 
 `@Nested` có thể dùng để nhóm theo operation hoặc context:
 
-~~~text
+```text
 Checkout
   ValidRequest
   InsufficientStock
   ExpiredCoupon
   DuplicateRequest
-~~~
+```
 
 Không lồng quá sâu làm setup khó hiểu.
 
@@ -419,11 +419,11 @@ Không dùng:
 
 Dùng assertion chuyên biệt:
 
-~~~java
+```java
 assertThatThrownBy(() -> service.checkout(command))
         .isInstanceOf(InsufficientStockException.class)
         .hasMessageContaining("stock");
-~~~
+```
 
 Nếu domain exception có code/metadata, phải assert code/metadata thay vì chỉ message.
 
@@ -476,11 +476,11 @@ Nếu domain exception có code/metadata, phải assert code/metadata thay vì c
 
 Nên dùng builder/factory có giá trị mặc định hợp lệ:
 
-~~~java
+```java
 var product = ProductTestData.aProduct()
         .withStatus(ACTIVE)
         .build();
-~~~
+```
 
 Quy tắc:
 
@@ -781,17 +781,16 @@ Rollback tự động hữu ích nhưng có thể che:
 
 Luồng critical phải có test sử dụng transaction thật và đọc lại state sau commit.
 
-### 16.7. Cleanup
+### 16.7. Cleanup (Bắt buộc Integration-First Setup)
 
 Chọn một chiến lược rõ:
 
-- transaction rollback;
-- truncate theo dependency order;
-- schema/database riêng mỗi suite;
-- container/database riêng cho nhóm test.
+- Trực tiếp dùng `@AfterEach` để xóa dữ liệu rác (repository.deleteAll()) nhằm tuân thủ chặt chẽ khóa ngoại. Không cho phép mock hời hợt cho Controller test (bắt buộc nhúng H2/Testcontainer để chứng minh tính toàn vẹn Data).
+- Khi xóa dữ liệu trong `@AfterEach`, phải cẩn thận cascade và khóa ngoại, ưu tiên xóa bảng child trước rồi mới xóa parent.
+- schemas/database riêng mỗi suite;
+- transaction rollback; (Lưu ý: `@Transactional` rollback tự động nhiều khi che giấu lỗi DataIntegrityViolationException).
 
 Không gọi Flyway clean vào database không được xác minh là test.
-
 Cleanup phải fail-safe và không dựa vào tên environment mơ hồ.
 
 ---
@@ -1125,7 +1124,7 @@ Phải test:
 
 Phải test mọi state transition được phép và bị cấm:
 
-~~~text
+```text
 PENDING_PAYMENT
 PAID
 PROCESSING
@@ -1134,7 +1133,7 @@ COMPLETED
 CANCELLED
 REFUND_PENDING
 REFUNDED
-~~~
+```
 
 Tên state thực tế theo domain, nhưng test phải chứng minh:
 
@@ -1293,15 +1292,15 @@ Race test có thể lặp nhiều vòng để tăng khả năng bắt lỗi, nh�
 
 Mọi operation dùng `Idempotency-Key` phải có reusable conformance test kiểm tra:
 
-| Kịch bản | Kết quả |
-| --- | --- |
-| Key mới | Operation chạy một lần |
-| Replay sau hoàn tất | Cùng status/body/header contract |
-| Cùng key khác payload | `422` |
-| Cùng key đang xử lý | `409` |
-| Thiếu key bắt buộc | `400` |
-| Retry sau timeout | Không duplicate side effect |
-| Key hết retention | Theo contract đã công bố |
+| Kịch bản              | Kết quả                          |
+| --------------------- | -------------------------------- |
+| Key mới               | Operation chạy một lần           |
+| Replay sau hoàn tất   | Cùng status/body/header contract |
+| Cùng key khác payload | `422`                            |
+| Cùng key đang xử lý   | `409`                            |
+| Thiếu key bắt buộc    | `400`                            |
+| Retry sau timeout     | Không duplicate side effect      |
+| Key hết retention     | Theo contract đã công bố         |
 
 Phải test:
 
@@ -1642,11 +1641,11 @@ Performance test không chạy ngẫu nhiên trên laptop rồi dùng làm relea
 
 Với dự án mới, baseline mặc định:
 
-| Phạm vi | Line coverage | Branch coverage |
-| --- | ---: | ---: |
-| Toàn application code | ≥ 80% | ≥ 70% |
-| Auth/order/payment/inventory/pricing | ≥ 90% | ≥ 80% |
-| Code mới/thay đổi critical | ≥ 90% | ≥ 85% |
+| Phạm vi                              | Line coverage | Branch coverage |
+| ------------------------------------ | ------------: | --------------: |
+| Toàn application code                |         ≥ 80% |           ≥ 70% |
+| Auth/order/payment/inventory/pricing |         ≥ 90% |           ≥ 80% |
+| Code mới/thay đổi critical           |         ≥ 90% |           ≥ 85% |
 
 Ngưỡng có thể được điều chỉnh bằng quyết định kiến trúc/kỹ thuật có lý do, nhưng không được giảm chỉ để merge.
 
@@ -1871,16 +1870,16 @@ Sau khi thay đổi code:
 
 ### 34.2. Chọn test theo thay đổi
 
-| Thay đổi | Test tối thiểu |
-| --- | --- |
-| Domain logic | Unit + parameterized + affected integration |
-| Controller/DTO | WebMvc + JSON + OpenAPI contract |
-| Repository/query | MySQL integration + pagination/query count |
-| Migration | Validate + empty migrate + upgrade |
-| Security config | Security matrix + full filter chain |
-| Payment/shipping adapter | Unit + stub HTTP + contract |
-| Checkout/inventory | Unit + DB + concurrency + E2E critical |
-| Dependency/framework | Full context + integration + regression suite |
+| Thay đổi                 | Test tối thiểu                                |
+| ------------------------ | --------------------------------------------- |
+| Domain logic             | Unit + parameterized + affected integration   |
+| Controller/DTO           | WebMvc + JSON + OpenAPI contract              |
+| Repository/query         | MySQL integration + pagination/query count    |
+| Migration                | Validate + empty migrate + upgrade            |
+| Security config          | Security matrix + full filter chain           |
+| Payment/shipping adapter | Unit + stub HTTP + contract                   |
+| Checkout/inventory       | Unit + DB + concurrency + E2E critical        |
+| Dependency/framework     | Full context + integration + regression suite |
 
 ### 34.3. Báo cáo trung thực
 
@@ -2012,7 +2011,7 @@ Developer và AI agent không được:
 
 Nếu không thể đáp ứng một yêu cầu test bắt buộc, phải báo:
 
-~~~text
+```text
 TEST REQUIREMENT EXCEPTION
 
 - Rule/mục bị ảnh hưởng:
@@ -2027,7 +2026,7 @@ TEST REQUIREMENT EXCEPTION
 - Deadline:
 - Kế hoạch bổ sung test:
 - Người phê duyệt:
-~~~
+```
 
 Không được tự coi deadline gấp là phê duyệt bỏ test.
 
@@ -2037,7 +2036,7 @@ Không được tự coi deadline gấp là phê duyệt bỏ test.
 
 Khi hoàn tất task, AI agent phải dùng mẫu:
 
-~~~text
+```text
 TEST EXECUTION REPORT
 
 - Thay đổi được kiểm tra:
@@ -2054,7 +2053,7 @@ TEST EXECUTION REPORT
 - Test chưa chạy:
 - Lý do:
 - Rủi ro còn lại:
-~~~
+```
 
 Nếu một suite không tồn tại hoặc môi trường không hỗ trợ Docker/network, phải ghi rõ thay vì bỏ qua im lặng.
 

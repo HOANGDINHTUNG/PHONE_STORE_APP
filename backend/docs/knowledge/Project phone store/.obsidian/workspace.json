@@ -1,0 +1,215 @@
+{
+  "main": {
+    "id": "6d55513dc9d2245a",
+    "type": "split",
+    "children": [
+      {
+        "id": "2178cc8eb96133c7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "be420910f22fd884",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "01-Chinh-sach-kiem-chung-nguon.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "01-Chinh-sach-kiem-chung-nguon"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "df31bd6c1e4998c7",
+    "type": "split",
+    "children": [
+      {
+        "id": "f423626c03045d03",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "79e36e0262058fdf",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "62c68cc658e56629",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "480231efcdc4a14d",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 227.5
+  },
+  "right": {
+    "id": "bc8cd31d09d7a0cc",
+    "type": "split",
+    "children": [
+      {
+        "id": "8802408a4a9d6d25",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d72305bfd0509768",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "01-Chinh-sach-kiem-chung-nguon.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for 01-Chinh-sach-kiem-chung-nguon"
+            }
+          },
+          {
+            "id": "2743391d46a1b099",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "01-Chinh-sach-kiem-chung-nguon.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 01-Chinh-sach-kiem-chung-nguon"
+            }
+          },
+          {
+            "id": "7519b5cfe2b1a3a2",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "0a72fb70a52bdc12",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "ac6e660158a35f19",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "01-Chinh-sach-kiem-chung-nguon.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 01-Chinh-sach-kiem-chung-nguon"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "be420910f22fd884",
+  "lastOpenFiles": [
+    "00-README.md",
+    "01-Chinh-sach-kiem-chung-nguon.md",
+    "24-Production-Troubleshooting-Playbook.md",
+    "CHANGELOG.md",
+    "11-Docker-CICD-va-Van-hanh.md",
+    "09-Chien-luoc-Testing.md",
+    "08-Spring-Security-va-API-Security.md",
+    "06-Database-va-toi-uu-SQL-MySQL.md",
+    "04-Kien-truc-va-cau-truc-code.md",
+    "02-Nen-tang-Backend.md",
+    "16-MySQL-Optimizer-va-Index-Nang-cao.md",
+    "90-Template-Ghi-chu-Ky-thuat.md",
+    "03-Java-21-va-Spring-Boot-Core.md",
+    "99-Danh-muc-nguon-chuan.md",
+    "23-Blueprint-Phone-Store-Backend.md",
+    "22-Test-Engineering-Nang-cao.md",
+    "21-Distributed-Reliability-va-Resilience4j.md",
+    "20-JVM-Memory-GC-va-Profiling.md",
+    "19-OAuth2-OIDC-va-Token-Security-Nang-cao.md",
+    "18-Event-Driven-Outbox-va-Kafka.md",
+    "17-Concurrency-Isolation-va-Idempotency-Nang-cao.md",
+    "15-Spring-Internals-AOP-va-Request-Lifecycle.md",
+    "14-DDD-va-Modular-Monolith-Nang-cao.md",
+    "13-Checklist-Definition-of-Done.md",
+    "12-Bo-quy-tac-cho-AI-Agent.md",
+    "10-Observability-Performance-Reliability.md"
+  ]
+}

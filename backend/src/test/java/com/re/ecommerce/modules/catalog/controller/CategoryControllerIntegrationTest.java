@@ -2,7 +2,6 @@ package com.re.ecommerce.modules.catalog.controller;
 
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.re.ecommerce.common.audit.repository.AuditLogRepository;
 import com.re.ecommerce.modules.catalog.dto.request.CategoryRequest;
 import com.re.ecommerce.modules.catalog.entity.Category;
 import com.re.ecommerce.modules.catalog.entity.CategoryStatus;
@@ -43,8 +42,7 @@ public class CategoryControllerIntegrationTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @Autowired
-    private AuditLogRepository auditLogRepository;
+
 
     @Autowired
     private JwtUtils jwtUtils;
