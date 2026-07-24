@@ -16,11 +16,7 @@ import com.re.ecommerce.modules.customer.entity.ShippingAddress;
 import com.re.ecommerce.modules.customer.repository.ShippingAddressRepository;
 import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
 import com.re.ecommerce.modules.auth.entity.CustomerProfile;
-import com.re.ecommerce.modules.inventory.entity.StockReservation;
-import com.re.ecommerce.modules.inventory.entity.WarehouseInventory;
-import com.re.ecommerce.modules.inventory.entity.WarehouseInventoryId;
-import com.re.ecommerce.modules.inventory.repository.StockReservationRepository;
-import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
+
 import com.re.ecommerce.modules.order.dto.request.CheckoutRequest;
 import com.re.ecommerce.modules.order.dto.response.OrderItemResponse;
 import com.re.ecommerce.modules.order.dto.response.OrderResponse;
@@ -39,10 +35,6 @@ import com.re.ecommerce.modules.order.repository.OrderStatusHistoryRepository;
 import com.re.ecommerce.modules.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,8 +65,6 @@ public class OrderServiceImpl implements OrderService {
     
     private final ShippingAddressRepository shippingAddressRepository;
     
-    private final WarehouseInventoryRepository warehouseInventoryRepository;
-    private final StockReservationRepository stockReservationRepository;
 
     @Override
     @Transactional
@@ -274,22 +264,37 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PagedResponse<OrderResponse> getMyOrders(User currentUser, int page, int size) {
-        Pageable pageable = PageRequest.of(page > 0 ? page - 1 : 0, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        // ... (skipping pagination for brevity)
-        return null;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        org.springframework.data.domain.Page<Order> ordersPage = orderRepository.findByCustomer_Id(currentUser.getId(), pageable);
+        
+        List<OrderResponse> dtos = ordersPage.getContent().stream()
+                .map(o -> toResponse(o, orderItemRepository.findByOrderId(o.getId())))
+                .collect(Collectors.toList());
+                
+        return PagedResponse.of(ordersPage, dtos);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponse getMyOrder(User currentUser, String orderCode) {
-        // ...
-        return null;
+        Order order = orderRepository.findByCustomer_IdAndOrderCode(currentUser.getId(), orderCode)
+                .orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        return toResponse(order, orderItemRepository.findByOrderId(order.getId()));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PagedResponse<OrderResponse> getAdminOrders(int page, int size) {
-        // ...
-        return null;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        org.springframework.data.domain.Page<Order> ordersPage = orderRepository.findAll(pageable);
+        
+        List<OrderResponse> dtos = ordersPage.getContent().stream()
+                .map(o -> toResponse(o, orderItemRepository.findByOrderId(o.getId())))
+                .collect(Collectors.toList());
+                
+        return PagedResponse.of(ordersPage, dtos);
     }
 
     @Override

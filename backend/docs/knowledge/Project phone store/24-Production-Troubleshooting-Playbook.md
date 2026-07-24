@@ -232,3 +232,12 @@ Phân biệt fact, hypothesis và decision.
 
 Không dừng ở “human error”; hỏi vì sao system/process cho phép lỗi trở thành incident.
 
+## 20. Router chẩn đoán mở rộng
+
+- DNS/TLS/connection/LB: [[41-Networking-DNS-TLS-HTTP2-va-Load-Balancing]].
+- Saturation/queue/load: [[40-Performance-Capacity-va-Load-Testing]].
+- Kafka lag/rebalance/poison: [[39-Kafka-Deep-Dive-Partition-Rebalance-EOS]].
+- Search lag/shard/rebuild: [[38-Search-Architecture-Elasticsearch-va-Projection]].
+- Partition/split brain/unknown outcome: [[35-Nen-tang-He-phan-tan-CAP-Clock-Consensus]].
+- Artifact/release regression: [[42-Threat-Modeling-va-Software-Supply-Chain-Security]], [[43-Release-Engineering-GitOps-Feature-Flags-va-Canary]].
+- Symptom router tổng: [[44-MOC-Mang-luoi-Tu-duy-Backend-Spring-Boot]].

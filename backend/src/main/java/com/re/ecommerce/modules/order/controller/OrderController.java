@@ -2,6 +2,7 @@ package com.re.ecommerce.modules.order.controller;
 
 import com.re.ecommerce.common.dto.PagedResponse;
 import com.re.ecommerce.modules.auth.entity.User;
+import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.order.dto.request.CheckoutRequest;
 import com.re.ecommerce.modules.order.dto.response.OrderResponse;
 import com.re.ecommerce.modules.order.service.OrderService;
@@ -23,12 +24,18 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final UserRepository userRepository;
 
     @PostMapping("/orders/checkout")
     public ResponseEntity<OrderResponse> checkout(
-            @AuthenticationPrincipal User currentUser,
+            @AuthenticationPrincipal String username,
             @RequestHeader(value = "X-Guest-Cart-Token", required = false) String guestToken,
             @Valid @RequestBody CheckoutRequest request) {
+        
+        User currentUser = null;
+        if (username != null) {
+            currentUser = userRepository.findByUsername(username).orElse(null);
+        }
         
         byte[] guestTokenHash = null;
         if (currentUser == null && guestToken != null && !guestToken.isBlank()) {
@@ -47,17 +54,19 @@ public class OrderController {
     @GetMapping("/me/orders")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<PagedResponse<OrderResponse>> getMyOrders(
-            @AuthenticationPrincipal User currentUser,
+            @AuthenticationPrincipal String username,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
+        User currentUser = userRepository.findByUsername(username).orElseThrow();
         return ResponseEntity.ok(orderService.getMyOrders(currentUser, page, size));
     }
 
     @GetMapping("/me/orders/{orderCode}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> getMyOrder(
-            @AuthenticationPrincipal User currentUser,
+            @AuthenticationPrincipal String username,
             @PathVariable String orderCode) {
+        User currentUser = userRepository.findByUsername(username).orElseThrow();
         return ResponseEntity.ok(orderService.getMyOrder(currentUser, orderCode));
     }
 
@@ -72,8 +81,9 @@ public class OrderController {
     @PostMapping("/admin/orders/{orderId}/confirm")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> confirmOrder(
-            @AuthenticationPrincipal User admin,
+            @AuthenticationPrincipal String username,
             @PathVariable UUID orderId) {
+        User admin = userRepository.findByUsername(username).orElseThrow();
         orderService.confirmOrder(admin, orderId);
         return ResponseEntity.noContent().build();
     }

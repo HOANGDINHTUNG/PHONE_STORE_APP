@@ -238,3 +238,10 @@ Log event ID/type/version/key/correlation nhưng không full sensitive payload.
 - Trace/metrics/alert/runbook?
 - Complexity có đáng hơn synchronous call không?
 
+## 16. Kết nối mở rộng
+
+- Kafka partition/offset/rebalance/EOS chi tiết: [[39-Kafka-Deep-Dive-Partition-Rebalance-EOS]].
+- CAP, timeout ambiguity, clock/version: [[35-Nen-tang-He-phan-tan-CAP-Clock-Consensus]].
+- AsyncAPI/webhook/protocol comparison: [[36-So-sanh-REST-gRPC-GraphQL-Webhooks-va-AsyncAPI]].
+- Search projection/rebuild: [[38-Search-Architecture-Elasticsearch-va-Projection]].
+- Case checkout/payment/search end-to-end: [[45-Case-Study-Phone-Store-at-Scale]].

@@ -9,13 +9,13 @@ verified_on: 2026-07-21
 
 ## 1. Thứ bậc bằng chứng
 
-| Cấp | Loại nguồn                                                                                                 | Cách dùng                                  |
-| --- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| A   | Tiêu chuẩn chính thức: RFC, JSR/Jakarta spec, NIST, ISO; tài liệu chính thức của Java, Spring, MySQL       | Có thể làm căn cứ chuẩn nếu đúng phiên bản |
-| B   | Security advisory/CVE, release note, migration guide, mã nguồn và test của dự án gốc                       | Xác minh hành vi phiên bản cụ thể          |
-| C   | Sách chuyên ngành có tác giả/nhà xuất bản uy tín; bài nghiên cứu; tài liệu vendor về chính sản phẩm của họ | Giải thích sâu, phải ghi năm/edition       |
-| D   | Bài viết kỹ thuật của kỹ sư có ví dụ tái hiện, benchmark công khai                                         | Nguồn bổ trợ, không tự động thành luật     |
-| E   | Blog SEO, video ngắn, diễn đàn, câu trả lời AI, benchmark không có môi trường                              | Chỉ là manh mối để truy về nguồn A–C       |
+| Cấp | Loại nguồn | Cách dùng |
+|---|---|---|
+| A | Tiêu chuẩn chính thức: RFC, JSR/Jakarta spec, NIST, ISO; tài liệu chính thức của Java, Spring, MySQL | Có thể làm căn cứ chuẩn nếu đúng phiên bản |
+| B | Security advisory/CVE, release note, migration guide, mã nguồn và test của dự án gốc | Xác minh hành vi phiên bản cụ thể |
+| C | Sách chuyên ngành có tác giả/nhà xuất bản uy tín; bài nghiên cứu; tài liệu vendor về chính sản phẩm của họ | Giải thích sâu, phải ghi năm/edition |
+| D | Bài viết kỹ thuật của kỹ sư có ví dụ tái hiện, benchmark công khai | Nguồn bổ trợ, không tự động thành luật |
+| E | Blog SEO, video ngắn, diễn đàn, câu trả lời AI, benchmark không có môi trường | Chỉ là manh mối để truy về nguồn A–C |
 
 “Nhiều người nói giống nhau” không đồng nghĩa đã được kiểm chứng. Một tuyên bố chỉ được gắn `verified` khi biết nó áp dụng cho phiên bản nào và có nguồn đủ mạnh hoặc test tái hiện.
 

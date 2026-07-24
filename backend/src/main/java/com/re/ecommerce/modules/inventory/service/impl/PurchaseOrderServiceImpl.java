@@ -29,8 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -164,12 +163,113 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     @Override
     @Transactional
+    public PurchaseOrderResponse addItem(UUID poId, PurchaseOrderItemRequest request) {
+        PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(poId)
+                .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
+
+        if (po.getStatus() != PurchaseOrderStatus.DRAFT) {
+            throw new BusinessConflictException("PO_NOT_DRAFT", "Chỉ được sửa hàng trong PO ở trạng thái DRAFT");
+        }
+        
+        ProductVariant variant = productVariantRepository.findById(request.productVariantId())
+                .orElseThrow(() -> new ResourceNotFoundException("VARIANT_NOT_FOUND", "Variant không tồn tại"));
+                
+        // Check if item already exists
+        if (po.getItems().stream().anyMatch(i -> i.getProductVariant().getId().equals(variant.getId()))) {
+            throw new BusinessConflictException("DUPLICATE_ITEM", "Sản phẩm đã tồn tại trong PO");
+        }
+        
+        PurchaseOrderItem item = new PurchaseOrderItem();
+        item.setProductVariant(variant);
+        item.setOrderedQuantity(request.orderedQuantity());
+        item.setReceivedQuantity(0);
+        item.setUnitCost(request.unitCost());
+        
+        po.addItem(item);
+        
+        // Recompute total
+        po.setTotalAmount(po.getTotalAmount().add(request.unitCost().multiply(BigDecimal.valueOf(request.orderedQuantity()))));
+        return mapToResponse(purchaseOrderRepository.save(po));
+    }
+
+    @Override
+    @Transactional
+    public PurchaseOrderResponse updateItem(UUID poId, UUID itemId, PurchaseOrderItemRequest request) {
+        PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(poId)
+                .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
+
+        if (po.getStatus() != PurchaseOrderStatus.DRAFT) {
+            throw new BusinessConflictException("PO_NOT_DRAFT", "Chỉ được sửa hàng trong PO ở trạng thái DRAFT");
+        }
+        
+        PurchaseOrderItem item = po.getItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("ITEM_NOT_FOUND", "Không tìm thấy item trong PO"));
+                
+        // subtract old line total
+        BigDecimal oldLineTotal = item.getUnitCost().multiply(BigDecimal.valueOf(item.getOrderedQuantity()));
+        po.setTotalAmount(po.getTotalAmount().subtract(oldLineTotal));
+        
+        item.setOrderedQuantity(request.orderedQuantity());
+        item.setUnitCost(request.unitCost());
+        
+        // add new line total
+        BigDecimal newLineTotal = request.unitCost().multiply(BigDecimal.valueOf(request.orderedQuantity()));
+        po.setTotalAmount(po.getTotalAmount().add(newLineTotal));
+        
+        return mapToResponse(purchaseOrderRepository.save(po));
+    }
+
+    @Override
+    @Transactional
+    public PurchaseOrderResponse removeItem(UUID poId, UUID itemId) {
+        PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(poId)
+                .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
+
+        if (po.getStatus() != PurchaseOrderStatus.DRAFT) {
+            throw new BusinessConflictException("PO_NOT_DRAFT", "Chỉ được xóa hàng trong PO ở trạng thái DRAFT");
+        }
+        
+        PurchaseOrderItem item = po.getItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("ITEM_NOT_FOUND", "Không tìm thấy item trong PO"));
+                
+        BigDecimal lineTotal = item.getUnitCost().multiply(BigDecimal.valueOf(item.getOrderedQuantity()));
+        po.setTotalAmount(po.getTotalAmount().subtract(lineTotal));
+        po.removeItem(item);
+        
+        return mapToResponse(purchaseOrderRepository.save(po));
+    }
+
+    @Override
+    @Transactional
+    public PurchaseOrderResponse submitPurchaseOrder(UUID id, UUID submittedBy) {
+        PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(id)
+                .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
+
+        if (po.getStatus() != PurchaseOrderStatus.DRAFT) {
+            throw new BusinessConflictException("INVALID_STATUS", "Chỉ có thể submit PO từ DRAFT");
+        }
+        if (po.getItems().isEmpty()) {
+            throw new BusinessConflictException("PO_EMPTY", "Không thể submit PO rỗng");
+        }
+        
+        po.setStatus(PurchaseOrderStatus.PENDING_APPROVAL); 
+        po.setUpdatedAt(LocalDateTime.now());
+        
+        return mapToResponse(purchaseOrderRepository.save(po));
+    }
+
+    @Override
+    @Transactional
     public PurchaseOrderResponse approvePurchaseOrder(UUID id, UUID approvedBy) {
         PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
                 
-        if (po.getStatus() != PurchaseOrderStatus.DRAFT) {
-            throw new BusinessConflictException("INVALID_STATUS", "Chỉ có thể duyệt PO từ DRAFT");
+        if (po.getStatus() != PurchaseOrderStatus.PENDING_APPROVAL) {
+            throw new BusinessConflictException("INVALID_STATUS", "Chỉ có thể duyệt PO từ trạng thái PENDING_APPROVAL");
         }
         
         po.setStatus(PurchaseOrderStatus.APPROVED);

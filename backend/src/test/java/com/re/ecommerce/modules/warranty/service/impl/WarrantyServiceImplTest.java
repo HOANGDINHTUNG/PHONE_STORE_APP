@@ -1,6 +1,5 @@
 package com.re.ecommerce.modules.warranty.service.impl;
 
-import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.warranty.dto.request.SubmitClaimRequest;
 import com.re.ecommerce.modules.warranty.dto.request.ChangeClaimStatusRequest;
 import com.re.ecommerce.modules.warranty.entity.Warranty;

@@ -7,6 +7,8 @@ CREATE TABLE warehouses (
     status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT uq_warehouses_code UNIQUE (code),
     CONSTRAINT uq_warehouses_name UNIQUE (name)
@@ -24,6 +26,8 @@ CREATE TABLE suppliers (
     status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT uq_suppliers_code UNIQUE (supplier_code),
     CONSTRAINT uq_suppliers_tax_code UNIQUE (tax_code)
@@ -55,6 +59,7 @@ CREATE TABLE purchase_orders (
     note TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT uq_purchase_orders_code UNIQUE (purchase_order_code),
     CONSTRAINT chk_purchase_orders_total CHECK (total_amount >= 0),
@@ -76,7 +81,7 @@ CREATE TABLE purchase_orders (
 ) ENGINE=InnoDB;
 
 CREATE TABLE purchase_order_items (
-    id BINARY(16) NOT NULL PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     purchase_order_id BINARY(16) NOT NULL,
     product_variant_id BINARY(16) NOT NULL,
     ordered_quantity INT UNSIGNED NOT NULL,
@@ -108,7 +113,7 @@ CREATE TABLE warehouse_inventories (
     available_quantity INT
         GENERATED ALWAYS AS (on_hand_quantity - reserved_quantity) STORED,
     reorder_level INT UNSIGNED NOT NULL DEFAULT 0,
-    version BINARY(16) NOT NULL DEFAULT 0,
+    version BIGINT NOT NULL DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (warehouse_id, product_variant_id),
@@ -124,7 +129,7 @@ CREATE TABLE warehouse_inventories (
 ) ENGINE=InnoDB;
 
 CREATE TABLE stock_reservations (
-    id BINARY(16) NOT NULL PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     order_id BINARY(16) NOT NULL,
     order_item_id BINARY(16) NOT NULL,
     warehouse_id BINARY(16) NOT NULL,
@@ -149,12 +154,6 @@ CREATE TABLE stock_reservations (
     CONSTRAINT uq_stock_reservations_active UNIQUE (active_reservation_key),
     CONSTRAINT chk_stock_reservations_quantity CHECK (quantity > 0),
     CONSTRAINT chk_stock_reservations_expiry CHECK (expires_at > created_at),
-    CONSTRAINT fk_stock_reservations_order
-        FOREIGN KEY (order_id) REFERENCES orders(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT fk_stock_reservations_order_item
-        FOREIGN KEY (order_item_id) REFERENCES order_items(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_stock_reservations_warehouse
         FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
         ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -164,11 +163,11 @@ CREATE TABLE stock_reservations (
 ) ENGINE=InnoDB;
 
 CREATE TABLE inventory_units (
-    id BINARY(16) NOT NULL PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     product_variant_id BINARY(16) NOT NULL,
     warehouse_id BINARY(16) NOT NULL,
-    purchase_order_item_id BINARY(16) NULL,
-    current_reservation_id BINARY(16) NULL,
+    purchase_order_item_id BIGINT UNSIGNED NULL,
+    current_reservation_id BIGINT UNSIGNED NULL,
     sold_order_item_id BINARY(16) NULL,
     unit_status ENUM(
         'AVAILABLE',
@@ -195,15 +194,12 @@ CREATE TABLE inventory_units (
         ON DELETE SET NULL ON UPDATE RESTRICT,
     CONSTRAINT fk_inventory_units_reservation
         FOREIGN KEY (current_reservation_id) REFERENCES stock_reservations(id)
-        ON DELETE SET NULL ON UPDATE RESTRICT,
-    CONSTRAINT fk_inventory_units_sold_order_item
-        FOREIGN KEY (sold_order_item_id) REFERENCES order_items(id)
         ON DELETE SET NULL ON UPDATE RESTRICT
 ) ENGINE=InnoDB;
 
 CREATE TABLE inventory_unit_identifiers (
-    id BINARY(16) NOT NULL PRIMARY KEY,
-    inventory_unit_id BINARY(16) NOT NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    inventory_unit_id BIGINT UNSIGNED NOT NULL,
     identifier_type ENUM('SERIAL', 'IMEI_1', 'IMEI_2', 'OTHER') NOT NULL,
     identifier_value VARCHAR(100) NOT NULL,
     normalized_identifier VARCHAR(100) NOT NULL,
@@ -222,10 +218,10 @@ CREATE TABLE inventory_unit_identifiers (
 ) ENGINE=InnoDB;
 
 CREATE TABLE stock_transactions (
-    id BINARY(16) NOT NULL PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     warehouse_id BINARY(16) NOT NULL,
     product_variant_id BINARY(16) NOT NULL,
-    inventory_unit_id BINARY(16) NULL,
+    inventory_unit_id BIGINT UNSIGNED NULL,
     transaction_type ENUM(
         'IMPORT',
         'SALE',
@@ -276,147 +272,5 @@ CREATE TABLE stock_transactions (
     CONSTRAINT fk_stock_transactions_unit
         FOREIGN KEY (inventory_unit_id) REFERENCES inventory_units(id)
         ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE=InnoDB;
-
-CREATE TABLE shipments (
-    id BINARY(16) NOT NULL PRIMARY KEY,
-    shipment_code VARCHAR(50) NOT NULL,
-    order_id BINARY(16) NOT NULL,
-    warehouse_id BINARY(16) NOT NULL,
-    shipping_provider VARCHAR(100) NULL,
-    tracking_code VARCHAR(100) NULL,
-    shipping_fee DECIMAL(15,2) NOT NULL DEFAULT 0,
-    status ENUM(
-        'PENDING',
-        'PACKING',
-        'SHIPPED',
-        'IN_TRANSIT',
-        'DELIVERED',
-        'FAILED',
-        'RETURNED',
-        'CANCELLED'
-    ) NOT NULL DEFAULT 'PENDING',
-    failure_reason VARCHAR(500) NULL,
-    estimated_delivery_at TIMESTAMP NULL,
-    shipped_at TIMESTAMP NULL,
-    delivered_at TIMESTAMP NULL,
-    created_by VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT uq_shipments_code UNIQUE (shipment_code),
-    CONSTRAINT uq_shipments_provider_tracking
-        UNIQUE (shipping_provider, tracking_code),
-    CONSTRAINT chk_shipments_fee CHECK (shipping_fee >= 0),
-    CONSTRAINT fk_shipments_order
-        FOREIGN KEY (order_id) REFERENCES orders(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT fk_shipments_warehouse
-        FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB;
-
-CREATE TABLE shipment_item_units (
-    shipment_item_id BINARY(16) NOT NULL,
-    inventory_unit_id BINARY(16) NOT NULL,
-    PRIMARY KEY (shipment_item_id, inventory_unit_id),
-    CONSTRAINT uq_shipment_item_units_unit UNIQUE (inventory_unit_id),
-    CONSTRAINT fk_shipment_item_units_shipment_item
-        FOREIGN KEY (shipment_item_id) REFERENCES shipment_items(id)
-        ON DELETE CASCADE ON UPDATE RESTRICT,
-    CONSTRAINT fk_shipment_item_units_inventory_unit
-        FOREIGN KEY (inventory_unit_id) REFERENCES inventory_units(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB;
-
-CREATE TABLE warranties (
-    id BINARY(16) NOT NULL PRIMARY KEY,
-    warranty_code VARCHAR(100) NOT NULL,
-    order_item_id BINARY(16) NOT NULL,
-    inventory_unit_id BINARY(16) NULL,
-    product_variant_id BINARY(16) NOT NULL,
-    customer_id BINARY(16) NULL,
-    owner_name VARCHAR(150) NOT NULL,
-    owner_phone VARCHAR(20) NOT NULL,
-    owner_email VARCHAR(254) NULL,
-    covered_quantity INT UNSIGNED NOT NULL DEFAULT 1,
-    starts_at DATETIME NOT NULL,
-    ends_at DATETIME NOT NULL,
-    status ENUM('ACTIVE', 'EXPIRED', 'VOID') NOT NULL DEFAULT 'ACTIVE',
-    void_reason VARCHAR(500) NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT uq_warranties_code UNIQUE (warranty_code),
-    CONSTRAINT uq_warranties_inventory_unit UNIQUE (inventory_unit_id),
-    CONSTRAINT chk_warranties_quantity CHECK (covered_quantity > 0),
-    CONSTRAINT chk_warranties_period CHECK (ends_at >= starts_at),
-    CONSTRAINT chk_warranties_serialized_quantity CHECK (
-        inventory_unit_id IS NULL OR covered_quantity = 1
-    ),
-    CONSTRAINT fk_warranties_order_item
-        FOREIGN KEY (order_item_id) REFERENCES order_items(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT fk_warranties_inventory_unit
-        FOREIGN KEY (inventory_unit_id) REFERENCES inventory_units(id)
-        ON DELETE SET NULL ON UPDATE RESTRICT,
-    CONSTRAINT fk_warranties_variant
-        FOREIGN KEY (product_variant_id) REFERENCES product_variants(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT fk_warranties_customer
-        FOREIGN KEY (customer_id) REFERENCES customer_profiles(user_id)
-        ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE=InnoDB;
-
-CREATE TABLE return_request_items (
-    id BINARY(16) NOT NULL PRIMARY KEY,
-    return_request_id BINARY(16) NOT NULL,
-    order_item_id BINARY(16) NOT NULL,
-    quantity INT UNSIGNED NOT NULL,
-    reason VARCHAR(1000) NULL,
-    condition_status ENUM(
-        'UNOPENED',
-        'OPENED',
-        'DAMAGED',
-        'DEFECTIVE',
-        'WRONG_ITEM',
-        'OTHER'
-    ) NULL,
-    resolution ENUM('RESTOCK', 'DEFECTIVE', 'REPAIR', 'SCRAP', 'EXCHANGE') NULL,
-    refund_amount DECIMAL(15,2) NOT NULL DEFAULT 0,
-
-    CONSTRAINT uq_return_request_items_order_item
-        UNIQUE (return_request_id, order_item_id),
-    CONSTRAINT chk_return_request_items_quantity CHECK (quantity > 0),
-    CONSTRAINT chk_return_request_items_refund CHECK (refund_amount >= 0),
-    CONSTRAINT fk_return_request_items_request
-        FOREIGN KEY (return_request_id) REFERENCES return_requests(id)
-        ON DELETE CASCADE ON UPDATE RESTRICT,
-    CONSTRAINT fk_return_request_items_order_item
-        FOREIGN KEY (order_item_id) REFERENCES order_items(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB;
-
-CREATE TABLE return_item_units (
-    return_request_item_id BINARY(16) NOT NULL,
-    inventory_unit_id BINARY(16) NOT NULL,
-    condition_status ENUM(
-        'UNOPENED',
-        'OPENED',
-        'DAMAGED',
-        'DEFECTIVE',
-        'WRONG_ITEM',
-        'OTHER'
-    ) NULL,
-    resolution ENUM('RESTOCK', 'DEFECTIVE', 'REPAIR', 'SCRAP', 'EXCHANGE') NULL,
-    inspection_note VARCHAR(1000) NULL,
-    PRIMARY KEY (return_request_item_id, inventory_unit_id),
-    CONSTRAINT uq_return_item_units_inventory_unit UNIQUE (inventory_unit_id),
-    CONSTRAINT fk_return_item_units_return_item
-        FOREIGN KEY (return_request_item_id) REFERENCES return_request_items(id)
-        ON DELETE CASCADE ON UPDATE RESTRICT,
-    CONSTRAINT fk_return_item_units_inventory_unit
-        FOREIGN KEY (inventory_unit_id) REFERENCES inventory_units(id)
-        ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB;
 

@@ -16,4 +16,16 @@ public interface InventoryService {
     // API Tra cứu chi tiết Warehouse Inventory record
     WarehouseInventory getWarehouseInventory(UUID warehouseId, UUID productVariantId);
     
+    org.springframework.data.domain.Page<WarehouseInventory> listBalances(int page, int size);
+    
+    org.springframework.data.domain.Page<com.re.ecommerce.modules.inventory.entity.InventoryUnit> listSerializedUnits(int page, int size);
+    
+    com.re.ecommerce.modules.inventory.entity.InventoryUnit lookupUnitByIdentifier(String identifier);
+    
+    org.springframework.data.domain.Page<com.re.ecommerce.modules.inventory.entity.StockTransaction> listLedger(int page, int size);
+    
+    org.springframework.data.domain.Page<com.re.ecommerce.modules.inventory.entity.StockReservation> listReservations(int page, int size);
+    
+    void createManualAdjustment(com.re.ecommerce.modules.inventory.dto.request.StockAdjustmentRequest request, String idempotencyKey);
+
 }

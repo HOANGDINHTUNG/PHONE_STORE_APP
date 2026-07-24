@@ -5,6 +5,8 @@ import com.re.ecommerce.modules.cart.dto.request.CartItemUpdateQuantityRequest;
 import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.cart.service.CartService;
 import com.re.ecommerce.common.exception.UnprocessableEntityException;
+import com.re.ecommerce.modules.auth.entity.User;
+import com.re.ecommerce.modules.auth.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class CartController {
 
     private final CartService cartService;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<CartResponse> getCart(
@@ -119,11 +122,10 @@ public class CartController {
     private UUID extractCustomerId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            try {
-                return UUID.fromString(auth.getName());
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
+            String username = auth.getName();
+            return userRepository.findByUsername(username)
+                    .map(User::getId)
+                    .orElse(null);
         }
         return null;
     }

@@ -8,7 +8,7 @@ import com.re.ecommerce.modules.orderreturn.enumeration.ReturnRequestStatus;
 import com.re.ecommerce.modules.orderreturn.repository.ReturnRequestRepository;
 import com.re.ecommerce.modules.orderreturn.service.ReturnRequestService;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
-import com.re.ecommerce.modules.order.repository.OrderRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import java.util.UUID;
 public class ReturnRequestServiceImpl implements ReturnRequestService {
 
     private final ReturnRequestRepository returnRequestRepository;
-    private final OrderRepository orderRepository;
+
     private final UserRepository userRepository;
 
     @Override

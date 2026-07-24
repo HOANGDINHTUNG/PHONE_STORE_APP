@@ -2,6 +2,7 @@ package com.re.ecommerce.modules.cart.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.re.ecommerce.modules.cart.dto.request.CouponCreateRequest;
+import com.re.ecommerce.modules.cart.dto.request.CouponTargetsRequest;
 import com.re.ecommerce.modules.cart.entity.Coupon;
 import com.re.ecommerce.modules.cart.entity.CouponStatus;
 import com.re.ecommerce.modules.cart.entity.CouponType;
@@ -23,6 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -77,7 +80,7 @@ public class AdminCouponControllerIntegrationTest {
         testCoupon.setCode("SUMMER2026");
         testCoupon.setType(CouponType.PERCENT);
         testCoupon.setDiscountValue(new BigDecimal("10.00"));
-        testCoupon.setAppliesToAll(true);
+        testCoupon.setAppliesToAll(false);
         testCoupon.setStartTime(LocalDateTime.now().minusDays(1));
         testCoupon.setEndTime(LocalDateTime.now().plusDays(10));
         testCoupon.setStatus(CouponStatus.ACTIVE);
@@ -108,6 +111,14 @@ public class AdminCouponControllerIntegrationTest {
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].code").value("SUMMER2026"));
     }
+    
+    @Test
+    void getCoupon_shouldSuccess() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/coupons/" + testCoupon.getId())
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUMMER2026"));
+    }
 
     @Test
     void createCoupon_shouldSuccess() throws Exception {
@@ -134,5 +145,29 @@ public class AdminCouponControllerIntegrationTest {
                         org.hamcrest.Matchers.equalTo(50.0)
                     )
                 ));
+    }
+    
+    @Test
+    void updateStatus_shouldSuccess() throws Exception {
+        mockMvc.perform(patch("/api/v1/admin/coupons/" + testCoupon.getId() + "/status")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("status", "INACTIVE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("INACTIVE"));
+    }
+    
+    @Test
+    void assignTargets_shouldSuccess() throws Exception {
+        CouponTargetsRequest request = new CouponTargetsRequest();
+        request.setBrandIds(List.of(UUID.randomUUID()));
+        request.setCategoryIds(List.of(UUID.randomUUID()));
+        request.setProductIds(List.of(UUID.randomUUID()));
+        
+        mockMvc.perform(post("/api/v1/admin/coupons/" + testCoupon.getId() + "/targets")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.appliesToAll").value(false)); // Should become false when targets assigned
     }
 }

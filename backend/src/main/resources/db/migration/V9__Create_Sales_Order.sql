@@ -17,7 +17,7 @@ CREATE TABLE orders (
     contact_phone VARCHAR(20) NOT NULL,
     receiver_name VARCHAR(150) NOT NULL,
     receiver_phone VARCHAR(20) NOT NULL,
-    shipping_country_code CHAR(2) NOT NULL DEFAULT 'VN',
+    shipping_country_code VARCHAR(2) NOT NULL DEFAULT 'VN',
     shipping_province_code VARCHAR(20) NULL,
     shipping_province_name VARCHAR(100) NOT NULL,
     shipping_district_code VARCHAR(20) NULL,
@@ -26,7 +26,7 @@ CREATE TABLE orders (
     shipping_ward_name VARCHAR(100) NOT NULL,
     shipping_detail_address VARCHAR(255) NOT NULL,
     shipping_postal_code VARCHAR(20) NULL,
-    currency CHAR(3) NOT NULL DEFAULT 'VND',
+    currency VARCHAR(3) NOT NULL DEFAULT 'VND',
     subtotal_amount DECIMAL(15,2) NOT NULL,
     discount_amount DECIMAL(15,2) NOT NULL DEFAULT 0,
     shipping_fee DECIMAL(15,2) NOT NULL DEFAULT 0,
@@ -50,6 +50,8 @@ CREATE TABLE orders (
     version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT uq_orders_code UNIQUE (order_code),
     CONSTRAINT uq_orders_idempotency UNIQUE (idempotency_key_hash),
@@ -93,6 +95,9 @@ CREATE TABLE order_items (
     line_total DECIMAL(15,2)
         GENERATED ALWAYS AS (unit_price * quantity - discount_amount) STORED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT uq_order_items_variant UNIQUE (order_id, product_variant_id),
     CONSTRAINT chk_order_items_price CHECK (unit_price >= 0),
@@ -127,6 +132,9 @@ CREATE TABLE order_status_histories (
     reason_code VARCHAR(100) NULL,
     note VARCHAR(1000) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT chk_order_status_histories_change CHECK (
         old_status IS NULL OR old_status <> new_status
@@ -151,6 +159,10 @@ CREATE TABLE coupon_usages (
     reserved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     consumed_at TIMESTAMP NULL,
     released_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
 
     CONSTRAINT uq_coupon_usages_order UNIQUE (order_id),
     CONSTRAINT chk_coupon_usages_discount CHECK (discount_amount >= 0),
@@ -171,5 +183,22 @@ CREATE TABLE coupon_usages (
         ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_coupon_usages_customer
         FOREIGN KEY (customer_id) REFERENCES users(id)
-        ON DELETE SET NULL ON UPDATE RESTRICT
+        ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB;
+
+-- ============================================================================
+-- REGION 08 - CROSS-MODULE FOREIGN KEYS (PROCUREMENT/INVENTORY -> SALES ORDER)
+-- ============================================================================
+
+ALTER TABLE stock_reservations
+    ADD CONSTRAINT fk_stock_reservations_order
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+        ON DELETE RESTRICT ON UPDATE RESTRICT,
+    ADD CONSTRAINT fk_stock_reservations_order_item
+        FOREIGN KEY (order_item_id) REFERENCES order_items(id)
+        ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE inventory_units
+    ADD CONSTRAINT fk_inventory_units_sold_order_item
+        FOREIGN KEY (sold_order_item_id) REFERENCES order_items(id)
+        ON DELETE SET NULL ON UPDATE RESTRICT;

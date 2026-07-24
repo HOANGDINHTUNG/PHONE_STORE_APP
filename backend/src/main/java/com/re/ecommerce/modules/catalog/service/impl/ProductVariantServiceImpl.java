@@ -190,8 +190,9 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     @Override
     @Transactional
     public void deleteImage(UUID variantId, UUID imageId) {
-        ProductVariant variant = variantRepository.findById(variantId)
-                .orElseThrow(() -> new ResourceNotFoundException("VARIANT_NOT_FOUND", "Variant not found"));
+        if (!variantRepository.existsById(variantId)) {
+            throw new ResourceNotFoundException("VARIANT_NOT_FOUND", "Variant not found");
+        }
 
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("IMAGE_NOT_FOUND", "Image not found"));

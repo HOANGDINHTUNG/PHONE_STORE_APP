@@ -218,6 +218,38 @@ Outcome, files changed, tests run, remaining risks.
 | Test plan/coverage | [[09-Chien-luoc-Testing]] + [[22-Test-Engineering-Nang-cao]] |
 | Phone Store feature | [[23-Blueprint-Phone-Store-Backend]] + yêu cầu/SQL/OpenAPI thật |
 | Production incident | [[24-Production-Troubleshooting-Playbook]] + telemetry/runbook |
+| Java race/thread/executor | [[25-Java-Concurrency-va-Collections-Nang-cao]] + invariant/thread dump/JFR |
+| Chọn pattern/refactor boundary | [[26-Design-Patterns-va-Anti-Patterns-Spring-Boot]] + module ADR |
+| Redis/cache/rate limit/lock | [[27-Redis-Cache-Data-Structures-va-Distributed-Lock]] + freshness/failure model |
+| Replica/backup/PITR/sharding | [[28-MySQL-Replication-Backup-va-Scaling]] + RPO/RTO/topology |
+| Gateway/tách microservice | [[29-Microservices-API-Gateway-va-Service-Communication]] + contract/SLO/ownership |
+| MVC/WebFlux/virtual thread | [[30-Spring-MVC-WebFlux-va-Virtual-Threads]] + profiling/load evidence |
+| Scheduler/batch/backfill | [[31-Background-Jobs-Scheduling-va-Spring-Batch]] + job/restart contract |
+| Upload/object storage/media | [[32-Object-Storage-va-File-Processing]] + data classification/retention |
+| Kubernetes/deployment | [[33-Kubernetes-Production-cho-Spring-Boot]] + manifests/SLO/capacity |
+| Metric/trace/log/alert | [[34-OpenTelemetry-Micrometer-va-Observability-Implementation]] + telemetry evidence |
+| CAP/consistency/clock/leader | [[35-Nen-tang-He-phan-tan-CAP-Clock-Consensus]] + operation failure model |
+| Chọn REST/gRPC/GraphQL/webhook | [[36-So-sanh-REST-gRPC-GraphQL-Webhooks-va-AsyncAPI]] + consumer/contract |
+| Multi-tenant/temporal/audit | [[37-Data-Modeling-Multi-Tenancy-Temporal-va-Audit]] + ownership/privacy |
+| Elasticsearch/product search | [[38-Search-Architecture-Elasticsearch-va-Projection]] + relevance/freshness SLO |
+| Kafka partition/rebalance/EOS | [[39-Kafka-Deep-Dive-Partition-Rebalance-EOS]] + topic/schema/consumer evidence |
+| Capacity/load test | [[40-Performance-Capacity-va-Load-Testing]] + workload/resource baseline |
+| DNS/TLS/HTTP2/LB/mesh | [[41-Networking-DNS-TLS-HTTP2-va-Load-Balancing]] + request-path evidence |
+| Threat/SBOM/provenance | [[42-Threat-Modeling-va-Software-Supply-Chain-Security]] + asset/artifact evidence |
+| GitOps/flag/canary/rollback | [[43-Release-Engineering-GitOps-Feature-Flags-va-Canary]] + compatibility/SLO |
+| Không biết nạp context nào | [[44-MOC-Mang-luoi-Tu-duy-Backend-Spring-Boot]] + task/symptom thật |
+| Phone Store end-to-end | [[45-Case-Study-Phone-Store-at-Scale]] + SRS/ADR/schema thật |
+| CQRS/Event Sourcing/projection | [[46-CQRS-Event-Sourcing-va-Read-Models]] + aggregate/query/evidence |
+| Saga/workflow nhiều service | [[47-Saga-Workflow-Orchestration-va-Choreography]] + state/deadline/compensation |
+| Chọn NoSQL/data store | [[48-NoSQL-Data-Store-Selection]] + access pattern/restore/cost |
+| Chọn Kafka/RabbitMQ/queue | [[49-Message-Broker-Queue-Selection-Kafka-RabbitMQ]] + delivery/replay/ordering |
+| Multi-region/DR/residency | [[50-Multi-Region-Architecture-DR-va-Data-Residency]] + RTO/RPO/authority |
+| Schema/backfill không downtime | [[51-Zero-Downtime-Schema-va-Data-Migration]] + mixed-version plan |
+| Privacy/retention/erasure | [[52-Privacy-Data-Governance-Retention-va-Erasure]] + policy/data lineage |
+| Platform/golden path | [[53-Platform-Engineering-IDP-va-Golden-Paths]] + platform API/user evidence |
+| Cost/FinOps | [[54-FinOps-Cost-Engineering-va-Unit-Economics]] + unit-cost/SLO baseline |
+| Incident/chaos | [[55-Incident-Management-OnCall-va-Chaos-Engineering]] + impact/runbook/abort |
+| Viết tri thức mới cho Agent | [[90-Template-Ghi-chu-Ky-thuat]] + source/project evidence |
 
 Agent không nên nạp toàn vault vào context nếu nhiệm vụ nhỏ. Chọn ghi chú đúng vấn đề để giảm nhiễu và ưu tiên project-specific rules mới nhất.
 
@@ -229,3 +261,32 @@ Agent không nên nạp toàn vault vào context nếu nhiệm vụ nhỏ. Chọ
 - Retry phải nêu idempotency và uncertain outcome.
 - Production troubleshooting ưu tiên read-only evidence và mitigation có rollback.
 - Không tự chạy destructive repair, mass update, index drop hoặc credential rotation nếu chưa có quyền rõ ràng.
+
+## 17. Quy tắc enterprise/platform
+
+- Không bật reactive/virtual thread/autoscaling chỉ bằng config rồi tuyên bố tăng performance; phải có workload model và benchmark.
+- Cache không được trở thành source of truth âm thầm; phải ghi freshness, invalidation, outage và cold-start behavior.
+- Distributed lock không thay database invariant; critical lease cần xem xét fencing token.
+- Replica read phải có consistency class; không đọc stale cho authorization, balance, stock hoặc read-your-writes nếu nghiệp vụ không cho phép.
+- Background job bắt buộc có operation ID, overlap/restart/idempotency và reconciliation policy.
+- Upload không được public trước validation/scan; presigned URL được xem như bearer credential.
+- Kubernetes liveness không phụ thuộc shared downstream; Secret phải có encryption/RBAC/rotation plan.
+- Metric label/span name phải bounded; không đưa ID người dùng/đơn hàng/raw URL vào label.
+- Microservice chỉ được đề xuất khi owner, data boundary, deploy/SLO/failure cost và migration được chứng minh.
+
+## 18. Quy tắc dùng knowledge graph
+
+- Bắt đầu từ [[44-MOC-Mang-luoi-Tu-duy-Backend-Spring-Boot]], chọn một context pack; không nạp toàn vault.
+- Mọi đề xuất phải nối chuỗi `requirement → invariant/threat → boundary/data owner → consistency/failure → mechanism → evidence → operations`.
+- Khi dùng case study, phải phân biệt rõ ví dụ giả định với requirement dự án; không copy traffic/schema/state vào code nếu chưa đối chiếu.
+- Claim “nhanh, scalable, secure, exactly-once, highly available, rollback được” phải đi kèm loại bằng chứng nêu trong MOC.
+- Khi lời khuyên giữa hai ghi chú khác nhau, kiểm tra version, workload và failure model rồi tạo ADR; không chọn âm thầm.
+- Thay đổi distributed state phải nêu timeout ambiguity, duplicate, ordering, partition và reconciliation.
+- Thay đổi protocol/schema phải có compatibility matrix giữa producer/consumer/version đang cùng chạy.
+- Thay đổi release/platform phải gắn artifact digest, telemetry, rollout gate và rollback/forward-fix.
+- Không đề xuất Event Sourcing khi CRUD/current-state đạt requirement; phải chứng minh audit/replay/history benefit vượt migration, schema evolution, privacy và ops cost.
+- Workflow dài phải có durable state, version, deadline, compensation/unknown/manual path; không dùng chuỗi event ngầm như state machine.
+- Database/broker mới phải chứng minh access pattern, hot partition, restore, upgrade, security, cost và on-call ownership.
+- Data migration phải giữ old/new app cùng tương thích; contract chỉ sau fallback/old-writer metric bằng 0 và rollback window.
+- Privacy unknown không được Agent tự quyết định; chọn minimization/no-new-persistence làm safe default và xin owner.
+- Incident action ưu tiên mitigation có stop condition; không chạy destructive repair/failover/chaos nếu authority chưa rõ.

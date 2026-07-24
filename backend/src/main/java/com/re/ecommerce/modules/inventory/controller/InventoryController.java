@@ -55,8 +55,61 @@ public class InventoryController {
             @PathVariable UUID warehouseId,
             @PathVariable UUID variantId
     ) {
-        // In a real prod environment, this should map to a DTO.
-        // Returning entity directly here to simplify the example logic, as agreed on rapid P0 development
         return ResponseEntity.ok(inventoryService.getWarehouseInventory(warehouseId, variantId));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_INVENTORY_VIEW')")
+    public ResponseEntity<org.springframework.data.domain.Page<WarehouseInventory>> listBalances(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(inventoryService.listBalances(page, size));
+    }
+
+    @GetMapping("/units")
+    @PreAuthorize("hasAuthority('SCOPE_INVENTORY_VIEW')")
+    public ResponseEntity<org.springframework.data.domain.Page<com.re.ecommerce.modules.inventory.entity.InventoryUnit>> listSerializedUnits(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(inventoryService.listSerializedUnits(page, size));
+    }
+
+    @GetMapping("/identifiers/{identifier}")
+    @PreAuthorize("hasAuthority('SCOPE_INVENTORY_VIEW')")
+    public ResponseEntity<com.re.ecommerce.modules.inventory.entity.InventoryUnit> lookupUnitByIdentifier(
+            @PathVariable String identifier
+    ) {
+        return ResponseEntity.ok(inventoryService.lookupUnitByIdentifier(identifier));
+    }
+
+    @GetMapping("/transactions")
+    @PreAuthorize("hasAuthority('SCOPE_INVENTORY_VIEW')")
+    public ResponseEntity<org.springframework.data.domain.Page<com.re.ecommerce.modules.inventory.entity.StockTransaction>> listLedger(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(inventoryService.listLedger(page, size));
+    }
+
+    @GetMapping("/stock-reservations")
+    @PreAuthorize("hasAuthority('SCOPE_INVENTORY_VIEW')")
+    public ResponseEntity<org.springframework.data.domain.Page<com.re.ecommerce.modules.inventory.entity.StockReservation>> listReservations(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(inventoryService.listReservations(page, size));
+    }
+
+    @PostMapping("/adjustments")
+    @PreAuthorize("hasAuthority('SCOPE_INVENTORY_ADJUST')")
+    public ResponseEntity<Void> createManualAdjustment(
+            @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.StockAdjustmentRequest request,
+            @RequestHeader("X-Idempotency-Key") String idempotencyKey
+    ) {
+        log.info("Creating manual inventory adjustment, idempotency: {}", idempotencyKey);
+        inventoryService.createManualAdjustment(request, idempotencyKey);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).build();
     }
 }

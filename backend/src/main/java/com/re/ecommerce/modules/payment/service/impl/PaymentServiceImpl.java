@@ -4,7 +4,6 @@ import com.re.ecommerce.common.exception.BusinessConflictException;
 import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.order.repository.OrderRepository;
 import com.re.ecommerce.modules.order.entity.Order;
-import com.re.ecommerce.modules.order.enums.OrderStatus;
 import com.re.ecommerce.modules.payment.dto.request.ManualPaymentRequest;
 import com.re.ecommerce.modules.payment.dto.request.PaymentAttemptRequest;
 import com.re.ecommerce.modules.payment.entity.*;

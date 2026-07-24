@@ -215,3 +215,10 @@ Duplicate/overlapping index cần so prefix và covering fields; không xóa ch�
 9. Deploy canary và theo dõi.
 10. Ghi kết quả vào vault/ADR.
 
+## 17. Kết nối mở rộng
+
+- Capacity/load curve thay vì đo query đơn lẻ: [[40-Performance-Capacity-va-Load-Testing]].
+- Tenant, temporal và audit index shapes: [[37-Data-Modeling-Multi-Tenancy-Temporal-va-Audit]].
+- Khi relational query không còn đáp ứng search semantics: [[38-Search-Architecture-Elasticsearch-va-Projection]].
+- Replica/failover/PITR: [[28-MySQL-Replication-Backup-va-Scaling]].
+- Case có stock/order/search: [[45-Case-Study-Phone-Store-at-Scale]].

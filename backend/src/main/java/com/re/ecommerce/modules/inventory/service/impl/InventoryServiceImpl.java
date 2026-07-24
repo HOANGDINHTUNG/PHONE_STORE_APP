@@ -3,7 +3,6 @@ package com.re.ecommerce.modules.inventory.service.impl;
 import com.re.ecommerce.common.exception.BusinessConflictException;
 import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.catalog.entity.ProductVariant;
-import com.re.ecommerce.modules.catalog.repository.ProductVariantRepository;
 import com.re.ecommerce.modules.inventory.dto.request.StockImportRequest;
 import com.re.ecommerce.modules.inventory.entity.*;
 import com.re.ecommerce.modules.inventory.entity.enums.*;
@@ -25,6 +24,8 @@ public class InventoryServiceImpl implements InventoryService {
     private final PurchaseOrderItemRepository purchaseOrderItemRepository;
     private final InventoryUnitRepository inventoryUnitRepository;
     private final StockTransactionRepository stockTransactionRepository;
+    private final InventoryUnitIdentifierRepository inventoryUnitIdentifierRepository;
+    private final StockReservationRepository stockReservationRepository;
 
     @Override
     @Transactional
@@ -138,5 +139,77 @@ public class InventoryServiceImpl implements InventoryService {
     public WarehouseInventory getWarehouseInventory(UUID warehouseId, UUID productVariantId) {
         return warehouseInventoryRepository.findById(new WarehouseInventoryId(warehouseId, productVariantId))
                 .orElseThrow(() -> new ResourceNotFoundException("INVENTORY_NOT_FOUND", "Chưa có dữ liệu tồn kho cho sản phẩm này tại kho"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<WarehouseInventory> listBalances(int page, int size) {
+        return warehouseInventoryRepository.findAll(org.springframework.data.domain.PageRequest.of(page - 1, size));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<InventoryUnit> listSerializedUnits(int page, int size) {
+        return inventoryUnitRepository.findAll(org.springframework.data.domain.PageRequest.of(page - 1, size));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InventoryUnit lookupUnitByIdentifier(String identifier) {
+        return inventoryUnitIdentifierRepository.findByNormalizedIdentifier(identifier.toUpperCase().trim())
+                .map(InventoryUnitIdentifier::getInventoryUnit)
+                .orElseThrow(() -> new ResourceNotFoundException("UNIT_NOT_FOUND", "Không tìm thấy Unit với Identifier: " + identifier));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<StockTransaction> listLedger(int page, int size) {
+        return stockTransactionRepository.findAll(org.springframework.data.domain.PageRequest.of(page - 1, size));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<StockReservation> listReservations(int page, int size) {
+        return stockReservationRepository.findAll(org.springframework.data.domain.PageRequest.of(page - 1, size));
+    }
+
+    @Override
+    @Transactional
+    public void createManualAdjustment(com.re.ecommerce.modules.inventory.dto.request.StockAdjustmentRequest request, String idempotencyKey) {
+        // Minimal functional P0 validation & manual adjustment
+        WarehouseInventoryId invId = new WarehouseInventoryId(request.warehouseId(), request.productVariantId());
+        WarehouseInventory inv = warehouseInventoryRepository.findByIdWithLock(invId)
+                .orElseThrow(() -> new ResourceNotFoundException("INVENTORY_NOT_FOUND", "Chưa có dữ liệu tồn kho"));
+        
+        int onHandBefore = inv.getOnHandQuantity();
+        int reservedBefore = inv.getReservedQuantity();
+        
+        if ("ADJUST_OUT".equalsIgnoreCase(request.direction())) {
+            if (onHandBefore - reservedBefore < request.quantity()) {
+                throw new BusinessConflictException("INSUFFICIENT_STOCK", "Tồn kho không đủ để xuất");
+            }
+            inv.setOnHandQuantity(onHandBefore - request.quantity());
+        } else if ("ADJUST_IN".equalsIgnoreCase(request.direction())) {
+            inv.setOnHandQuantity(onHandBefore + request.quantity());
+        } else {
+            throw new BusinessConflictException("INVALID_DIRECTION", "Direction API phải là ADJUST_IN hoặc ADJUST_OUT");
+        }
+        
+        warehouseInventoryRepository.save(inv);
+        
+        StockTransaction tx = new StockTransaction();
+        tx.setWarehouse(inv.getWarehouse());
+        tx.setProductVariant(inv.getProductVariant());
+        tx.setTransactionType("ADJUST_IN".equalsIgnoreCase(request.direction()) ? StockTransactionType.ADJUST_IN : StockTransactionType.ADJUST_OUT);
+        tx.setQuantity(request.quantity());
+        tx.setOnHandBefore(onHandBefore);
+        tx.setOnHandAfter(inv.getOnHandQuantity());
+        tx.setReservedBefore(reservedBefore);
+        tx.setReservedAfter(reservedBefore);
+        tx.setReferenceType(StockReferenceType.MANUAL_ADJUSTMENT);
+        tx.setReferenceId(null);
+        tx.setCreatedBy("MANUAL_LOG_ACCOUNT");
+        
+        stockTransactionRepository.save(tx);
     }
 }

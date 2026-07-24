@@ -1,5 +1,6 @@
 package com.re.ecommerce.modules.inventory.service;
 
+import com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest;
 import com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderRequest;
 import com.re.ecommerce.modules.inventory.dto.response.PurchaseOrderResponse;
 import com.re.ecommerce.modules.inventory.entity.enums.PurchaseOrderStatus;
@@ -20,6 +21,14 @@ public interface PurchaseOrderService {
     PurchaseOrderResponse createPurchaseOrder(PurchaseOrderRequest request);
 
     PurchaseOrderResponse updatePurchaseOrder(UUID id, PurchaseOrderRequest request);
+
+    PurchaseOrderResponse addItem(UUID poId, PurchaseOrderItemRequest request);
+
+    PurchaseOrderResponse updateItem(UUID poId, UUID itemId, PurchaseOrderItemRequest request);
+
+    PurchaseOrderResponse removeItem(UUID poId, UUID itemId);
+
+    PurchaseOrderResponse submitPurchaseOrder(UUID id, UUID submittedBy);
 
     PurchaseOrderResponse approvePurchaseOrder(UUID id, UUID approvedBy);
     

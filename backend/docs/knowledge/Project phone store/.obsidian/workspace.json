@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "01-Chinh-sach-kiem-chung-nguon.md",
+                "file": "11-Docker-CICD-va-Van-hanh.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01-Chinh-sach-kiem-chung-nguon"
+              "title": "11-Docker-CICD-va-Van-hanh"
             }
           }
         ]
@@ -185,31 +185,31 @@
   },
   "active": "be420910f22fd884",
   "lastOpenFiles": [
-    "00-README.md",
+    "90-Template-Ghi-chu-Ky-thuat.md",
+    "99-Danh-muc-nguon-chuan.md",
+    "45-Case-Study-Phone-Store-at-Scale.md",
+    "44-MOC-Mang-luoi-Tu-duy-Backend-Spring-Boot.md",
+    "43-Release-Engineering-GitOps-Feature-Flags-va-Canary.md",
     "01-Chinh-sach-kiem-chung-nguon.md",
+    "02-Nen-tang-Backend.md",
+    "35-Nen-tang-He-phan-tan-CAP-Clock-Consensus.md",
+    "33-Kubernetes-Production-cho-Spring-Boot.md",
+    "36-So-sanh-REST-gRPC-GraphQL-Webhooks-va-AsyncAPI.md",
+    "12-Bo-quy-tac-cho-AI-Agent.md",
+    "13-Checklist-Definition-of-Done.md",
+    "14-DDD-va-Modular-Monolith-Nang-cao.md",
+    "15-Spring-Internals-AOP-va-Request-Lifecycle.md",
+    "16-MySQL-Optimizer-va-Index-Nang-cao.md",
+    "04-Kien-truc-va-cau-truc-code.md",
+    "03-Java-21-va-Spring-Boot-Core.md",
+    "00-README.md",
     "24-Production-Troubleshooting-Playbook.md",
     "CHANGELOG.md",
     "11-Docker-CICD-va-Van-hanh.md",
     "09-Chien-luoc-Testing.md",
     "08-Spring-Security-va-API-Security.md",
     "06-Database-va-toi-uu-SQL-MySQL.md",
-    "04-Kien-truc-va-cau-truc-code.md",
-    "02-Nen-tang-Backend.md",
-    "16-MySQL-Optimizer-va-Index-Nang-cao.md",
-    "90-Template-Ghi-chu-Ky-thuat.md",
-    "03-Java-21-va-Spring-Boot-Core.md",
-    "99-Danh-muc-nguon-chuan.md",
     "23-Blueprint-Phone-Store-Backend.md",
-    "22-Test-Engineering-Nang-cao.md",
-    "21-Distributed-Reliability-va-Resilience4j.md",
-    "20-JVM-Memory-GC-va-Profiling.md",
-    "19-OAuth2-OIDC-va-Token-Security-Nang-cao.md",
-    "18-Event-Driven-Outbox-va-Kafka.md",
-    "17-Concurrency-Isolation-va-Idempotency-Nang-cao.md",
-    "15-Spring-Internals-AOP-va-Request-Lifecycle.md",
-    "14-DDD-va-Modular-Monolith-Nang-cao.md",
-    "13-Checklist-Definition-of-Done.md",
-    "12-Bo-quy-tac-cho-AI-Agent.md",
-    "10-Observability-Performance-Reliability.md"
+    "22-Test-Engineering-Nang-cao.md"
   ]
 }

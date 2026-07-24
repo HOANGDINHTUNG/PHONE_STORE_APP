@@ -58,6 +58,44 @@ public class PurchaseOrderController {
         return ResponseEntity.ok(purchaseOrderService.updatePurchaseOrder(id, request));
     }
 
+    @PostMapping("/{id}/items")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    public ResponseEntity<PurchaseOrderResponse> addItem(
+            @PathVariable UUID id,
+            @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest request) {
+        log.info("Adding item to PO {}", id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchaseOrderService.addItem(id, request));
+    }
+
+    @PatchMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    public ResponseEntity<PurchaseOrderResponse> updateItem(
+            @PathVariable UUID id,
+            @PathVariable UUID itemId,
+            @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest request) {
+        log.info("Updating item {} in PO {}", itemId, id);
+        return ResponseEntity.ok(purchaseOrderService.updateItem(id, itemId, request));
+    }
+
+    @DeleteMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    public ResponseEntity<PurchaseOrderResponse> removeItem(
+            @PathVariable UUID id,
+            @PathVariable UUID itemId) {
+        log.info("Removing item {} from PO {}", itemId, id);
+        return ResponseEntity.ok(purchaseOrderService.removeItem(id, itemId));
+    }
+
+    @PostMapping("/{id}/submit")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    public ResponseEntity<PurchaseOrderResponse> submitPurchaseOrder(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID submitterId = UUID.fromString(authentication.getName());
+        log.info("Submitting PO {} by user {}", id, submitterId);
+        return ResponseEntity.ok(purchaseOrderService.submitPurchaseOrder(id, submitterId));
+    }
+
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('SCOPE_PO_APPROVE')")
     public ResponseEntity<PurchaseOrderResponse> approvePurchaseOrder(

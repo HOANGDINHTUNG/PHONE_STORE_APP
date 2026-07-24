@@ -280,3 +280,32 @@ ADR/concurrency/security decision liên quan
 
 Không đưa riêng blueprint rồi cho Agent tự bịa business requirement.
 
+## 17. Cache và search/read scaling tùy chọn
+
+- Product detail/list có thể cache nếu freshness cho price/availability được định nghĩa; stock authoritative không lấy từ cache khi đặt hàng.
+- Key phải chứa catalog version/filter/sort/page hoặc cursor và tenant/locale nếu response phụ thuộc chúng.
+- Invalidate catalog sau commit; TTL jitter và cold-cache protection.
+- Search engine/read replica chỉ thêm khi MySQL access plan/SLO chứng minh cần; product update → projection có lag và reconciliation.
+- Customer vừa cập nhật/đặt hàng cần read-your-writes từ primary hoặc consistency token phù hợp.
+
+## 18. File/image workflow
+
+- Product image upload dùng session + object key opaque + presigned URL thời hạn ngắn.
+- Metadata ở `catalog`, bytes ở object storage; state `INITIATED/SCANNING/AVAILABLE/REJECTED`.
+- Chỉ admin/staff có permission được tạo upload session; object không public trước validation/scan/transform.
+- Variant thumbnail là derived object versioned; delete product không xóa bytes tức thì nếu retention/audit còn cần.
+- Reconciliation xử lý orphan object và upload stuck.
+
+## 19. Deployment profile
+
+- API và consumer có thể là Deployment riêng nếu scale/lifecycle khác, nhưng vẫn cùng modular monolith codebase ở giai đoạn đầu.
+- Reservation expiry/reconciliation dùng durable job có operation ID và lease/idempotency, không dựa duy nhất vào một `@Scheduled` in-memory.
+- Liveness chỉ phản ánh process unrecoverable; readiness/drain bảo vệ rolling deploy.
+- DB migration chạy một controlled job/stage và theo expand-contract.
+- Dashboard P0: checkout success/latency, stock conflict, payment unknown, outbox lag, DB pool, Redis hit/eviction, pod restart và version.
+
+## 20. Case study và knowledge graph
+
+- Bản thực hành đầy đủ có SQL, code, event, failure và release: [[45-Case-Study-Phone-Store-at-Scale]].
+- Router chọn context cho từng task: [[44-MOC-Mang-luoi-Tu-duy-Backend-Spring-Boot]].
+- Các giả định trong case study không thay SRS/ADR/schema thật của dự án.

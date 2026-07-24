@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     Optional<Order> findByOrderCode(String orderCode);
     Optional<Order> findByIdempotencyKeyHash(byte[] idempotencyKeyHash);
+    org.springframework.data.domain.Page<Order> findByCustomer_Id(UUID customerId, org.springframework.data.domain.Pageable pageable);
+    Optional<Order> findByCustomer_IdAndOrderCode(UUID customerId, String orderCode);
 }

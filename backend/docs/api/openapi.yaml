@@ -11,11 +11,506 @@ servers:
 
 paths:
 
+  /api/v1/cart:
+    get:
+      tags:
+        - Cart
+      summary: Get cart info
+      responses:
+        '200':
+          description: OK
+  /api/v1/cart/items:
+    post:
+      tags:
+        - Cart
+      summary: Add to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+    put:
+      tags:
+        - Cart
+      summary: Update cart item quantity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /api/v1/cart/items/{itemId}:
+    delete:
+      tags:
+        - Cart
+      summary: Delete Cart Item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+  /api/v1/cart/merge:
+    post:
+      tags:
+        - Cart
+      summary: Merge Guest Cart
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/coupons:
+    get:
+      tags:
+        - Admin Coupons
+      summary: get all coupons
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Admin Coupons
+      summary: Create Coupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/coupons/{code}:
+    get:
+      tags:
+        - Admin Coupons
+      summary: Get Coupon
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+        - Admin Coupons
+      summary: Invalidate Coupon
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/coupons/{code}/targets:
+    post:
+      tags:
+        - Admin Coupons
+      summary: Add Subjects
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /api/v1/products:
+    get:
+      tags:
+        - Product Catalog
+      summary: Search products public
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: brandId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+  /api/v1/products/{slug}:
+    get:
+      tags:
+        - Product Catalog
+      summary: Get product by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/admin/products:
+    get:
+      tags:
+        - Admin Catalog
+      summary: Admin list products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - Admin Catalog
+      summary: Admin create product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Created
+  /api/v1/admin/products/{productId}:
+    get:
+      tags:
+        - Admin Catalog
+      summary: Admin get product detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin update product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+  /api/v1/admin/products/{productId}/status:
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin update product status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/admin/products/{productId}/specifications:
+    put:
+      tags:
+        - Admin Catalog
+      summary: Admin update product specifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+  /api/v1/admin/products/{productId}/attributes:
+    put:
+      tags:
+        - Admin Catalog
+      summary: Admin update product attributes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+  /api/v1/brands:
+    get:
+      tags:
+        - Product Catalog
+      summary: List public brands
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/admin/brands:
+    get:
+      tags:
+        - Admin Catalog
+      summary: Admin list brands
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - Admin Catalog
+      summary: Admin create brand
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Created
+  /api/v1/admin/brands/{brandId}:
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin update brand
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+  /api/v1/admin/brands/{brandId}/status:
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin change brand status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/me/shipping-addresses:
+    get:
+      tags:
+        - Shipping Address
+      summary: List user shipping addresses
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - Shipping Address
+      summary: Create shipping address
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Created
+  /api/v1/me/shipping-addresses/{id}:
+    get:
+      tags:
+        - Shipping Address
+      summary: Get address details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+    patch:
+      tags:
+        - Shipping Address
+      summary: Update shipping address
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+    delete:
+      tags:
+        - Shipping Address
+      summary: Delete address
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Deleted
+  /api/v1/me/shipping-addresses/{id}/set-default:
+    post:
+      tags:
+        - Shipping Address
+      summary: Set address as default
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Updated
   /api/v1/departments:
     get:
       tags:
         - Organization Management
-      summary: Láº¥y danh sÃ¡ch phÃ²ng ban
+      summary: API Endpoint
       parameters:
         - name: page
           in: query
@@ -31,7 +526,7 @@ paths:
     post:
       tags:
         - Organization Management
-      summary: Táº¡o phÃ²ng ban má»›i
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -49,7 +544,7 @@ paths:
     put:
       tags:
         - Organization Management
-      summary: Cáº­p nháº­t phÃ²ng ban
+      summary: API Endpoint
       parameters:
         - name: id
           in: path
@@ -74,14 +569,14 @@ paths:
     get:
       tags:
         - Organization Management
-      summary: Láº¥y danh sÃ¡ch chá»©c vá»¥
+      summary: API Endpoint
       responses:
         '200':
           description: OK
     post:
       tags:
         - Organization Management
-      summary: Táº¡o chá»©c vá»¥ má»›i
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -99,14 +594,14 @@ paths:
     get:
       tags:
         - Organization Management
-      summary: Danh sÃ¡ch Roles
+      summary: API Endpoint
       responses:
         '200':
           description: OK
     post:
       tags:
         - Organization Management
-      summary: Táº¡o Role má»›i
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -120,14 +615,14 @@ paths:
     get:
       tags:
         - Organization Management
-      summary: Láº¥y danh sÃ¡ch nhÃ¢n viÃªn
+      summary: API Endpoint
       responses:
         '200':
           description: OK
     post:
       tags:
         - Organization Management
-      summary: Táº¡o nhÃ¢n viÃªn má»›i
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -141,14 +636,14 @@ paths:
     get:
       tags:
         - Procurement and Inventory
-      summary: Láº¥y danh sÃ¡ch kho bÃ£i
+      summary: API Endpoint
       responses:
         '200':
           description: OK
     post:
       tags:
         - Procurement and Inventory
-      summary: Táº¡o kho bÃ£i má»›i
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -162,7 +657,7 @@ paths:
     put:
       tags:
         - Procurement and Inventory
-      summary: Sá»­a thÃ´ng tin kho bÃ£i
+      summary: API Endpoint
       parameters:
         - name: id
           in: path
@@ -183,14 +678,14 @@ paths:
     get:
       tags:
         - Procurement and Inventory
-      summary: Láº¥y danh sÃ¡ch NCC
+      summary: API Endpoint
       responses:
         '200':
           description: OK
     post:
       tags:
         - Procurement and Inventory
-      summary: Táº¡o nhÃ  cung cáº¥p má»›i
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -204,7 +699,7 @@ paths:
     put:
       tags:
         - Procurement and Inventory
-      summary: Cáº­p nháº­t nhÃ  cung cáº¥p
+      summary: API Endpoint
       parameters:
         - name: id
           in: path
@@ -225,14 +720,14 @@ paths:
     get:
       tags:
         - Procurement and Inventory
-      summary: Láº¥y danh sÃ¡ch PO
+      summary: API Endpoint
       responses:
         '200':
           description: OK
     post:
       tags:
         - Procurement and Inventory
-      summary: Táº¡o PO nháº­p hÃ ng
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -261,7 +756,7 @@ paths:
     post:
       tags:
         - Procurement and Inventory
-      summary: Nháº­n hÃ ng vÃ o kho tá»« PO (Inventory Ledger Tx)
+      summary: API Endpoint
       parameters:
         - name: poId
           in: path
@@ -278,12 +773,12 @@ paths:
       responses:
         '200':
           description: OK
-      /auth/register:
+  /api/v1/auth/register:
     post:
       tags:
         - Authentication
-      summary: ÄÄƒng kÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng má»›i
-      description: Táº¡o má»™t tÃ i khoáº£n ngÆ°á»i dÃ¹ng má»›i vá»›i vai trÃ² máº·c Ä‘á»‹nh (USER). Tráº£ vá» JWT Access Token náº¿u thÃ nh cÃ´ng.
+      summary: API Endpoint
+      description: API Description
       operationId: registerUser
       requestBody:
         required: true
@@ -293,35 +788,35 @@ paths:
               $ref: "#/components/schemas/RegisterRequest"
       responses:
         "201":
-          description: ÄÄƒng kÃ½ thÃ nh cÃ´ng vÃ  Ä‘Ã£ táº¡o phiÃªn Ä‘Äƒng nháº­p.
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Dá»¯ liá»‡u khÃ´ng há»£p lá»‡ hoáº·c lá»—i nghiá»‡p vá»¥ (nhÆ° trÃ¹ng username/email, lá»—i Ä‘Äƒng kÃ½).
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
                 UsernameTaken:
-                  summary: TrÃ¹ng tÃªn Ä‘Äƒng nháº­p
+                  summary: API Endpoint
                   value:
                     errorCode: BAD_REQUEST
                     message: Username is already taken
                     correlationId: df185ee6-d7e7-494b-a63e-f1b203c9bf82
                 EmailRegistered:
-                  summary: TrÃ¹ng Ä‘á»‹a chá»‰ email
+                  summary: API Endpoint
                   value:
                     errorCode: BAD_REQUEST
                     message: Email is already registered
                     correlationId: a5f2da51-419b-4e08-9fd1-cb4be6c1e345
                 ValidationFailed:
-                  summary: Lá»—i validation dá»¯ liá»‡u Ä‘áº§u vÃ o
+                  summary: API Endpoint
                   value:
                     errorCode: VALIDATION_FAILED
-                    message: Dá»¯ liá»‡u Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡.
+                    message: Error
                     fieldErrors:
                       username: Username must be between 3 and 100 characters
                       email: Invalid email format
@@ -331,8 +826,8 @@ paths:
     post:
       tags:
         - Authentication
-      summary: ÄÄƒng nháº­p vÃ o há»‡ thá»‘ng
-      description: XÃ¡c thá»±c báº±ng tÃªn ngÆ°á»i dÃ¹ng vÃ  máº­t kháº©u Ä‘á»ƒ láº¥y mÃ£ JWT Access Token.
+      summary: API Endpoint
+      description: API Description
       operationId: loginUser
       requestBody:
         required: true
@@ -342,35 +837,35 @@ paths:
               $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: ÄÄƒng nháº­p thÃ nh cÃ´ng.
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: ÄÄƒng nháº­p tháº¥t báº¡i (sai thÃ´ng tin xÃ¡c thá»±c, tÃ i khoáº£n bá»‹ khoÃ¡, hoáº·c dá»¯ liá»‡u trá»‘ng).
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
                 InvalidCredentials:
-                  summary: Sai tÃ i khoáº£n hoáº·c máº­t kháº©u
+                  summary: API Endpoint
                   value:
                     errorCode: BAD_REQUEST
                     message: Invalid username or password
                     correlationId: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
                 UserDeactivated:
-                  summary: TÃ i khoáº£n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hoÃ¡
+                  summary: API Endpoint
                   value:
                     errorCode: BAD_REQUEST
                     message: User account is deactivated
                     correlationId: 2df3e485-bc75-4d0f-8973-455bdaef3841
                 ValidationFailed:
-                  summary: Trá»‘ng trÆ°á»ng thÃ´ng tin báº¯t buá»™c
+                  summary: API Endpoint
                   value:
                     errorCode: VALIDATION_FAILED
-                    message: Dá»¯ liá»‡u Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡.
+                    message: Error
                     fieldErrors:
                       username: Username is required
                       password: Password is required
@@ -379,8 +874,8 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Khá»Ÿi táº¡o láº¡i Access Token má»¡i
-      description: DÃ¹ng Refresh Token Ä‘á»ƒ láº¥y phiÃªn má»›i.
+      summary: API Endpoint
+      description: API Description
       operationId: refreshToken
       requestBody:
         required: true
@@ -390,7 +885,7 @@ paths:
               $ref: "#/components/schemas/TokenRefreshRequest"
       responses:
         "200":
-          description: Refresh thÃ nh cÃ´ng.
+          description: API Description
           content:
             application/json:
               schema:
@@ -399,7 +894,7 @@ paths:
     post:
       tags:
         - Authentication
-      summary: ÄÄƒng xuáº¥t phiÃªn hiá»‡n táº¡i
+      summary: API Endpoint
       operationId: logoutUser
       security:
         - BearerAuth: []
@@ -411,12 +906,12 @@ paths:
               $ref: "#/components/schemas/LogoutRequest"
       responses:
         "204":
-          description: ÄÃ£ vÃ´ hiá»‡u hoÃ¡ Token thÃ nh cÃ´ng.
+          description: API Description
   /auth/email-verifications:
     post:
       tags:
         - Authentication
-      summary: Gá»­i láº¡i email xÃ¡c minh
+      summary: API Endpoint
       operationId: resendVerificationEmail
       requestBody:
         required: true
@@ -426,12 +921,12 @@ paths:
               $ref: "#/components/schemas/EmailVerificationRequest"
       responses:
         "202":
-          description: YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c cháº¥p nháº­n.
+          description: API Description
   /auth/email-verifications/confirm:
     post:
       tags:
         - Authentication
-      summary: XÃ¡c minh Ä‘á»‹a chá»‰ email má»›i Ä‘Äƒng kÃ½
+      summary: API Endpoint
       operationId: confirmEmail
       requestBody:
         required: true
@@ -441,12 +936,12 @@ paths:
               $ref: "#/components/schemas/EmailVerificationConfirmRequest"
       responses:
         "204":
-          description: XÃ¡c minh thÃ nh cÃ´ng.
+          description: API Description
   /auth/password-reset-requests:
     post:
       tags:
         - Authentication
-      summary: YÃªu cáº§u Ä‘áº·t láº¡i máº­t kháº©u (quÃªn máº­t kháº©u)
+      summary: API Endpoint
       operationId: requestPasswordReset
       requestBody:
         required: true
@@ -456,12 +951,12 @@ paths:
               $ref: "#/components/schemas/PasswordResetRequest"
       responses:
         "202":
-          description: YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c cháº¥p nháº­n.
+          description: API Description
   /auth/password-resets/confirm:
     post:
       tags:
         - Authentication
-      summary: XÃ¡c nháº­n Ä‘á»•i máº­t kháº©u vá»›i Token OTP
+      summary: API Endpoint
       operationId: confirmPasswordReset
       requestBody:
         required: true
@@ -471,18 +966,18 @@ paths:
               $ref: "#/components/schemas/PasswordResetConfirmRequest"
       responses:
         "204":
-          description: Máº­t kháº©u Ä‘á»•i thÃ nh cÃ´ng.
+          description: API Description
   /me:
     get:
       tags:
         - Profile
-      summary: Láº¥y há»“ sÆ¡ tÃ i khoáº£n hiá»‡n hÃ nh
+      summary: API Endpoint
       operationId: getCurrentProfile
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Há»“ sÆ¡ thÃ nh cÃ´ng.
+          description: API Description
           content:
             application/json:
               schema:
@@ -490,7 +985,7 @@ paths:
     patch:
       tags:
         - Profile
-      summary: Cáº­p nháº­t há»“ sÆ¡ tÃ i khoáº£n
+      summary: API Endpoint
       operationId: updateCurrentProfile
       security:
         - BearerAuth: []
@@ -502,7 +997,7 @@ paths:
               $ref: "#/components/schemas/UserProfileUpdateRequest"
       responses:
         "200":
-          description: Cáº­p nháº­t thÃ nh cÃ´ng.
+          description: API Description
           content:
             application/json:
               schema:
@@ -511,7 +1006,7 @@ paths:
     get:
       tags:
         - Admin User Management
-      summary: Danh sÃ¡ch account ngÆ°á»i dÃ¹ng
+      summary: API Endpoint
       operationId: listUsers
       security:
         - BearerAuth: []
@@ -537,7 +1032,7 @@ paths:
     get:
       tags:
         - Admin User Management
-      summary: Chi tiáº¿t tÃ i khoáº£n
+      summary: API Endpoint
       operationId: getUser
       security:
         - BearerAuth: []
@@ -558,7 +1053,7 @@ paths:
     patch:
       tags:
         - Admin User Management
-      summary: Sá»­a thÃ´ng tin tÃ i khoáº£n
+      summary: API Endpoint
       operationId: adminUpdateUser
       security:
         - BearerAuth: []
@@ -577,15 +1072,15 @@ paths:
               $ref: "#/components/schemas/UserUpdateAdminRequest"
       responses:
         "200":
-          description: Cáº­p nháº­t thÃ´ng tin tÃ i khoáº£n thÃ nh cÃ´ng.
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponse"
         "400":
-          description: Format data lá»—i.
+          description: API Description
         "409":
-          description: Lá»—i nghiá»‡p vá»¥ (trÃ¹ng phone).
+          description: API Description
           content:
             application/json:
               schema:
@@ -594,7 +1089,7 @@ paths:
     patch:
       tags:
         - Admin User Management
-      summary: KhÃ³a má» tÃ i khoáº£n
+      summary: API Endpoint
       operationId: changeUserStatus
       security:
         - BearerAuth: []
@@ -621,12 +1116,12 @@ paths:
     get:
       tags:
         - Category
-      summary: Láº¥y cÃ¢y danh má»¥c sáº£n pháº©m Ä‘ang hoáº¡t Ä‘á»™ng
-      description: Tráº£ vá» danh sÃ¡ch cáº¥p báº­c cÃ¢y danh má»¥c Ä‘ang hoáº¡t Ä‘á»™ng (ACTIVE). Phá»¥c vá»¥ cÃ´ng khai cho khÃ¡ch hÃ ng vÃ£ng lai.
+      summary: API Endpoint
+      description: API Description
       operationId: getActiveCategoryTree
       responses:
         "200":
-          description: Láº¥y cÃ¢y danh má»¥c thÃ nh cÃ´ng
+          description: API Description
           content:
             application/json:
               schema:
@@ -639,8 +1134,8 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Liá»‡t kÃª danh má»¥c cho quáº£n trá»‹ viÃªn
-      description: Tráº£ vá» toÃ n bá»™ danh má»¥c sáº£n pháº©m (cáº£ hoáº¡t Ä‘á»™ng vÃ  khÃ´ng hoáº¡t Ä‘á»™ng) kÃ¨m bá»™ lá»c phá»¥c vá»¥ quáº£n lÃ½ sáº£n pháº©m.
+      summary: API Endpoint
+      description: API Description
       operationId: adminListCategories
       parameters:
         - name: status
@@ -656,7 +1151,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Danh sÃ¡ch danh má»¥c pháº£n há»“i thÃ nh cÃ´ng
+          description: API Description
           content:
             application/json:
               schema:
@@ -664,16 +1159,16 @@ paths:
                 items:
                   $ref: "#/components/schemas/CategoryResponse"
         "401":
-          description: ChÆ°a xÃ¡c thá»±c token truy cáº­p.
+          description: API Description
         "403":
-          description: KhÃ´ng cÃ³ quyá»n truy cáº­p.
+          description: API Description
     post:
       security:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Táº¡o má»›i má»™t danh má»¥c sáº£n pháº©m
-      description: Táº¡o má»›i danh má»¥c, tá»± Ä‘á»™ng táº¡o slug tá»« tÃªn danh má»¥c. Cáº§n quyá»n admin.
+      summary: API Endpoint
+      description: API Description
       operationId: createCategory
       requestBody:
         required: true
@@ -683,32 +1178,32 @@ paths:
               $ref: "#/components/schemas/CategoryRequest"
       responses:
         "201":
-          description: Táº¡o danh má»¥c má»›i thÃ nh cÃ´ng
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "400":
-          description: Lá»—i dá»¯ liá»‡u Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡.
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "409":
-          description: TrÃ¹ng láº·p slug danh má»¥c sáº£n pháº©m.
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
                 SlugExists:
-                  summary: Slug danh má»¥c Ä‘Ã£ tá»“n táº¡i
+                  summary: API Endpoint
                   value:
                     errorCode: CATEGORY_SLUG_EXISTS
-                    message: "Slug danh má»¥c Ä‘Ã£ tá»“n táº¡i: laptop"
+                    message: Error
                     correlationId: db6ef274-129b-4e08-9fd1-cb4be6c1e345
         "422":
-          description: Ngoáº¡i lá»‡ logic (vÃ­ dá»¥ danh má»¥c cha Ä‘Æ°á»£c chá»‰ Ä‘á»‹nh Ä‘ang á»Ÿ tráº¡ng thÃ¡i INACTIVE).
+          description: API Description
           content:
             application/json:
               schema:
@@ -719,7 +1214,7 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Láº¥y chi tiáº¿t thÃ´ng tin má»™t danh má»¥c
+      summary: API Endpoint
       operationId: getCategoryById
       parameters:
         - name: categoryId
@@ -730,13 +1225,13 @@ paths:
             format: uuid
       responses:
         "200":
-          description: Láº¥y chi tiáº¿t thÃ nh cÃ´ng
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "404":
-          description: KhÃ´ng tÃ¬m tháº¥y danh má»¥c.
+          description: API Description
           content:
             application/json:
               schema:
@@ -747,8 +1242,8 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Cáº­p nháº­t thÃ´ng tin danh má»¥c sáº£n pháº©m
-      description: Chá»‰nh sá»­a cÃ¡c trÆ°á»ng cá»§a danh má»¥c. KhÃ´ng há»— trá»£ Ä‘á»•i trá»±c tiáº¿p status qua Ä‘Ã¢y. Khá»­ vÃ²ng láº·p phÃ¢n cáº¥p.
+      summary: API Endpoint
+      description: API Description
       operationId: updateCategory
       parameters:
         - name: categoryId
@@ -765,17 +1260,17 @@ paths:
               $ref: "#/components/schemas/CategoryRequest"
       responses:
         "200":
-          description: Cáº­p nháº­t thÃ nh cÃ´ng
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "400":
-          description: Báº£n ghi sai Ä‘á»‹nh dáº¡ng.
+          description: API Description
         "404":
-          description: KhÃ´ng tÃ¬m tháº¥y danh má»¥c hoáº·c danh má»¥c cha cáº­p nháº­t.
+          description: API Description
         "422":
-          description: PhÃ¡t hiá»‡n vÃ²ng láº·p phÃ¢n cáº¥p (Category Cycle).
+          description: API Description
           content:
             application/json:
               schema:
@@ -786,8 +1281,8 @@ paths:
         - bearerAuth: []
       tags:
         - Category Admin
-      summary: Thay Ä‘á»•i tráº¡ng thÃ¡i hoáº¡t Ä‘á»™ng cá»§a danh má»¥c
-      description: KÃ­ch hoáº¡t (ACTIVE) hoáº·c há»§y kÃ­ch hoáº¡t (INACTIVE) danh má»¥c.
+      summary: API Endpoint
+      description: API Description
       operationId: changeCategoryStatus
       parameters:
         - name: categoryId
@@ -804,23 +1299,22 @@ paths:
             enum: [ACTIVE, INACTIVE]
       responses:
         "200":
-          description: Thay Ä‘á»•i tráº¡ng thÃ¡i thÃ nh cÃ´ng
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryResponse"
         "409":
-          description: Lá»—i rÃ ng buá»™c sáº£n pháº©m con Ä‘ang hoáº¡t Ä‘á»™ng hoáº·c danh má»¥c cha Ä‘ang áº©n.
+          description: API Description
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-
   /api/v1/orders/checkout:
     post:
       tags:
         - Sales Order Management
-      summary: Táº¡o Ä‘Æ¡n hÃ ng tá»« giá» hÃ ng (Checkout)
+      summary: API Endpoint
       requestBody:
         required: true
         content:
@@ -838,7 +1332,7 @@ paths:
     get:
       tags:
         - Sales Order Management
-      summary: Láº¥y lá»‹ch sá»­ Ä‘Æ¡n hÃ ng cá»§a tÃ´i
+      summary: API Endpoint
       responses:
         '200':
           description: OK
@@ -846,7 +1340,7 @@ paths:
     get:
       tags:
         - Sales Order Management
-      summary: Chi tiáº¿t Ä‘Æ¡n hÃ ng cá»§a customer
+      summary: API Endpoint
       parameters:
         - name: orderCode
           in: path
@@ -864,7 +1358,7 @@ paths:
     get:
       tags:
         - Sales Order Management
-      summary: Danh sÃ¡ch Ä‘Æ¡n hÃ ng (váº­n hÃ nh)
+      summary: API Endpoint
       responses:
         '200':
           description: OK
@@ -872,7 +1366,7 @@ paths:
     post:
       tags:
         - Sales Order Management
-      summary: XÃ¡c nháº­n Ä‘Æ¡n hÃ ng (Duyá»‡t Ä‘Æ¡n)
+      summary: API Endpoint
       parameters:
         - name: orderId
           in: path
@@ -884,131 +1378,131 @@ paths:
         '204':
           description: OK
 
-/warranties/generate/{orderId}:
-  post:
-    tags:
-      - Warranty
-    summary: System Trigger - Sinh báº£o hÃ nh tá»± Ä‘á»™ng
-    responses:
-      "200":
-        description: OK
-/me/warranties:
-  get:
-    security:
-      - BearerAuth: []
-    tags:
-      - Warranty
-    summary: Láº¥y danh sÃ¡ch báº£o hÃ nh cÃ¡ nhÃ¢n
-    responses:
-      "200":
-        description: OK
-/warranties/{warrantyCode}/claims:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Warranty
-    summary: NhÃ¢n viÃªn báº£o hÃ nh táº¡o yÃªu cáº§u claim
-    responses:
-      "201":
-        description: Created
-/admin/warranty-claims/{claimId}/status:
-  patch:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Warranty
-    summary: Quáº£n lÃ½ thay Ä‘á»•i tráº¡ng thÃ¡i báº£o hÃ nh
-    responses:
-      "200":
-        description: OK
-/orders/{orderCode}/return-requests:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Return, Exchange and Refund
-    summary: Táº¡o yÃªu cáº§u Ä‘á»•i tráº£
-    responses:
-      "201":
-        description: Created
-/admin/return-requests/{returnId}/approve:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Return
-    summary: Duyá»‡t tráº£ hÃ ng
-    responses:
-      "200":
-        description: OK
-/admin/return-requests/{returnId}/reject:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Return
-    summary: Tá»« chá»‘i tráº£ hÃ ng
-    responses:
-      "200":
-        description: OK
-/admin/return-requests/{returnId}/receive:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Return
-    summary: Kho nháº­n láº¡i thiáº¿t bá»‹
-    responses:
-      "200":
-        description: OK
-/admin/return-requests/{returnId}/inspect:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Return
-    summary: Ká»¹ thuáº­t kiá»ƒm Ä‘á»‹nh
-    responses:
-      "200":
-        description: OK
-/admin/return-requests/{returnId}/complete:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Return
-    summary: HoÃ n táº¥t Ä‘á»•i tráº£
-    responses:
-      "200":
-        description: OK
-/admin/refunds:
+  /warranties/generate/{orderId}:
+    post:
+      tags:
+        - Warranty
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /me/warranties:
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - Warranty
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /warranties/{warrantyCode}/claims:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Warranty
+      summary: API Endpoint
+      responses:
+        "201":
+          description: Created
+  /admin/warranty-claims/{claimId}/status:
+    patch:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Warranty
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /orders/{orderCode}/return-requests:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Return, Exchange and Refund
+      summary: API Endpoint
+      responses:
+        "201":
+          description: Created
+  /admin/return-requests/{returnId}/approve:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /admin/return-requests/{returnId}/reject:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /admin/return-requests/{returnId}/receive:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /admin/return-requests/{returnId}/inspect:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /admin/return-requests/{returnId}/complete:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /admin/refunds:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Refund
+      summary: API Endpoint
+      responses:
+        "201":
+          description: Created
+  /admin/refunds/{refundId}/approve:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Refund
+      summary: API Endpoint
+      responses:
+        "200":
+          description: OK
+  /admin/refunds/{refundId}/confirm-manual:
   post:
     security:
       - BearerAuth: []
     tags:
       - Admin Refund
-    summary: Táº¡o lá»‡nh hoÃ n tiá»n
-    responses:
-      "201":
-        description: Created
-/admin/refunds/{refundId}/approve:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Refund
-    summary: Duyá»‡t duyá»‡t hoÃ n tiá»n
-    responses:
-      "200":
-        description: OK
-/admin/refunds/{refundId}/confirm-manual:
-  post:
-    security:
-      - BearerAuth: []
-    tags:
-      - Admin Refund
-    summary: HoÃ n táº¥t chuyá»ƒn khoáº£n thá»§ cÃ´ng
+    summary: API Endpoint
     responses:
       "200":
         description: OK
@@ -1029,10 +1523,10 @@ components:
           example: "HR01"
         name:
           type: string
-          example: "PhÃ²ng NhÃ¢n Sá»±"
+          example: "example"
         description:
           type: string
-          example: "Quáº£n lÃ½ nhÃ¢n sá»± vÃ  tiá»n lÆ°Æ¡ng"
+          example: "example"
       required: [code, name]
     DepartmentResponse:
       type: object
@@ -1046,10 +1540,10 @@ components:
           example: "HR01"
         name:
           type: string
-          example: "PhÃ²ng NhÃ¢n Sá»±"
+          example: "example"
         description:
           type: string
-          example: "Quáº£n lÃ½ nhÃ¢n sá»± vÃ  tiá»n lÆ°Æ¡ng"
+          example: "example"
     PositionRequest:
       type: object
       properties:
@@ -1058,10 +1552,10 @@ components:
           example: "MGR"
         name:
           type: string
-          example: "TrÆ°á»Ÿng phÃ²ng"
+          example: "example"
         description:
           type: string
-          example: "Quáº£n lÃ½ chung"
+          example: "example"
       required: [code, name]
     PositionResponse:
       type: object
@@ -1075,7 +1569,7 @@ components:
           example: "MGR"
         name:
           type: string
-          example: "TrÆ°á»Ÿng phÃ²ng"
+          example: "example"
     RoleRequest:
       type: object
       properties:
@@ -1084,10 +1578,10 @@ components:
           example: "ADMIN"
         name:
           type: string
-          example: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng"
+          example: "example"
         description:
           type: string
-          example: "Full quyá»n"
+          example: "example"
       required: [roleCode, name]
     RoleResponse:
       type: object
@@ -1101,7 +1595,7 @@ components:
           example: "ADMIN"
         name:
           type: string
-          example: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng"
+          example: "example"
     StaffRequest:
       type: object
       properties:
@@ -1143,13 +1637,13 @@ components:
           example: "WH-HCM-01"
         name:
           type: string
-          example: "Kho Tá»•ng TÃ¢n BÃ¬nh"
+          example: "example"
         phone:
           type: string
           example: "0901234567"
         address:
           type: string
-          example: "KCN TÃ¢n BÃ¬nh, TPHCM"
+          example: "example"
       required: [code, name]
     WarehouseResponse:
       type: object
@@ -1163,13 +1657,13 @@ components:
           example: "WH-HCM-01"
         name:
           type: string
-          example: "Kho Tá»•ng TÃ¢n BÃ¬nh"
+          example: "example"
         phone:
           type: string
           example: "0901234567"
         address:
           type: string
-          example: "KCN TÃ¢n BÃ¬nh, TPHCM"
+          example: "example"
     SupplierRequest:
       type: object
       properties:
@@ -1184,7 +1678,7 @@ components:
           example: "0101234567"
         contactName:
           type: string
-          example: "Nguyá»…n VÄƒn A"
+          example: "example"
         phone:
           type: string
           example: "0987654321"
@@ -1193,7 +1687,7 @@ components:
           example: "contact@apple.vn"
         address:
           type: string
-          example: "Quáº­n 1, TP HCM"
+          example: "example"
       required: [supplierCode, name]
     SupplierResponse:
       type: object
@@ -1247,7 +1741,7 @@ components:
           example: "2024-12-31T23:59:59Z"
         note:
           type: string
-          example: "Nháº­p lÃ´ iPhone 15 Pro Max cuá»‘i nÄƒm"
+          example: "example"
         items:
           type: array
           items:
@@ -1342,11 +1836,11 @@ components:
       properties:
         accessToken:
           type: string
-          description: JWT Access Token dÃ¹ng cho cÃ¡c API yÃªu cáº§u xÃ¡c thá»±c
+          description: API Description
           example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2dpbnVzZXIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc...
         refreshToken:
           type: string
-          description: Token dÃ i háº¡n Ä‘á»ƒ refresh Token Access
+          description: API Description
           example: bda3e8c9-fa20-4b2a-87ef...
         tokenType:
           type: string
@@ -1357,6 +1851,134 @@ components:
         role:
           type: string
           example: USER
+    CartItemRequest:
+      type: object
+      required:
+        - productVariantId
+        - quantity
+      properties:
+        productVariantId:
+          type: string
+        quantity:
+          type: integer
+    CartResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    CouponCreateRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+    CouponResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+    CouponTargetsRequest:
+      type: object
+      properties:
+        subjects:
+          type: array
+          items:
+            type: string
+    ProductPublicResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+    ProductAdminResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+    ProductCreateRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+    ProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    SpecificationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    SpecificationRequest:
+      type: object
+      properties:
+        specs:
+          type: array
+          items:
+            type: string
+    AttributeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    AttributeRequest:
+      type: object
+      properties:
+        attrs:
+          type: array
+          items:
+            type: string
+    BrandResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    BrandRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    AddressResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        street:
+          type: string
+    AddressCreateRequest:
+      type: object
+      properties:
+        street:
+          type: string
+    AddressUpdateRequest:
+      type: object
+      properties:
+        street:
+          type: string
     ApiError:
       type: object
       required:
@@ -1366,22 +1988,22 @@ components:
       properties:
         errorCode:
           type: string
-          description: MÃ£ lá»—i Ä‘á»‹nh danh nghiá»‡p vá»¥ hoáº·c há»‡ thá»‘ng.
+          description: API Description
           example: BAD_REQUEST
         message:
           type: string
-          description: Chi tiáº¿t thÃ´ng tin lá»—i hoáº·c thÃ´ng bÃ¡o hiá»ƒn thá»‹ cho ngÆ°á»i dÃ¹ng.
+          description: API Description
           example: Invalid username or password
         correlationId:
           type: string
           format: uuid
-          description: MÃ£ UUID duy nháº¥t gáº¯n liá»n vá»›i log lá»—i Ä‘á»ƒ phá»¥c vá»¥ viá»‡c truy váº¿t tá»« quáº£n trá»‹ viÃªn.
+          description: API Description
           example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
         fieldErrors:
           type: object
           additionalProperties:
             type: string
-          description: Táº­p há»£p cÃ¡c lá»—i validation cá»§a tá»«ng trÆ°á»ng nghiá»‡p vá»¥ (chá»‰ hiá»ƒn thá»‹ khi errorCode lÃ  VALIDATION_FAILED).
+          description: API Description
           example:
             username: Username is required
             password: Password is required
@@ -1394,7 +2016,7 @@ components:
           type: string
           minLength: 2
           maxLength: 150
-          example: Äiá»‡n thoáº¡i
+          example: "example"
         parentId:
           type: string
           format: uuid
@@ -1402,7 +2024,7 @@ components:
           example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
         description:
           type: string
-          example: Danh má»¥c cÃ¡c dÃ²ng Ä‘iá»‡n thoáº¡i di Ä‘á»™ng thÃ´ng minh
+          example: "example"
         status:
           type: string
           enum: [ACTIVE, INACTIVE]
@@ -1435,14 +2057,14 @@ components:
           example: null
         name:
           type: string
-          example: Äiá»‡n thoáº¡i
+          example: "example"
         slug:
           type: string
           example: dien-thoai
         description:
           type: string
           nullable: true
-          example: Danh má»¥c Ä‘iá»‡n thoáº¡i
+          example: "example"
         status:
           type: string
           enum: [ACTIVE, INACTIVE]

@@ -146,3 +146,10 @@ Giới hạn theo nhiều dimension: IP, account, API key, tenant, endpoint và 
 - tắt CSRF/CORS mà không ghi threat model;
 - lưu refresh token plaintext không có kiểm soát.
 
+## 16. Kết nối mở rộng
+
+- Threat model và abuse case: [[42-Threat-Modeling-va-Software-Supply-Chain-Security]].
+- Tenant/object authorization: [[37-Data-Modeling-Multi-Tenancy-Temporal-va-Audit]].
+- TLS, trusted proxy và network identity: [[41-Networking-DNS-TLS-HTTP2-va-Load-Balancing]].
+- GraphQL/gRPC/webhook security: [[36-So-sanh-REST-gRPC-GraphQL-Webhooks-va-AsyncAPI]].
+- Release/security evidence: [[43-Release-Engineering-GitOps-Feature-Flags-va-Canary]].

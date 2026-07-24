@@ -103,6 +103,51 @@ verified_on: 2026-07-21
 - [ ] Canary/rolling/blue-green plan rõ.
 - [ ] Rollback và owner/on-call.
 
+## 7A. Cache, job và file review
+
+- [ ] Cache có source of truth, freshness, key/TTL/version và invalidation sau commit.
+- [ ] Cold cache/Redis outage/stampede không vượt DB/downstream capacity.
+- [ ] Distributed lock có token/TTL và invariant hoặc fencing phù hợp.
+- [ ] Job có stable operation ID, overlap, idempotency, restart/checkpoint và reconciliation.
+- [ ] Backfill bounded, resumable, observable và có stop condition.
+- [ ] Upload được authorize, giới hạn size/type/signature, scan/quarantine trước khi public.
+- [ ] Presigned URL quyền tối thiểu, TTL ngắn; multipart/orphan/delete có lifecycle.
+
+## 7B. Kubernetes và telemetry review
+
+- [ ] Startup/readiness/liveness đúng semantics và đã failure-test.
+- [ ] JVM/container requests/limits có headroom và dựa trên profiling.
+- [ ] Graceful drain nằm trong termination grace period.
+- [ ] Rollout, topology, disruption budget và rollback signal rõ.
+- [ ] Config/Secret có validation, encryption, least privilege và rotation.
+- [ ] Autoscaling không tạo connection/downstream storm.
+- [ ] Trace context xuyên HTTP/async/message; resource version nhận diện được.
+- [ ] Metric label/span name bounded, không lộ PII/secret.
+- [ ] Alert gắn SLO, owner, dashboard và runbook.
+
+## 7C. Distributed, API và projection review
+
+- [ ] Operation nêu consistency model và behavior khi timeout/partition.
+- [ ] Unknown outcome, duplicate, ordering và reconciliation đã thiết kế.
+- [ ] Protocol REST/gRPC/GraphQL/webhook/event được chọn theo consumer/interaction.
+- [ ] Schema/API/event compatibility được test qua mixed versions.
+- [ ] Kafka key/partition/offset/rebalance/retry/DLQ semantics rõ.
+- [ ] Search projection có source of truth, aggregate version, freshness và full rebuild/alias rollback.
+- [ ] Replica/cache/search stale không tham gia quyết định correctness ngoài policy.
+- [ ] Multi-tenant key/FK/repository/authorization chặn cross-tenant.
+
+## 7D. Supply chain và release review
+
+- [ ] Threat model xác định asset, trust boundary, abuse case và residual risk.
+- [ ] Dependency khóa/checksum/owner; CVE exception có evidence và expiry.
+- [ ] Artifact immutable theo digest, có SBOM/provenance/signature theo policy.
+- [ ] CI dùng least-privilege short-lived identity; untrusted PR không có production secret.
+- [ ] GitOps desired state, drift và emergency reconciliation rõ.
+- [ ] Flag có owner/default/failure mode/expiry/removal issue.
+- [ ] Canary so business + technical metrics và đủ sample.
+- [ ] Rollback đã kiểm tra schema/event/state compatibility.
+- [ ] Capacity test gồm steady/spike/soak/N−1/cold dependency.
+
 ## 8. Definition of Done cho một feature
 
 Feature chỉ Done khi:
@@ -130,3 +175,44 @@ Không merge/release nếu:
 - breaking API/schema không có migration/consumer plan;
 - không có rollback cho thay đổi có blast radius lớn;
 - Agent không xác định được version/requirement nhưng vẫn dùng API suy đoán.
+- backup/PITR chưa từng restore-test nhưng thay đổi có nguy cơ mất dữ liệu;
+- cache/replica stale được dùng cho quyết định correctness/security mà không có consistency policy;
+- liveness/probe/autoscaling có thể tạo restart hoặc connection storm chưa được kiểm thử;
+- upload chưa scan nhưng có thể được tải/xử lý như nội dung tin cậy.
+- distributed command báo thất bại khi outcome còn UNKNOWN nhưng không có reconciliation;
+- event/search projection không có version/rebuild nên replay có thể làm state lùi;
+- artifact mutable/không truy được source hoặc bypass verification không có approval/audit;
+- release breaking schema/event mà old và new version phải chạy đồng thời;
+- claim capacity/HA/rollback nhưng chưa có workload/failure drill tương ứng.
+
+## 7E. CQRS, saga và messaging review
+
+- [ ] CQRS được phân biệt với Event Sourcing và integration events.
+- [ ] Event store/source of truth, stream version, snapshot và projection ownership rõ.
+- [ ] Projection duplicate/out-of-order/rebuild/schema evolution được test.
+- [ ] Saga chỉ dùng khi local transaction không hợp lý; state/pivot/compensation/deadline rõ.
+- [ ] Timeout external side effect có UNKNOWN/reconcile, không blind retry.
+- [ ] Broker được chọn theo work queue/pub-sub/stream, replay, ordering và routing.
+- [ ] Oldest message age, retry/DLQ và poison recovery có owner.
+
+## 7F. Migration, DR và privacy review
+
+- [ ] Migration dùng expand–migrate–contract; old/new app compatibility được test.
+- [ ] Backfill bounded, resumable, conditional và có reconciliation.
+- [ ] DDL lock/disk/replica/abort behavior được preflight đúng engine/version.
+- [ ] RTO/RPO theo capability được business duyệt và restore/failover đã drill.
+- [ ] Failover có fencing/authority; failback và reconciliation rõ.
+- [ ] Data inventory/lineage/classification/retention có owner.
+- [ ] Erasure phủ DB/cache/search/object/log/event/processor/backup semantics.
+- [ ] Privacy unknown chọn minimization/safe default, không suy đoán luật.
+
+## 7G. Platform, cost và incident review
+
+- [ ] Golden path là self-service contract có version/update/escape hatch.
+- [ ] Service catalog có owner, tier, dependency, SLO, runbook và data class.
+- [ ] Cost được normalize theo business unit; trước/sau giữ SLO/security/DR.
+- [ ] Compute/DB/storage/network/telemetry/retry cost đều được xét.
+- [ ] On-call role, severity, escalation, dashboard và mitigation runbook rõ.
+- [ ] Postmortem action có owner/date và system control.
+- [ ] Chaos experiment có hypothesis, steady-state SLI, blast radius, abort và rollback.
+- [ ] Mọi note/ADR mới đạt gate của [[90-Template-Ghi-chu-Ky-thuat]].
