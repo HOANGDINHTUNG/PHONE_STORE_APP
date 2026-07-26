@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.inventory.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.common.dto.PagedResponse;
 import com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderRequest;
 import com.re.ecommerce.modules.inventory.dto.response.PurchaseOrderResponse;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "7. Procurement and Inventory")
 @RestController
 @RequestMapping("/api/v1/purchase-orders")
 @RequiredArgsConstructor
@@ -45,7 +48,7 @@ public class PurchaseOrderController {
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
     public ResponseEntity<PurchaseOrderResponse> createPurchaseOrder(@Valid @RequestBody PurchaseOrderRequest request) {
-        log.info("Creating Purchase Order: {}", request.purchaseOrderCode());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(purchaseOrderService.createPurchaseOrder(request));
     }
 
@@ -54,7 +57,7 @@ public class PurchaseOrderController {
     public ResponseEntity<PurchaseOrderResponse> updatePurchaseOrder(
             @PathVariable UUID id,
             @Valid @RequestBody PurchaseOrderRequest request) {
-        log.info("Updating Purchase Order: {}", id);
+
         return ResponseEntity.ok(purchaseOrderService.updatePurchaseOrder(id, request));
     }
 
@@ -63,7 +66,7 @@ public class PurchaseOrderController {
     public ResponseEntity<PurchaseOrderResponse> addItem(
             @PathVariable UUID id,
             @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest request) {
-        log.info("Adding item to PO {}", id);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(purchaseOrderService.addItem(id, request));
     }
 
@@ -73,7 +76,7 @@ public class PurchaseOrderController {
             @PathVariable UUID id,
             @PathVariable UUID itemId,
             @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest request) {
-        log.info("Updating item {} in PO {}", itemId, id);
+
         return ResponseEntity.ok(purchaseOrderService.updateItem(id, itemId, request));
     }
 
@@ -82,7 +85,7 @@ public class PurchaseOrderController {
     public ResponseEntity<PurchaseOrderResponse> removeItem(
             @PathVariable UUID id,
             @PathVariable UUID itemId) {
-        log.info("Removing item {} from PO {}", itemId, id);
+
         return ResponseEntity.ok(purchaseOrderService.removeItem(id, itemId));
     }
 
@@ -92,7 +95,7 @@ public class PurchaseOrderController {
             @PathVariable UUID id,
             Authentication authentication) {
         UUID submitterId = UUID.fromString(authentication.getName());
-        log.info("Submitting PO {} by user {}", id, submitterId);
+
         return ResponseEntity.ok(purchaseOrderService.submitPurchaseOrder(id, submitterId));
     }
 
@@ -102,7 +105,7 @@ public class PurchaseOrderController {
             @PathVariable UUID id,
             Authentication authentication) {
         UUID approverId = UUID.fromString(authentication.getName());
-        log.info("Approving PO {} by user {}", id, approverId);
+
         return ResponseEntity.ok(purchaseOrderService.approvePurchaseOrder(id, approverId));
     }
 
@@ -113,7 +116,7 @@ public class PurchaseOrderController {
             @RequestParam String cancelReason,
             Authentication authentication) {
         UUID cancellerId = UUID.fromString(authentication.getName());
-        log.info("Canceling PO {} by user {}, reason: {}", id, cancellerId, cancelReason);
+
         return ResponseEntity.ok(purchaseOrderService.cancelPurchaseOrder(id, cancellerId, cancelReason));
     }
 }

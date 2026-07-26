@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.orderreturn.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.orderreturn.dto.request.InspectReturnRequest;
 import com.re.ecommerce.modules.orderreturn.service.ReturnRequestService;
 import jakarta.validation.Valid;
@@ -9,9 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.re.ecommerce.modules.auth.entity.User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.Collections;
 
 import java.util.UUID;
 
+@Tag(name = "15. Admin Return")
 @RestController
 @RequestMapping("/api/v1/admin/return-requests")
 @RequiredArgsConstructor
@@ -65,5 +70,17 @@ public class AdminReturnRequestController {
         UUID staffId = currentUser.getId();
         returnRequestService.completeReturn(returnId, staffId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAdminReturnRequests() {
+        return ResponseEntity.ok(Collections.emptyMap());
+    }
+
+    @GetMapping("/{requestId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAdminReturnRequestDetail(@PathVariable UUID requestId) {
+        return ResponseEntity.ok(Collections.emptyMap());
     }
 }

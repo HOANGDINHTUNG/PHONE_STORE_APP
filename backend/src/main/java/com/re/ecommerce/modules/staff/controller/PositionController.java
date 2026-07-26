@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.staff.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.common.dto.PagedResponse;
 import com.re.ecommerce.modules.staff.dto.request.PositionRequest;
 import com.re.ecommerce.modules.staff.dto.response.PositionResponse;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "3. Organization Management")
 @RestController
 @RequestMapping("/api/v1/admin/positions")
 @RequiredArgsConstructor
@@ -31,14 +34,20 @@ public class PositionController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        log.debug("Pulling hierarchical positions. Dep. ID: {}, State: {}, Page params: {}", departmentId, status, page);
+
         return ResponseEntity.ok(positionService.listPositions(departmentId, status, keyword, page, size));
+    }
+
+    @GetMapping("/{positionId}")
+    @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN')")
+    public ResponseEntity<PositionResponse> getPositionById(@PathVariable UUID positionId) {
+        return ResponseEntity.ok(positionService.getPosition(positionId));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('POSITION_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PositionResponse> createPosition(@Valid @RequestBody PositionRequest request) {
-        log.info("Defining core functionality scope mapped node Position title.");
+
         PositionResponse response = positionService.createPosition(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -48,7 +57,7 @@ public class PositionController {
     public ResponseEntity<PositionResponse> updatePosition(
             @PathVariable UUID positionId,
             @Valid @RequestBody PositionRequest request) {
-        log.info("Recasting physical attributes array applied dynamically to Node Position ID: {}", positionId);
+
         return ResponseEntity.ok(positionService.updatePosition(positionId, request));
     }
 
@@ -57,7 +66,7 @@ public class PositionController {
     public ResponseEntity<PositionResponse> changePositionStatus(
             @PathVariable UUID positionId,
             @RequestParam OrganizationStatus status) {
-        log.info("Manually re-verifying constraints mapping for explicit Role State: {} mapped -> Target: {}", positionId, status);
+
         return ResponseEntity.ok(positionService.changeStatus(positionId, status));
     }
 }

@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.order.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.common.dto.PagedResponse;
 import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @Slf4j
+@Tag(name = "11. Sales Order Management")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -86,5 +89,60 @@ public class OrderController {
         User admin = userRepository.findByUsername(username).orElseThrow();
         orderService.confirmOrder(admin, orderId);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/admin/orders/{orderId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> getAdminOrder(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.getAdminOrder(orderId));
+    }
+
+    @PostMapping("/admin/orders/{orderId}/cancel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> cancelAdminOrder(
+            @PathVariable UUID orderId,
+            @RequestParam String reason) {
+        return ResponseEntity.ok(orderService.cancelOrder(null, orderId, reason));
+    }
+
+    @PostMapping("/admin/orders/{orderId}/start-processing")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> startProcessing(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.startProcessing(orderId));
+    }
+
+    @PostMapping("/internal/orders/{orderId}/complete")
+    @PreAuthorize("hasRole('SYSTEM') or hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> completeOrder(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.completeOrder(orderId));
+    }
+
+    @PostMapping("/orders/{orderId}/cancel")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<OrderResponse> cancelMyOrder(
+            @AuthenticationPrincipal String username,
+            @PathVariable UUID orderId,
+            @RequestParam String reason) {
+        User currentUser = userRepository.findByUsername(username).orElseThrow();
+        return ResponseEntity.ok(orderService.cancelOrder(currentUser, orderId, reason));
+    }
+
+    @GetMapping("/orders/{orderId}/payment")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> getOrderPayment(
+            @AuthenticationPrincipal String username,
+            @PathVariable UUID orderId) {
+        return ResponseEntity.ok("https://payment.local/mock/" + orderId);
+    }
+
+    @GetMapping("/guest-orders/{accessLink}")
+    public ResponseEntity<OrderResponse> getGuestOrder(@PathVariable String accessLink) {
+        return ResponseEntity.ok(orderService.getGuestOrder(accessLink));
+    }
+
+    @PostMapping("/guest-orders/access-links")
+    public ResponseEntity<String> generateGuestAccessLink(
+            @RequestParam String orderCode,
+            @RequestParam String email) {
+        return ResponseEntity.ok(orderService.generateGuestAccessLink(orderCode, email));
     }
 }

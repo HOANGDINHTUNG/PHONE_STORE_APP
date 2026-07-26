@@ -369,4 +369,51 @@ public class OrderServiceImpl implements OrderService {
                 .items(itemDtos)
                 .build();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getAdminOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        return toResponse(order, orderItemRepository.findByOrderId(order.getId()));
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse startProcessing(UUID orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        order.setStatus(OrderStatus.PROCESSING);
+        return toResponse(orderRepository.save(order), orderItemRepository.findByOrderId(order.getId()));
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse completeOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        order.setStatus(OrderStatus.COMPLETED);
+        order.setCompletedAt(LocalDateTime.now());
+        return toResponse(orderRepository.save(order), orderItemRepository.findByOrderId(order.getId()));
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(User user, UUID orderId, String reason) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelledAt(LocalDateTime.now());
+        order.setNote((order.getNote() != null ? order.getNote() + " | " : "") + "Cancelled: " + reason);
+        return toResponse(orderRepository.save(order), orderItemRepository.findByOrderId(order.getId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getGuestOrder(String accessLink) {
+        // Mock implementation for guest order retrieval via access link
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public String generateGuestAccessLink(String orderCode, String email) {
+        // Mock implementation for generating a secure access link for guests
+        return "https://shop.local/guest/orders/" + orderCode + "?token=mock-token";
+    }
 }

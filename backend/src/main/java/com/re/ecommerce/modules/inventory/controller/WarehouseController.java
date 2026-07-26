@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.inventory.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.inventory.dto.request.WarehouseRequest;
 import com.re.ecommerce.modules.inventory.dto.response.WarehouseResponse;
 import com.re.ecommerce.modules.inventory.entity.enums.WarehouseStatus;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "7. Procurement and Inventory")
 @RestController
 @RequestMapping("/api/v1/warehouses")
 @RequiredArgsConstructor
@@ -44,25 +47,25 @@ public class WarehouseController {
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_WAREHOUSE_MANAGE')")
     public ResponseEntity<WarehouseResponse> createWarehouse(@Valid @RequestBody WarehouseRequest request) {
-        log.info("Creating warehouse: {}", request.code());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(warehouseService.createWarehouse(request));
     }
 
-    @PutMapping("/{id}")
+    @RequestMapping(value = "/{id}", method = {RequestMethod.PATCH, RequestMethod.PUT})
     @PreAuthorize("hasAuthority('SCOPE_WAREHOUSE_MANAGE')")
     public ResponseEntity<WarehouseResponse> updateWarehouse(
             @PathVariable UUID id,
             @Valid @RequestBody WarehouseRequest request) {
-        log.info("Updating warehouse {}: {}", id, request.code());
+
         return ResponseEntity.ok(warehouseService.updateWarehouse(id, request));
     }
 
-    @PutMapping("/{id}/status")
+    @RequestMapping(value = "/{id}/status", method = {RequestMethod.PATCH, RequestMethod.PUT})
     @PreAuthorize("hasAuthority('SCOPE_WAREHOUSE_MANAGE')")
     public ResponseEntity<WarehouseResponse> changeStatus(
             @PathVariable UUID id,
             @RequestParam WarehouseStatus status) {
-        log.info("Changing warehouse {} status to {}", id, status);
+
         return ResponseEntity.ok(warehouseService.changeStatus(id, status));
     }
 }

@@ -34,6 +34,11 @@ public class DepartmentService {
         return PagedResponse.of(departmentPage, items);
     }
 
+    @Transactional(readOnly = true)
+    public DepartmentResponse getDepartment(UUID id) {
+        return mapToResponse(getDepartmentOrThrow(id));
+    }
+
     @Transactional
     public DepartmentResponse createDepartment(DepartmentRequest request) {
         if (departmentRepository.existsByCode(request.getCode())) {

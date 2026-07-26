@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.inventory.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.common.dto.PagedResponse;
 import com.re.ecommerce.modules.inventory.dto.request.SupplierRequest;
 import com.re.ecommerce.modules.inventory.dto.response.SupplierResponse;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "7. Procurement and Inventory")
 @RestController
 @RequestMapping("/api/v1/suppliers")
 @RequiredArgsConstructor
@@ -44,25 +47,25 @@ public class SupplierController {
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_SUPPLIER_MANAGE')")
     public ResponseEntity<SupplierResponse> createSupplier(@Valid @RequestBody SupplierRequest request) {
-        log.info("Creating supplier: {}", request.supplierCode());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(supplierService.createSupplier(request));
     }
 
-    @PutMapping("/{id}")
+    @RequestMapping(value = "/{id}", method = {RequestMethod.PATCH, RequestMethod.PUT})
     @PreAuthorize("hasAuthority('SCOPE_SUPPLIER_MANAGE')")
     public ResponseEntity<SupplierResponse> updateSupplier(
             @PathVariable UUID id,
             @Valid @RequestBody SupplierRequest request) {
-        log.info("Updating supplier {}: {}", id, request.supplierCode());
+
         return ResponseEntity.ok(supplierService.updateSupplier(id, request));
     }
 
-    @PutMapping("/{id}/status")
+    @RequestMapping(value = "/{id}/status", method = {RequestMethod.PATCH, RequestMethod.PUT})
     @PreAuthorize("hasAuthority('SCOPE_SUPPLIER_MANAGE')")
     public ResponseEntity<SupplierResponse> changeStatus(
             @PathVariable UUID id,
             @RequestParam SupplierStatus status) {
-        log.info("Changing supplier {} status to {}", id, status);
+
         return ResponseEntity.ok(supplierService.changeStatus(id, status));
     }
 }

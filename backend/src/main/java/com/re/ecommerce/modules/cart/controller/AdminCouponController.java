@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.cart.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.cart.dto.request.CouponCreateRequest;
 import com.re.ecommerce.modules.cart.dto.request.CouponTargetsRequest;
 import com.re.ecommerce.modules.cart.dto.response.CouponResponse;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "8. Coupons")
 @RestController
 @RequestMapping("/api/v1/admin/coupons")
 @RequiredArgsConstructor
@@ -26,15 +29,20 @@ public class AdminCouponController {
 
     @PostMapping
     public ResponseEntity<CouponResponse> createCoupon(@Valid @RequestBody CouponCreateRequest request) {
-        log.info("Received request to create a new coupon with code: {}", request.getCode());
+
         CouponResponse response = couponService.createCoupon(request);
-        log.info("Successfully created coupon with ID: {}", response.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CouponResponse> getCoupon(@PathVariable UUID id) {
-        log.debug("Fetching coupon details for ID: {}", id);
+
+        return ResponseEntity.ok(couponService.getCoupon(id));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<CouponResponse> updateCoupon(@PathVariable UUID id, @RequestBody Object payload) {
         return ResponseEntity.ok(couponService.getCoupon(id));
     }
 
@@ -43,7 +51,7 @@ public class AdminCouponController {
             @RequestParam(required = false) String code,
             @RequestParam(required = false) CouponStatus status,
             Pageable pageable) {
-        log.debug("Searching coupons by code: {} and status: {}", code, status);
+
         return ResponseEntity.ok(couponService.searchCoupons(code, status, pageable));
     }
 
@@ -51,7 +59,7 @@ public class AdminCouponController {
     public ResponseEntity<CouponResponse> updateStatus(
             @PathVariable UUID id,
             @RequestParam CouponStatus status) {
-        log.info("Updating coupon ID: {} to status: {}", id, status);
+
         return ResponseEntity.ok(couponService.updateCouponStatus(id, status));
     }
 
@@ -59,9 +67,9 @@ public class AdminCouponController {
     public ResponseEntity<CouponResponse> assignTargets(
             @PathVariable UUID id,
             @Valid @RequestBody CouponTargetsRequest request) {
-        log.info("Request to assign constraints (Brand/Cat/Prod) targets to coupon ID: {}", id);
+
         CouponResponse response = couponService.assignTargets(id, request);
-        log.info("Targets successfully assigned to coupon ID: {}", id);
+
         return ResponseEntity.ok(response);
     }
 }

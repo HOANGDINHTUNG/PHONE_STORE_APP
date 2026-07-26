@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.staff.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.staff.dto.request.UserRoleRequest;
 import com.re.ecommerce.modules.staff.dto.response.UserRoleResponse;
 import com.re.ecommerce.modules.staff.service.RoleService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "3. Organization Management")
 @RestController
 @RequestMapping("/api/v1/admin/users/{userId}/role-assignments")
 @RequiredArgsConstructor
@@ -28,7 +31,7 @@ public class RoleAssignmentController {
     @PreAuthorize("hasAuthority('ASSIGN_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<List<UserRoleResponse>> listAssignments(
             @PathVariable UUID userId) {
-        log.debug("Traversing bound auth role allocations targeting ID {}", userId);
+
         return ResponseEntity.ok(roleService.listAssignments(userId));
     }
 
@@ -41,7 +44,7 @@ public class RoleAssignmentController {
             Authentication auth) {
         
         String assignedBy = auth != null ? auth.getName() : "SYSTEM";
-        log.info("Agent '{}' linking new system limits arrays to UserId {}", assignedBy, userId);
+
         UserRoleResponse response = roleService.assignRole(userId, request, assignedBy);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

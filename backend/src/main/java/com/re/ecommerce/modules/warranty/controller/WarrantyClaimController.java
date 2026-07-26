@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.warranty.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.warranty.dto.request.SubmitClaimRequest;
 import com.re.ecommerce.modules.warranty.service.WarrantyService;
 import jakarta.validation.Valid;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "16. Warranty")
 @RestController
 @RequestMapping("/api/v1/warranties/{warrantyCode}/claims")
 @RequiredArgsConstructor
@@ -32,8 +35,7 @@ public class WarrantyClaimController {
         MDC.put("operation", "submitClaim");
         MDC.put("warrantyCode", warrantyCode);
         MDC.put("userId", customerId.toString());
-        log.info("Submitting warranty claim");
-        
+
         warrantyService.submitClaim(warrantyCode, request, customerId);
         MDC.clear();
         return ResponseEntity.status(HttpStatus.CREATED).build();

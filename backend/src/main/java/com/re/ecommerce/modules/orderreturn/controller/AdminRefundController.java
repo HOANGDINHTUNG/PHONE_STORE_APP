@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.orderreturn.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.orderreturn.dto.request.CreateRefundRequest;
 import com.re.ecommerce.modules.orderreturn.service.RefundService;
 import jakarta.validation.Valid;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "15. Admin Return")
 @RestController
 @RequestMapping("/api/v1/admin/refunds")
 @RequiredArgsConstructor

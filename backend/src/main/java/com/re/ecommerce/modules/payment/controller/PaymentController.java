@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.payment.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 // removed EmptyJsonResponse import
 import com.re.ecommerce.modules.payment.dto.request.ManualPaymentRequest;
 import com.re.ecommerce.modules.payment.dto.request.PaymentAttemptRequest;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @Slf4j
+@Tag(name = "12. Payment")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor

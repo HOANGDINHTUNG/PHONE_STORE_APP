@@ -1,0 +1,5530 @@
+openapi: 3.0.3
+info:
+  title: Phone Store E-Commerce Platform API
+  version: 1.0.0
+  description: API documentation for the Phone Store E-Commerce Platform backend services.
+servers:
+  - url: http://localhost:8080
+    description: local dev server
+tags:
+  - name: Authentication
+  - name: Profile
+  - name: Organization Management
+  - name: Admin User Management
+  - name: Category Admin
+  - name: Category
+  - name: Admin Catalog
+  - name: Product Catalog
+  - name: Procurement and Inventory
+  - name: Admin Coupons
+  - name: Cart
+  - name: Shipping Address
+  - name: Sales Order Management
+  - name: Payment
+  - name: Shipment
+  - name: Return, Exchange and Refund
+  - name: Admin Return
+  - name: Admin Refund
+  - name: Warranty
+  - name: Admin Warranty
+paths:
+  /api/v1/auth/email-verifications:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      operationId: resendVerificationEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerificationRequest'
+      responses:
+        '202':
+          description: API Description
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/email-verifications/confirm:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      operationId: confirmEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerificationConfirmRequest'
+      responses:
+        '204':
+          description: API Description
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      description: API Description
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              examples:
+                InvalidCredentials:
+                  summary: API Endpoint
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: Invalid username or password
+                    correlationId: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
+                UserDeactivated:
+                  summary: API Endpoint
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: User account is deactivated
+                    correlationId: 2df3e485-bc75-4d0f-8973-455bdaef3841
+                ValidationFailed:
+                  summary: API Endpoint
+                  value:
+                    errorCode: VALIDATION_FAILED
+                    message: Error
+                    fieldErrors:
+                      username: Username is required
+                      password: Password is required
+                    correlationId: dcba0987-7654-3210-fedc-ba9876543210
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: API Description
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/password-reset-requests:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '202':
+          description: API Description
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/password-resets/confirm:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+      responses:
+        '204':
+          description: API Description
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      description: API Description
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              examples:
+                UsernameTaken:
+                  summary: API Endpoint
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: Username is already taken
+                    correlationId: df185ee6-d7e7-494b-a63e-f1b203c9bf82
+                EmailRegistered:
+                  summary: API Endpoint
+                  value:
+                    errorCode: BAD_REQUEST
+                    message: Email is already registered
+                    correlationId: a5f2da51-419b-4e08-9fd1-cb4be6c1e345
+                ValidationFailed:
+                  summary: API Endpoint
+                  value:
+                    errorCode: VALIDATION_FAILED
+                    message: Error
+                    fieldErrors:
+                      username: Username must be between 3 and 100 characters
+                      email: Invalid email format
+                      password: Password must be between 8 and 64 characters
+                    correlationId: 3d50b4f8-e1a1-432d-8b01-df5f1d93bff0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/auth/token/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: API Endpoint
+      description: API Description
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/me:
+    get:
+      tags:
+        - Profile
+      summary: API Endpoint
+      operationId: getCurrentProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Profile
+      summary: API Endpoint
+      operationId: updateCurrentProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/departments:
+    post:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/departments/{id}:
+    get:
+      description: New endpoint
+      responses:
+        '200':
+          description: New response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+    put:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/positions:
+    post:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/roles:
+    post:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/staff:
+    post:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Organization Management
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/users:
+    get:
+      tags:
+        - Admin User Management
+      summary: API Endpoint
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/users/{userId}:
+    get:
+      tags:
+        - Admin User Management
+      summary: API Endpoint
+      operationId: getUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Admin User Management
+      summary: API Endpoint
+      operationId: adminUpdateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateAdminRequest'
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: API Description
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/users/{userId}/status:
+    patch:
+      tags:
+        - Admin User Management
+      summary: API Endpoint
+      operationId: changeUserStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/categories:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Category Admin
+      summary: API Endpoint
+      description: API Description
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              examples:
+                SlugExists:
+                  summary: API Endpoint
+                  value:
+                    errorCode: CATEGORY_SLUG_EXISTS
+                    message: Error
+                    correlationId: db6ef274-129b-4e08-9fd1-cb4be6c1e345
+        '422':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - Category Admin
+      summary: API Endpoint
+      description: API Description
+      operationId: adminListCategories
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - INACTIVE
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: API Description
+        '403':
+          description: API Description
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/categories/{categoryId}:
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - Category Admin
+      summary: API Endpoint
+      operationId: getCategoryById
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      security:
+        - BearerAuth: []
+      tags:
+        - Category Admin
+      summary: API Endpoint
+      description: API Description
+      operationId: updateCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: API Description
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: API Description
+        '422':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/categories/{categoryId}/status:
+    patch:
+      security:
+        - BearerAuth: []
+      tags:
+        - Category Admin
+      summary: API Endpoint
+      description: API Description
+      operationId: changeCategoryStatus
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - INACTIVE
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/categories/tree:
+    get:
+      tags:
+        - Category
+      summary: API Endpoint
+      description: API Description
+      operationId: getActiveCategoryTree
+      responses:
+        '200':
+          description: API Description
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/brands:
+    post:
+      tags:
+        - Admin Catalog
+      summary: Admin create brand
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Admin Catalog
+      summary: Admin list brands
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/brands/{brandId}:
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin update brand
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/brands/{brandId}/status:
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin change brand status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/products:
+    post:
+      tags:
+        - Admin Catalog
+      summary: Admin create product
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Admin Catalog
+      summary: Admin list products
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/products/{productId}:
+    get:
+      tags:
+        - Admin Catalog
+      summary: Admin get product detail
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin update product
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/products/{productId}/attributes:
+    put:
+      tags:
+        - Admin Catalog
+      summary: Admin update product attributes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/products/{productId}/specifications:
+    put:
+      tags:
+        - Admin Catalog
+      summary: Admin update product specifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/products/{productId}/status:
+    patch:
+      tags:
+        - Admin Catalog
+      summary: Admin update product status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/brands:
+    get:
+      tags:
+        - Product Catalog
+      summary: List public brands
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/products:
+    get:
+      tags:
+        - Product Catalog
+      summary: Search products public
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: brandId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/products/{slug}:
+    get:
+      tags:
+        - Product Catalog
+      summary: Get product by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/inventory/receipt/purchase-order/{poId}:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      parameters:
+        - name: poId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockImportRequest'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/purchase-orders:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/purchase-orders/{id}/approve:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Approve PO
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/suppliers:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/suppliers/{id}:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Get Supplier
+      operationId: getSupplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    patch:
+      tags:
+        - Procurement and Inventory
+      summary: Update Supplier
+      operationId: updateSupplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    put:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/warehouses:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/warehouses/{id}:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Get Warehouse
+      operationId: getWarehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarehouseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    patch:
+      tags:
+        - Procurement and Inventory
+      summary: Update Warehouse
+      operationId: updateWarehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarehouseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    put:
+      tags:
+        - Procurement and Inventory
+      summary: API Endpoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/coupons:
+    post:
+      tags:
+        - Admin Coupons
+      summary: Create Coupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Admin Coupons
+      summary: get all coupons
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/coupons/{code}:
+    get:
+      tags:
+        - Admin Coupons
+      summary: Get Coupon
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Admin Coupons
+      summary: Invalidate Coupon
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/coupons/{code}/targets:
+    post:
+      tags:
+        - Admin Coupons
+      summary: Add Subjects
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/cart:
+    get:
+      tags:
+        - Cart
+      summary: Get cart info
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/cart/items:
+    post:
+      tags:
+        - Cart
+      summary: Add to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Cart
+      summary: Update cart item quantity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/cart/items/{itemId}:
+    delete:
+      tags:
+        - Cart
+      summary: Delete Cart Item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/cart/merge:
+    post:
+      tags:
+        - Cart
+      summary: Merge Guest Cart
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/me/shipping-addresses:
+    post:
+      tags:
+        - Shipping Address
+      summary: Create shipping address
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Shipping Address
+      summary: List user shipping addresses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/me/shipping-addresses/{id}:
+    get:
+      tags:
+        - Shipping Address
+      summary: Get address details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Shipping Address
+      summary: Update shipping address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Shipping Address
+      summary: Delete address
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/me/shipping-addresses/{id}/set-default:
+    post:
+      tags:
+        - Shipping Address
+      summary: Set address as default
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Updated
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/orders:
+    get:
+      tags:
+        - Sales Order Management
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/orders/{orderId}/confirm:
+    post:
+      tags:
+        - Sales Order Management
+      summary: API Endpoint
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/me/orders:
+    get:
+      tags:
+        - Sales Order Management
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/me/orders/{orderCode}:
+    get:
+      tags:
+        - Sales Order Management
+      summary: API Endpoint
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/orders/checkout:
+    post:
+      tags:
+        - Sales Order Management
+      summary: API Endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/payments/{paymentId}/confirm-manual:
+    post:
+      tags:
+        - Payment
+      summary: Xác nh?n thanh toán th? công (Admin)
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualPaymentRequest'
+      responses:
+        '200':
+          description: Xác nh?n thành công
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/orders/{orderCode}/payment-attempts:
+    post:
+      tags:
+        - Payment
+      summary: Kh?i t?o yêu c?u thanh toán
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentAttemptRequest'
+      responses:
+        '200':
+          description: Thành công
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/webhooks/payments/{providerCode}:
+    post:
+      tags:
+        - Payment
+      summary: Webhook t? c?ng thanh toán
+      parameters:
+        - name: providerCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Provider-Event-Id
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Ðã nh?n webhook
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/orders/{orderId}/shipments:
+    post:
+      tags:
+        - Shipment
+      summary: T?o v?n don m?i cho don hàng
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShipmentRequest'
+      responses:
+        '200':
+          description: T?o thành công
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/shipments/{shipmentId}/status:
+    patch:
+      tags:
+        - Shipment
+      summary: C?p nh?t tr?ng thái giao hàng
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeShipmentStatusRequest'
+      responses:
+        '200':
+          description: Thành công
+  /api/v1/admin/shipments/{shipmentId}/tracking:
+    patch:
+      tags:
+        - Shipment
+      summary: C?p nh?t mã v?n don (Tracking Code)
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShipmentTrackingRequest'
+      responses:
+        '200':
+          description: C?p nh?t thành công
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/shipments/{shipmentId}/units:
+    post:
+      tags:
+        - Shipment
+      summary: Ch? d?nh các Imei/SKU vào v?n don
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignShipmentUnitsRequest'
+      responses:
+        '200':
+          description: Thành công
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/orders/{orderCode}/return-requests:
+    get:
+      tags:
+        - Return, Exchange and Refund
+      summary: List Customer Return Requests
+      operationId: listCustomerReturnRequests
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Return, Exchange and Refund
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: API Endpoint
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/return-requests/{returnId}/approve:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      parameters:
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/return-requests/{returnId}/complete:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      parameters:
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/return-requests/{returnId}/inspect:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      parameters:
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/return-requests/{returnId}/receive:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      parameters:
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/return-requests/{returnId}/reject:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Return
+      parameters:
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/refunds:
+    get:
+      tags:
+        - Admin Refund
+      summary: List Admin Refunds
+      operationId: listAdminRefunds
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Refund
+      summary: API Endpoint
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/refunds/{refundId}/approve:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Refund
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/refunds/{refundId}/confirm-manual:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Refund
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          '': '#/components/responses/InternalServerError'
+  /api/v1/me/warranties:
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - Warranty
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/warranties/generate/{orderId}:
+    post:
+      tags:
+        - Warranty
+      summary: API Endpoint
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/warranties/{warrantyCode}/claims:
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - Warranty
+      parameters:
+        - name: warrantyCode
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: API Endpoint
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/admin/warranty-claims/{claimId}/status:
+    patch:
+      security:
+        - BearerAuth: []
+      tags:
+        - Admin Warranty
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: API Endpoint
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/warehouses/{id}/status:
+    patch:
+      tags:
+        - Procurement and Inventory
+      summary: Change Warehouse Status
+      operationId: changeWarehouseStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarehouseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/suppliers/{id}/status:
+    patch:
+      tags:
+        - Procurement and Inventory
+      summary: Change Supplier Status
+      operationId: changeSupplierStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/purchase-orders/{id}/items:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Add PO Item
+      operationId: addPOItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderItemRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/purchase-orders/{id}/items/{itemId}:
+    patch:
+      tags:
+        - Procurement and Inventory
+      summary: Update PO Item
+      operationId: updatePOItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderItemRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+    delete:
+      tags:
+        - Procurement and Inventory
+      summary: Delete PO Item
+      operationId: deletePOItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/purchase-orders/{id}/submit:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Submit PO
+      operationId: submitPO
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/purchase-orders/{id}/cancel:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Cancel PO
+      operationId: cancelPO
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: cancelReason
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/warehouses/{warehouseId}/variants/{variantId}:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Get Inventory Balance Details
+      operationId: getWarehouseVariantBalance
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: variantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/warehouses/{warehouseId}/variants/{variantId}/available-count:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Get Available Stock
+      operationId: getAvailableStock
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: variantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/units:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: List Serialized Units
+      operationId: listSerializedUnits
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/identifiers/{identifier}:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: Lookup Unit
+      operationId: lookupUnit
+      parameters:
+        - name: identifier
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/transactions:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: List Stock Ledger
+      operationId: listStockTransactions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/stock-reservations:
+    get:
+      tags:
+        - Procurement and Inventory
+      summary: List Stock Reservations
+      operationId: listStockReservations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/inventory/adjustments:
+    post:
+      tags:
+        - Procurement and Inventory
+      summary: Create Manual Adjustment
+      operationId: createManualAdjustment
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockAdjustmentRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/guest-orders/access-links:
+    post:
+      tags:
+        - Sales Order Management
+      summary: Request Guest Order Link
+      operationId: requestGuestOrderLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/guest-orders/{orderCode}:
+    get:
+      tags:
+        - Sales Order Management
+      summary: Get Guest Order Detail
+      operationId: getGuestOrder
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Guest-Order-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/orders/{orderId}:
+    get:
+      tags:
+        - Sales Order Management
+      summary: Get Admin Order Detail
+      operationId: getAdminOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/orders/{orderId}/start-processing:
+    post:
+      tags:
+        - Sales Order Management
+      summary: Start Processing Order
+      operationId: startProcessingOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/orders/{orderCode}/cancel:
+    post:
+      tags:
+        - Sales Order Management
+      summary: Customer Cancel Order
+      operationId: customerCancelOrder
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/orders/{orderId}/cancel:
+    post:
+      tags:
+        - Sales Order Management
+      summary: Admin Cancel Order
+      operationId: adminCancelOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/internal/orders/{orderId}/complete:
+    post:
+      tags:
+        - Sales Order Management
+      summary: Internal Complete Order
+      operationId: internalCompleteOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/orders/{orderCode}/payment:
+    get:
+      tags:
+        - Payment
+      summary: Get Order Payment Summary
+      operationId: getOrderPayment
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/payment-attempts/{attemptId}:
+    get:
+      tags:
+        - Payment
+      summary: Get Payment Attempt
+      operationId: getPaymentAttempt
+      parameters:
+        - name: attemptId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/shipments:
+    get:
+      tags:
+        - Shipment
+      summary: List Shipments
+      operationId: listShipments
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/shipments/{shipmentId}:
+    get:
+      tags:
+        - Shipment
+      summary: Get Shipment Detail
+      operationId: getShipmentDetail
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/shipments/{shipmentId}/items:
+    put:
+      tags:
+        - Shipment
+      summary: Update Shipment Items
+      operationId: updateShipmentItems
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/orders/{orderCode}/shipments:
+    get:
+      tags:
+        - Shipment
+      summary: Get Customer Order Shipments
+      operationId: getCustomerOrderShipments
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShipmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/webhooks/shipments/{providerCode}:
+    post:
+      tags:
+        - Shipment
+      summary: Carrier Webhook
+      operationId: carrierWebhook
+      parameters:
+        - name: providerCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/warranties/{warrantyCode}:
+    get:
+      tags:
+        - Warranty
+      summary: Get Customer Warranty Info
+      operationId: getCustomerWarranty
+      parameters:
+        - name: warrantyCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarrantyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/warranties:
+    get:
+      tags:
+        - Admin Warranty
+      summary: List Warranties
+      operationId: listAdminWarranties
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/warranties/{warrantyCode}:
+    get:
+      tags:
+        - Admin Warranty
+      summary: Get Warranty Detail
+      operationId: getAdminWarrantyDetail
+      parameters:
+        - name: warrantyCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarrantyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/warranty-claims:
+    get:
+      tags:
+        - Admin Warranty
+      summary: List Warranty Claims Queue
+      operationId: listWarrantyClaims
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/warranty-claims/{claimId}:
+    get:
+      tags:
+        - Admin Warranty
+      summary: Get Warranty Claim Detail
+      operationId: getWarrantyClaimDetail
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarrantyClaimResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/warranty-claims/{claimId}/process:
+    post:
+      tags:
+        - Admin Warranty
+      summary: Process Warranty Claim
+      operationId: processWarrantyClaim
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarrantyClaimResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/warranty-claims/{claimId}/complete:
+    post:
+      tags:
+        - Admin Warranty
+      summary: Complete Warranty Claim
+      operationId: completeWarrantyClaim
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarrantyClaimResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/orders/{orderCode}/return-requests/{returnId}:
+    get:
+      tags:
+        - Return, Exchange and Refund
+      summary: Get Customer Return Request Detail
+      operationId: getCustomerReturnRequest
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/return-requests:
+    get:
+      tags:
+        - Admin Return
+      summary: List Admin Return Requests
+      operationId: listAdminReturnRequests
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/return-requests/{returnId}:
+    get:
+      tags:
+        - Admin Return
+      summary: Get Admin Return Request Detail
+      operationId: getAdminReturnRequestDetail
+      parameters:
+        - name: returnId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/me/refunds:
+    get:
+      tags:
+        - Return, Exchange and Refund
+      summary: List Customer Refunds
+      operationId: listCustomerRefunds
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: dummy
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/refunds/{refundId}:
+    get:
+      tags:
+        - Admin Refund
+      summary: Get Refund Detail
+      operationId: getAdminRefundDetail
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/refunds/{refundId}/execute:
+    post:
+      tags:
+        - Admin Refund
+      summary: Execute Internal Refund
+      operationId: executeRefund
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/webhooks/refunds/{providerCode}:
+    post:
+      tags:
+        - Admin Refund
+      summary: Refund Webhook Provider
+      operationId: refundWebhook
+      parameters:
+        - name: providerCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - BearerAuth: []
+  /api/v1/admin/audit-logs:
+    get:
+      summary: GET Audit Logs
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/audit-logs/{id}:
+    get:
+      summary: GET Audit Log Details
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/audit-logs/export:
+    post:
+      summary: POST Export Audit Logs
+      responses:
+        '200':
+          description: OK
+  /api/v1/me/notifications:
+    get:
+      summary: GET My Notifications
+      responses:
+        '200':
+          description: OK
+  /api/v1/me/notifications/{id}/read:
+    patch:
+      summary: PATCH Mark Notification Read
+      responses:
+        '200':
+          description: OK
+  /api/v1/me/notifications/read-all:
+    patch:
+      summary: PATCH Mark All Notifications Read
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/notifications:
+    get:
+      summary: GET Admin Notifications
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: POST Admin Create Notification
+      responses:
+        '201':
+          description: Created
+  /api/v1/admin/notifications/broadcast:
+    post:
+      summary: POST Broadcast Notification
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/outbox:
+    get:
+      summary: GET Outbox Messages
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/outbox/{id}/retry:
+    post:
+      summary: POST Retry Outbox Message
+      responses:
+        '200':
+          description: OK
+  /api/v1/me/wishlist:
+    get:
+      summary: GET Wishlist
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: DELETE Clear Wishlist
+      responses:
+        '200':
+          description: OK
+  /api/v1/me/wishlist/{productId}:
+    post:
+      summary: POST Add to Wishlist
+      responses:
+        '201':
+          description: Created
+    delete:
+      summary: DELETE Remove from Wishlist
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/reports/sales:
+    get:
+      summary: GET Sales Report
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/reports/inventory:
+    get:
+      summary: GET Inventory Report
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/jobs:
+    get:
+      summary: GET Cron Jobs
+      responses:
+        '200':
+          description: OK
+  /api/v1/admin/jobs/{jobId}/run:
+    post:
+      summary: POST Run Cron Job
+      responses:
+        '200':
+          description: OK
+  /api/v1/webhooks/logs:
+    get:
+      summary: GET Webhook Delivery Logs
+      responses:
+        '200':
+          description: OK
+  /api/v1/webhooks/logs/{id}/retry:
+    post:
+      summary: POST Retry Webhook Delivery
+      responses:
+        '200':
+          description: OK
+components:
+  responses:
+    BadRequest:
+      description: L?i d? li?u d?u vào (Thi?u ho?c sai d?nh d?ng tham s?)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            MissingParameter:
+              summary: Thi?u tham s?
+              value:
+                errorCode: BAD_REQUEST
+                message: Tham s? b?t bu?c không du?c d? tr?ng
+                correlationId: e3b0c442-uuid-abc
+            InvalidFormat:
+              summary: Sai d?nh d?ng UUID/Email
+              value:
+                errorCode: BAD_REQUEST
+                message: Ð?nh d?ng email không h?p l?
+                correlationId: e3b0c442-uuid-def
+    Unauthorized:
+      description: K? m?o danh (Chua dang nh?p ho?c Token h?t h?n)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            TokenExpired:
+              summary: JWT h?t h?n
+              value:
+                errorCode: UNAUTHORIZED
+                message: Access token dã h?t h?n
+                correlationId: e3b0c442-uuid-123
+    Forbidden:
+      description: B? t? ch?i (Không d? quy?n h?n truy c?p chuyên sâu)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            AccessDenied:
+              summary: Vu?t quy?n
+              value:
+                errorCode: FORBIDDEN
+                message: Tài kho?n c?a b?n không có d?c quy?n (Admin/Manager) d? g?i API này
+                correlationId: e3b0c442-uuid-789
+    NotFound:
+      description: Không tìm th?y (Tài nguyên không t?n t?i trên DB)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            ResourceNotFound:
+              summary: D? li?u tr?ng
+              value:
+                errorCode: RESOURCE_NOT_FOUND
+                message: Không tìm th?y d? li?u id=9999 (Entity Not Found)
+                correlationId: e3b0c442-uuid-444
+    UnprocessableEntity:
+      description: L?i logic nghi?p v? (Ki?m tra constraint/business th?t b?i)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            BusinessConflict:
+              summary: H?t t?n kho
+              value:
+                errorCode: BUSINESS_CONFLICT
+                message: S? lu?ng t?n kho không d? d? th?c hi?n yêu c?u!
+                correlationId: e3b0c442-uuid-555
+            ValidationFailed:
+              summary: Vi ph?m constraint
+              value:
+                errorCode: VALIDATION_FAILED
+                message: Validation Error
+                fieldErrors:
+                  quantity: S? lu?ng ph?i l?n hon 0
+                  price: Giá bán không du?c âm
+                correlationId: e3b0c442-uuid-666
+    InternalServerError:
+      description: L?i máy ch? c?c b? (Exception backend không mong mu?n)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            ServerError:
+              summary: Null Pointer / Database Down
+              value:
+                errorCode: INTERNAL_SERVER_ERROR
+                message: Ðã x?y ra l?i h? th?ng nghiêm tr?ng, vui lòng liên h? Admin
+                correlationId: e3b0c442-uuid-999
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PaymentAttemptRequest:
+      type: object
+      properties:
+        paymentMethod:
+          type: string
+        amount:
+          type: number
+    ManualPaymentRequest:
+      type: object
+      properties:
+        note:
+          type: string
+        referenceUrl:
+          type: string
+    CreateShipmentRequest:
+      type: object
+      properties:
+        shippingProviderId:
+          type: integer
+        notes:
+          type: string
+    AssignShipmentUnitsRequest:
+      type: object
+      properties:
+        inventoryUnitIds:
+          type: array
+          items:
+            type: integer
+    UpdateShipmentTrackingRequest:
+      type: object
+      properties:
+        trackingCode:
+          type: string
+        trackingUrl:
+          type: string
+    ChangeShipmentStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        note:
+          type: string
+    DepartmentRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: HR01
+        name:
+          type: string
+          example: example
+        description:
+          type: string
+          example: example
+      required:
+        - code
+        - name
+    DepartmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        code:
+          type: string
+          example: HR01
+        name:
+          type: string
+          example: example
+        description:
+          type: string
+          example: example
+    PositionRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: MGR
+        name:
+          type: string
+          example: example
+        description:
+          type: string
+          example: example
+      required:
+        - code
+        - name
+    PositionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        code:
+          type: string
+          example: MGR
+        name:
+          type: string
+          example: example
+    RoleRequest:
+      type: object
+      properties:
+        roleCode:
+          type: string
+          example: ADMIN
+        name:
+          type: string
+          example: example
+        description:
+          type: string
+          example: example
+      required:
+        - roleCode
+        - name
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        roleCode:
+          type: string
+          example: ADMIN
+        name:
+          type: string
+          example: example
+    StaffRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
+        departmentId:
+          type: string
+          format: uuid
+          example: b1b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
+        positionId:
+          type: string
+          format: uuid
+          example: c2b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c3
+        employeeCode:
+          type: string
+          example: EMP-001
+        hireDate:
+          type: string
+          format: date
+          example: '2024-01-01'
+      required:
+        - userId
+        - departmentId
+        - positionId
+        - employeeCode
+        - hireDate
+    StaffResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        employeeCode:
+          type: string
+          example: EMP-001
+    WarehouseRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: WH-HCM-01
+        name:
+          type: string
+          example: example
+        phone:
+          type: string
+          example: '0901234567'
+        address:
+          type: string
+          example: example
+      required:
+        - code
+        - name
+    WarehouseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        code:
+          type: string
+          example: WH-HCM-01
+        name:
+          type: string
+          example: example
+        phone:
+          type: string
+          example: '0901234567'
+        address:
+          type: string
+          example: example
+    SupplierRequest:
+      type: object
+      properties:
+        supplierCode:
+          type: string
+          example: VEND-APPLE
+        name:
+          type: string
+          example: Apple Vietnam LLC
+        taxCode:
+          type: string
+          example: '0101234567'
+        contactName:
+          type: string
+          example: example
+        phone:
+          type: string
+          example: '0987654321'
+        email:
+          type: string
+          example: contact@apple.vn
+        address:
+          type: string
+          example: example
+      required:
+        - supplierCode
+        - name
+    SupplierResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        supplierCode:
+          type: string
+          example: VEND-APPLE
+        name:
+          type: string
+          example: Apple Vietnam LLC
+        taxCode:
+          type: string
+          example: '0101234567'
+        email:
+          type: string
+          example: contact@apple.vn
+    PurchaseOrderItemRequest:
+      type: object
+      properties:
+        productVariantId:
+          type: string
+          format: uuid
+          example: d4b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c4
+        orderedQuantity:
+          type: integer
+          example: 100
+        unitCost:
+          type: number
+          example: 25000000
+    PurchaseOrderRequest:
+      type: object
+      properties:
+        purchaseOrderCode:
+          type: string
+          example: PO-2024-001
+        supplierId:
+          type: string
+          format: uuid
+          example: e5b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c5
+        warehouseId:
+          type: string
+          format: uuid
+          example: f6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c6
+        expectedAt:
+          type: string
+          format: date-time
+          example: '2024-12-31T23:59:59Z'
+        note:
+          type: string
+          example: example
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderItemRequest'
+      required:
+        - purchaseOrderCode
+        - supplierId
+        - warehouseId
+        - items
+    PurchaseOrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        purchaseOrderCode:
+          type: string
+          example: PO-2024-001
+        status:
+          type: string
+          example: DRAFT
+        totalAmount:
+          type: number
+          example: 2500000000
+    StockImportItem:
+      type: object
+      properties:
+        purchaseOrderItemId:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 100
+        identifiers:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          example:
+            - IMEI: '351234567890123'
+            - IMEI: '351234567890124'
+    StockImportRequest:
+      type: object
+      properties:
+        receivedBy:
+          type: string
+          format: uuid
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockImportItem'
+      required:
+        - receivedBy
+        - items
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: newuser
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: newuser@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+          example: password123
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: loginuser
+        password:
+          type: string
+          example: password123
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - tokenType
+        - username
+        - role
+      properties:
+        accessToken:
+          type: string
+          description: API Description
+          example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2dpbnVzZXIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc...
+        refreshToken:
+          type: string
+          description: API Description
+          example: bda3e8c9-fa20-4b2a-87ef...
+        tokenType:
+          type: string
+          example: Bearer
+        username:
+          type: string
+          example: loginuser
+        role:
+          type: string
+          example: USER
+    CartItemRequest:
+      type: object
+      required:
+        - productVariantId
+        - quantity
+      properties:
+        productVariantId:
+          type: string
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
+        quantity:
+          type: integer
+          example: 2
+    CartResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    CouponCreateRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          example: SUMMER10
+    CouponResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+    CouponTargetsRequest:
+      type: object
+      properties:
+        subjects:
+          type: array
+          items:
+            type: string
+    ProductPublicResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+    ProductAdminResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+    ProductCreateRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          example: iPhone 15 Pro Max
+        slug:
+          type: string
+          example: iphone-15-pro-max
+    ProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    SpecificationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    SpecificationRequest:
+      type: object
+      properties:
+        specs:
+          type: array
+          items:
+            type: string
+    AttributeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    AttributeRequest:
+      type: object
+      properties:
+        attrs:
+          type: array
+          items:
+            type: string
+    BrandResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    BrandRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Apple
+    AddressResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        street:
+          type: string
+    AddressCreateRequest:
+      type: object
+      properties:
+        street:
+          type: string
+    AddressUpdateRequest:
+      type: object
+      properties:
+        street:
+          type: string
+    ApiError:
+      type: object
+      required:
+        - errorCode
+        - message
+        - correlationId
+      properties:
+        errorCode:
+          type: string
+          description: API Description
+          example: BAD_REQUEST
+        message:
+          type: string
+          description: API Description
+          example: Invalid username or password
+        correlationId:
+          type: string
+          format: uuid
+          description: API Description
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c1
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: string
+          description: API Description
+          example:
+            username: Username is required
+            password: Password is required
+    CategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+          example: example
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
+        description:
+          type: string
+          example: example
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+          default: ACTIVE
+          example: ACTIVE
+        sortOrder:
+          type: integer
+          minimum: 0
+          default: 0
+          example: 0
+    CategoryResponse:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - status
+        - sortOrder
+        - subCategories
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a6b7c8d9-e0f1-42a3-b4c5-d6e7f8a9b0c2
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          example: null
+        name:
+          type: string
+          example: example
+        slug:
+          type: string
+          example: dien-thoai
+        description:
+          type: string
+          nullable: true
+          example: example
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+          example: ACTIVE
+        sortOrder:
+          type: integer
+          example: 0
+        subCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-07-16T15:00:00Z'
+    TokenRefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+    LogoutRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+    EmailVerificationRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+    EmailVerificationConfirmRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetConfirmRequest:
+      type: object
+      required:
+        - token
+        - newPassword
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+        accountStatus:
+          type: string
+        emailVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+    UserProfileUpdateRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+    UserUpdateAdminRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+    CheckoutRequest:
+      type: object
+      required:
+        - idempotencyKey
+      properties:
+        idempotencyKey:
+          type: string
+          example: xxyyzz
+        couponCode:
+          type: string
+        shippingAddressId:
+          type: string
+          format: uuid
+        guestName:
+          type: string
+        guestPhone:
+          type: string
+        guestEmail:
+          type: string
+        guestProvinceCode:
+          type: string
+        guestDistrictCode:
+          type: string
+        guestWardCode:
+          type: string
+        guestDetailAddress:
+          type: string
+        note:
+          type: string
+    OrderItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        variantName:
+          type: string
+        sku:
+          type: string
+        unitPrice:
+          type: number
+        quantity:
+          type: integer
+        discountAmount:
+          type: number
+        lineTotal:
+          type: number
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderCode:
+          type: string
+        customerId:
+          type: string
+          format: uuid
+        contactName:
+          type: string
+        contactPhone:
+          type: string
+        shippingDetailAddress:
+          type: string
+        currency:
+          type: string
+        subtotalAmount:
+          type: number
+        discountAmount:
+          type: number
+        shippingFee:
+          type: number
+        grandTotalAmount:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'

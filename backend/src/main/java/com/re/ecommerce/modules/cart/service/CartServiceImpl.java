@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
@@ -64,6 +67,10 @@ public class CartServiceImpl implements CartService {
         }
 
         cartItemRepository.save(item);
+        
+        log.info("event=cart_item_added customerId={} guestToken={} variantId={} quantity={}",
+                customerId, guestTokenHash != null, request.getProductVariantId(), request.getQuantity());
+                
         return mapToResponse(cart);
     }
 

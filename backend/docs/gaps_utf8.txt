@@ -1,0 +1,1 @@
+12. Schema gaps cần sửa trước production.

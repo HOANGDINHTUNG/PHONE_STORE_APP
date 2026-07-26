@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID> {
@@ -22,7 +23,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL AND " +
            "(:status IS NULL OR p.publicationStatus = :status) AND " +
            "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    java.util.List<Product> findAllByFilters(
+    List<Product> findAllByFilters(
             @Param("status") PublicationStatus status,
             @Param("keyword") String keyword);
 

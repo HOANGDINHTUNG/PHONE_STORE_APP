@@ -1,5 +1,7 @@
 package com.re.ecommerce.modules.inventory.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.re.ecommerce.modules.inventory.dto.request.StockImportRequest;
 import com.re.ecommerce.modules.inventory.entity.WarehouseInventory;
 import com.re.ecommerce.modules.inventory.service.InventoryService;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "7. Procurement and Inventory")
 @RestController
 @RequestMapping("/api/v1/inventory")
 @RequiredArgsConstructor
@@ -29,7 +32,7 @@ public class InventoryController {
             @PathVariable UUID poId,
             @Valid @RequestBody StockImportRequest request
     ) {
-        log.info("Receiving PO goods for PO id {}", poId);
+
         inventoryService.receivePurchaseOrder(poId, request);
         return ResponseEntity.ok().build();
     }
@@ -108,7 +111,7 @@ public class InventoryController {
             @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.StockAdjustmentRequest request,
             @RequestHeader("X-Idempotency-Key") String idempotencyKey
     ) {
-        log.info("Creating manual inventory adjustment, idempotency: {}", idempotencyKey);
+
         inventoryService.createManualAdjustment(request, idempotencyKey);
         return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).build();
     }

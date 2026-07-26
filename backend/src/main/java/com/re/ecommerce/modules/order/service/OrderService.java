@@ -19,4 +19,15 @@ public interface OrderService {
     
     void confirmOrder(User admin, UUID orderId);
     
+    OrderResponse getAdminOrder(UUID orderId);
+    
+    OrderResponse startProcessing(UUID orderId);
+    
+    OrderResponse completeOrder(UUID orderId);
+    
+    OrderResponse cancelOrder(User user, UUID orderId, String reason);
+    
+    OrderResponse getGuestOrder(String accessLink);
+    
+    String generateGuestAccessLink(String orderCode, String email);
 }

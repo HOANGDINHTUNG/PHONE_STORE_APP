@@ -35,6 +35,11 @@ public class PositionService {
         return PagedResponse.of(positionPage, items);
     }
 
+    @Transactional(readOnly = true)
+    public PositionResponse getPosition(UUID id) {
+        return mapToResponse(getPositionOrThrow(id));
+    }
+
     @Transactional
     public PositionResponse createPosition(PositionRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId())
