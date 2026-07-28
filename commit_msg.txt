@@ -1,0 +1,6 @@
+﻿docs: add comprehensive architecture, design system, and ADR documents
+
+- Added Frontend Architecture guidelines (routing, state management, component lifecycle, rendering strategy, auth flow, caching, CI/CD, scalability, deployment, folder structure).
+- Added Frontend Design System documentation (accessibility, animation, border radius, colors, component guidelines, dark mode, icons, motion, responsive design, shadows, spacing, typography).
+- Added Architecture Decision Records (ADR-001 to ADR-005) covering routing, query state, auth strategy, CSS architecture (Tailwind), and testing strategy.
+- Created backend/AGENTS.md for AI agent configurations.

@@ -15,8 +15,9 @@ import com.re.ecommerce.modules.cart.dto.request.CartItemRequest;
 import com.re.ecommerce.modules.cart.dto.request.CartItemUpdateQuantityRequest;
 import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.cart.dto.response.CartItemResponse;
-import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.common.exception.BusinessConflictException;
+import com.re.ecommerce.common.exception.ResourceNotFoundException;
+import com.re.ecommerce.common.exception.UnprocessableEntityException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -152,6 +153,62 @@ public class CartServiceImpl implements CartService {
         cartRepository.delete(guestCart);
 
         return mapToResponse(customerCart);
+    }
+
+    @Override
+    @Transactional
+    public CartResponse reorderItems(UUID customerId, List<CartItemRequest> items) {
+        if (items == null || items.isEmpty()) {
+            throw new UnprocessableEntityException("NO_REORDERABLE_ITEMS", "No reorderable items found");
+        }
+        
+        Cart cart = getOrCreateCart(customerId, null);
+        boolean anyValid = false;
+        List<String> reorderWarnings = new ArrayList<>();
+        
+        for (CartItemRequest req : items) {
+            ProductVariant variant = productVariantRepository.findById(req.getProductVariantId()).orElse(null);
+            
+            if (variant == null) {
+                reorderWarnings.add("Product variant " + req.getProductVariantId() + " is no longer available");
+                continue;
+            }
+            if (!"ACTIVE".equals(variant.getProduct().getPublicationStatus().name())) {
+                reorderWarnings.add("Product " + variant.getSku() + " is no longer active");
+                continue;
+            }
+            if (!"ACTIVE".equals(variant.getStatus().name()) || variant.getProduct().getDeletedAt() != null) {
+                reorderWarnings.add("Product variant " + variant.getSku() + " is no longer available");
+                continue;
+            }
+            anyValid = true;
+            
+            CartItem item = cartItemRepository.findByCartIdAndProductVariantId(cart.getId(), variant.getId()).orElse(null);
+            if (item == null) {
+                item = new CartItem();
+                item.setCart(cart);
+                item.setProductVariant(variant);
+                item.setQuantity(Math.min(req.getQuantity(), 99)); // Max 99 items logic
+                cart.addItem(item);
+                cartItemRepository.save(item);
+            } else {
+                int newQuantity = Math.max(item.getQuantity(), req.getQuantity()); // Merge idempotency rule limit
+                item.setQuantity(Math.min(newQuantity, 99));
+                cartItemRepository.save(item);
+            }
+        }
+        
+        if (!anyValid) {
+            throw new UnprocessableEntityException("NO_REORDERABLE_ITEMS", "All items in the past order are no longer available");
+        }
+        
+        cartRepository.save(cart);
+        CartResponse response = mapToResponse(cart);
+        if (response.getWarnings() == null) {
+            response.setWarnings(new ArrayList<>());
+        }
+        response.getWarnings().addAll(reorderWarnings);
+        return response;
     }
 
     private Cart getOrCreateCart(UUID customerId, byte[] guestTokenHash) {

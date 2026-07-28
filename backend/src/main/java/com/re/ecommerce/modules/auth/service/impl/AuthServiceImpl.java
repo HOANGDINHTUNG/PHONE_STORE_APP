@@ -29,6 +29,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final com.re.ecommerce.modules.auth.repository.CustomerProfileRepository customerProfileRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenFamilyRepository tokenFamilyRepository;
+    private final UserPasswordHistoryRepository userPasswordHistoryRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
@@ -58,6 +60,8 @@ public class AuthServiceImpl implements AuthService {
         user.setPhone(request.phone());
         userRepository.save(user);
 
+        userPasswordHistoryRepository.save(new UserPasswordHistory(user, user.getPasswordHash()));
+
         // Explicitly create CustomerProfile for CUSTOMER (USER role in initial design)
         if ("USER".equals(user.getRole())) {
             CustomerProfile customerProfile = new CustomerProfile(user, generateCustomerCode(user.getId()));
@@ -69,11 +73,13 @@ public class AuthServiceImpl implements AuthService {
         // Generate email verification token conceptually (email sending would be async)
         createEmailVerificationToken(user);
 
-        // For registration P0 allows immediate access token (or requires email verify, let's keep it simple for now as it was)
         String accessToken = jwtUtils.generateToken(user.getUsername(), user.getRole());
         String rawRefreshToken = UUID.randomUUID().toString();
         
-        createRefreshToken(user, rawRefreshToken, UUID.randomUUID(), null, null);
+        TokenFamily family = new TokenFamily(user, "Unknown Device", null, null);
+        family = tokenFamilyRepository.save(family);
+        
+        createRefreshToken(user, rawRefreshToken, family.getId(), null, null);
 
         return new AuthResponse(accessToken, rawRefreshToken, user.getUsername(), user.getRole());
     }
@@ -100,7 +106,10 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtUtils.generateToken(user.getUsername(), user.getRole());
         String rawRefreshToken = UUID.randomUUID().toString();
         
-        createRefreshToken(user, rawRefreshToken, UUID.randomUUID(), ipAddress, userAgent);
+        TokenFamily family = new TokenFamily(user, "Unknown Device", ipAddress, userAgent);
+        family = tokenFamilyRepository.save(family);
+        
+        createRefreshToken(user, rawRefreshToken, family.getId(), ipAddress, userAgent);
 
         return new AuthResponse(token, rawRefreshToken, user.getUsername(), user.getRole());
     }
@@ -229,7 +238,10 @@ public class AuthServiceImpl implements AuthService {
         passwordResetTokenRepository.save(token);
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordChangedAt(LocalDateTime.now());
         userRepository.save(user);
+
+        userPasswordHistoryRepository.save(new UserPasswordHistory(user, user.getPasswordHash()));
 
         // Revoke all sessions to force relogin
         refreshTokenRepository.revokeAllUserTokens(user.getId(), "PASSWORD_RESET");

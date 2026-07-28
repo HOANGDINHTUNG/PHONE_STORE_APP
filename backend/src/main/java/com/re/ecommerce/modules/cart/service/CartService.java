@@ -4,6 +4,7 @@ import com.re.ecommerce.modules.cart.dto.request.CartItemRequest;
 import com.re.ecommerce.modules.cart.dto.request.CartItemUpdateQuantityRequest;
 import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface CartService {
@@ -19,4 +20,6 @@ public interface CartService {
     void clearCart(UUID customerId, byte[] guestTokenHash);
     
     CartResponse mergeCart(UUID customerId, byte[] guestTokenHash);
+    
+    CartResponse reorderItems(UUID customerId, List<CartItemRequest> items);
 }

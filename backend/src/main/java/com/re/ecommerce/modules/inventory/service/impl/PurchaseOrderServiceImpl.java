@@ -194,7 +194,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     @Override
     @Transactional
-    public PurchaseOrderResponse updateItem(UUID poId, UUID itemId, PurchaseOrderItemRequest request) {
+    public PurchaseOrderResponse updateItem(UUID poId, Long itemId, PurchaseOrderItemRequest request) {
         PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(poId)
                 .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
 
@@ -223,7 +223,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     @Override
     @Transactional
-    public PurchaseOrderResponse removeItem(UUID poId, UUID itemId) {
+    public PurchaseOrderResponse removeItem(UUID poId, Long itemId) {
         PurchaseOrder po = purchaseOrderRepository.findByIdWithLock(poId)
                 .orElseThrow(() -> new ResourceNotFoundException("PO_NOT_FOUND", "Không tìm thấy PO"));
 

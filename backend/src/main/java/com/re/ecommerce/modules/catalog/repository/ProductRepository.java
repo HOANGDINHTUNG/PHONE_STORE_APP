@@ -15,6 +15,7 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     boolean existsBySlug(String slug);
+    Optional<Product> findBySlug(String slug);
 
     boolean existsBySlugAndIdNot(String slug, UUID id);
 

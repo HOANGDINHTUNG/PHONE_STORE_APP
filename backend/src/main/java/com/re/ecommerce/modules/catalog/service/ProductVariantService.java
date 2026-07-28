@@ -14,4 +14,6 @@ public interface ProductVariantService {
     ImageResponse addImage(UUID variantId, ImageCreateRequest request);
     ImageResponse setPrimaryImage(UUID variantId, UUID imageId);
     void deleteImage(UUID variantId, UUID imageId);
+
+    org.springframework.data.domain.Page<ProductPriceHistoryResponse> getPriceHistory(UUID variantId, org.springframework.data.domain.Pageable pageable);
 }

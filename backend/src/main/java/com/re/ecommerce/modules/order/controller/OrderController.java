@@ -7,6 +7,7 @@ import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.order.dto.request.CheckoutRequest;
 import com.re.ecommerce.modules.order.dto.response.OrderResponse;
+import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -31,13 +32,13 @@ public class OrderController {
 
     @PostMapping("/orders/checkout")
     public ResponseEntity<OrderResponse> checkout(
-            @AuthenticationPrincipal String username,
+            Authentication auth,
             @RequestHeader(value = "X-Guest-Cart-Token", required = false) String guestToken,
             @Valid @RequestBody CheckoutRequest request) {
         
         User currentUser = null;
-        if (username != null) {
-            currentUser = userRepository.findByUsername(username).orElse(null);
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            currentUser = userRepository.findByUsername(auth.getName()).orElse(null);
         }
         
         byte[] guestTokenHash = null;
@@ -57,20 +58,29 @@ public class OrderController {
     @GetMapping("/me/orders")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<PagedResponse<OrderResponse>> getMyOrders(
-            @AuthenticationPrincipal String username,
+            Authentication auth,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        User currentUser = userRepository.findByUsername(username).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
         return ResponseEntity.ok(orderService.getMyOrders(currentUser, page, size));
     }
 
     @GetMapping("/me/orders/{orderCode}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> getMyOrder(
-            @AuthenticationPrincipal String username,
+            Authentication auth,
             @PathVariable String orderCode) {
-        User currentUser = userRepository.findByUsername(username).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
         return ResponseEntity.ok(orderService.getMyOrder(currentUser, orderCode));
+    }
+
+    @PostMapping("/me/orders/{orderCode}/reorder")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<CartResponse> reorder(
+            Authentication auth,
+            @PathVariable String orderCode) {
+        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
+        return ResponseEntity.ok(orderService.reorder(currentUser, orderCode));
     }
 
     @GetMapping("/admin/orders")
@@ -84,9 +94,9 @@ public class OrderController {
     @PostMapping("/admin/orders/{orderId}/confirm")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> confirmOrder(
-            @AuthenticationPrincipal String username,
+            Authentication auth,
             @PathVariable UUID orderId) {
-        User admin = userRepository.findByUsername(username).orElseThrow();
+        User admin = userRepository.findByUsername(auth.getName()).orElseThrow();
         orderService.confirmOrder(admin, orderId);
         return ResponseEntity.noContent().build();
     }
@@ -119,17 +129,17 @@ public class OrderController {
     @PostMapping("/orders/{orderId}/cancel")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<OrderResponse> cancelMyOrder(
-            @AuthenticationPrincipal String username,
+            Authentication auth,
             @PathVariable UUID orderId,
             @RequestParam String reason) {
-        User currentUser = userRepository.findByUsername(username).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
         return ResponseEntity.ok(orderService.cancelOrder(currentUser, orderId, reason));
     }
 
     @GetMapping("/orders/{orderId}/payment")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> getOrderPayment(
-            @AuthenticationPrincipal String username,
+            Authentication auth,
             @PathVariable UUID orderId) {
         return ResponseEntity.ok("https://payment.local/mock/" + orderId);
     }

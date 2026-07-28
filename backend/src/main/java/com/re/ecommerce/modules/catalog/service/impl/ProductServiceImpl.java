@@ -33,6 +33,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductSpecificationRepository specificationRepository;
     private final ProductAttributeRepository attributeRepository;
     private final ProductImageRepository imageRepository;
+    private final com.re.ecommerce.modules.catalog.repository.RelatedProductRepository relatedProductRepository;
     private final AuditLogger auditLogger;
 
     @Override
@@ -234,6 +235,63 @@ public class ProductServiceImpl implements ProductService {
         return saved.stream()
                 .map(a -> new AttributeResponse(a.getId(), a.getAttributeName(), a.getAttributeValue()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductCardResponse> getRelatedProducts(String slug) {
+        List<RelatedProduct> rps = relatedProductRepository.findBySourceProduct_SlugOrderBySortOrderAsc(slug);
+        return rps.stream()
+                .map(RelatedProduct::getTargetProduct)
+                .filter(p -> p.getPublicationStatus() == PublicationStatus.ACTIVE && p.getDeletedAt() == null)
+                .map(p -> {
+                    ProductVariant defaultVariant = p.getVariants().stream()
+                            .filter(v -> v.getStatus() == VariantStatus.ACTIVE).findFirst().orElse(null);
+                    if (defaultVariant == null) return null;
+                    return ProductCardResponse.fromProduct(p);
+                })
+                .filter(r -> r != null) // spec says variant must be saleable
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RelatedProductAdminResponse> getAdminRelatedProducts(UUID productId) {
+        List<RelatedProduct> rps = relatedProductRepository.findBySourceProduct_IdOrderBySortOrderAsc(productId);
+        return rps.stream().map(rp -> {
+            Product tp = rp.getTargetProduct();
+            String warning = null;
+            if (tp.getDeletedAt() != null) warning = "Target product is deleted.";
+            else if (tp.getPublicationStatus() != PublicationStatus.ACTIVE) warning = "Target product is not active.";
+            return new RelatedProductAdminResponse(tp.getId(), tp.getName(), tp.getPublicationStatus(), rp.getSortOrder(), warning);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<RelatedProductAdminResponse> replaceRelatedProducts(UUID productId, RelatedProductReplaceRequest request) {
+        Product sourceProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
+
+        if (sourceProduct.getDeletedAt() != null) {
+            throw new UnprocessableEntityException("PRODUCT_DELETED", "Product is deleted");
+        }
+
+        relatedProductRepository.deleteBySourceProductId(productId);
+        
+        List<RelatedProduct> newRps = request.getRelatedProducts().stream().map(req -> {
+            if (req.getTargetProductId().equals(productId)) {
+                throw new UnprocessableEntityException("SELF_RELATION_NOT_ALLOWED", "Cannot relate product to itself");
+            }
+            Product targetProduct = productRepository.findById(req.getTargetProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("RELATED_PRODUCT_NOT_FOUND", "Related product not found: " + req.getTargetProductId()));
+            return new RelatedProduct(sourceProduct, targetProduct, req.getSortOrder());
+        }).collect(Collectors.toList());
+
+        // Note: constraint handles duplicate target IDs check in DB (or we can use Set).
+        relatedProductRepository.saveAll(newRps);
+        auditLogger.log("PRODUCT_RELATED_UPDATE", "Product", productId.toString(), null, "Replaced related products set", "SUCCESS");
+        return getAdminRelatedProducts(productId);
     }
 
     private ProductAdminResponse mapToAdminResponse(Product product) {

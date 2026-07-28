@@ -61,6 +61,9 @@ public class OrderControllerIntegrationTest {
     @Autowired
     private CartRepository cartRepository;
 
+    @Autowired
+    private com.re.ecommerce.modules.order.repository.OrderItemRepository orderItemRepository;
+
 
     @Autowired
     private OrderRepository orderRepository;
@@ -307,5 +310,109 @@ public class OrderControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", hasSize(1)))
                 .andExpect(jsonPath("$.items[0].orderCode").value("ORD-ADMIN"));
+    }
+
+    @Test
+    void reorder_shouldMergeItemsIntoCart() throws Exception {
+        Order order = new Order();
+        order.setCustomer(testUser);
+        order.setOrderCode("ORD-REORDER-OK");
+        order.setIdempotencyKeyHash(new byte[32]);
+        order.setSubtotalAmount(BigDecimal.valueOf(100));
+        order.setGrandTotalAmount(BigDecimal.valueOf(100));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingFee(BigDecimal.ZERO);
+        order.setSourceChannel(OrderSourceChannel.WEB);
+        order.setReceiverName("Rec");
+        order.setReceiverPhone("090");
+        order.setContactName("Con");
+        order.setContactPhone("090");
+        order.setShippingCountryCode("VN");
+        order.setShippingProvinceName("PRV");
+        order.setShippingDistrictName("DIS");
+        order.setShippingWardName("WAR");
+        order.setShippingDetailAddress("Address");
+        order.setCurrency("VND");
+        order.setStatus(OrderStatus.PENDING);
+        order.setVersion(0L);
+        order = orderRepository.save(order);
+        
+        com.re.ecommerce.modules.order.entity.OrderItem oi = com.re.ecommerce.modules.order.entity.OrderItem.builder()
+                .order(order)
+                .product(testVariant.getProduct())
+                .productVariant(testVariant)
+                .productName("TestProd")
+                .variantName("Variant 1")
+                .sku("SKU123")
+                .unitPrice(BigDecimal.valueOf(100))
+                .discountAmount(BigDecimal.ZERO)
+                .warrantyMonths(12)
+                .quantity(3)
+                .build();
+        orderItemRepository.save(oi);
+        
+        // Cart setup: current cart has 1 of testVariant
+        Cart cart = new Cart();
+        cart.setCustomer(testProfile);
+        CartItem item = new CartItem();
+        item.setProductVariant(testVariant);
+        item.setQuantity(1);
+        cart.addItem(item);
+        cartRepository.save(cart);
+
+        mockMvc.perform(post("/api/v1/me/orders/ORD-REORDER-OK/reorder")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].quantity").value(3)); // Max of 1 and 3 is 3
+    }
+    
+    @Test
+    void reorder_shouldReturn422WhenNoValidItems() throws Exception {
+        Order order = new Order();
+        order.setCustomer(testUser);
+        order.setOrderCode("ORD-REORDER-422");
+        order.setIdempotencyKeyHash(new byte[32]);
+        order.setSubtotalAmount(BigDecimal.valueOf(100));
+        order.setGrandTotalAmount(BigDecimal.valueOf(100));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingFee(BigDecimal.ZERO);
+        order.setSourceChannel(OrderSourceChannel.WEB);
+        order.setReceiverName("Rec");
+        order.setReceiverPhone("090");
+        order.setContactName("Con");
+        order.setContactPhone("090");
+        order.setShippingCountryCode("VN");
+        order.setShippingProvinceName("PRV");
+        order.setShippingDistrictName("DIS");
+        order.setShippingWardName("WAR");
+        order.setShippingDetailAddress("Address");
+        order.setCurrency("VND");
+        order.setStatus(OrderStatus.PENDING);
+        order.setVersion(0L);
+        order = orderRepository.save(order);
+        
+        ProductVariant inactiveVariant = new ProductVariant(testVariant.getProduct(), "SKU422", "Variant 422", "Green", 8, 256, null, 12, BigDecimal.valueOf(100), BigDecimal.valueOf(100));
+        inactiveVariant.setStatus(com.re.ecommerce.modules.catalog.entity.VariantStatus.INACTIVE);
+        inactiveVariant = productVariantRepository.save(inactiveVariant);
+        
+        com.re.ecommerce.modules.order.entity.OrderItem oi = com.re.ecommerce.modules.order.entity.OrderItem.builder()
+                .order(order)
+                .product(testVariant.getProduct())
+                .productVariant(inactiveVariant)
+                .productName("TestProd")
+                .variantName("Variant 422")
+                .sku("SKU422")
+                .unitPrice(BigDecimal.valueOf(100))
+                .discountAmount(BigDecimal.ZERO)
+                .warrantyMonths(12)
+                .quantity(3)
+                .build();
+        orderItemRepository.save(oi);
+        
+        mockMvc.perform(post("/api/v1/me/orders/ORD-REORDER-422/reorder")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errorCode").value("NO_REORDERABLE_ITEMS"));
     }
 }

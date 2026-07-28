@@ -44,6 +44,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductBySlug(slug));
     }
 
+    @GetMapping("/products/{slug}/related-products")
+    public ResponseEntity<List<ProductCardResponse>> getRelatedProducts(
+            @PathVariable String slug) {
+        return ResponseEntity.ok(productService.getRelatedProducts(slug));
+    }
+
     // --- ADMIN ENDPOINTS ---
 
     @GetMapping("/admin/products")
@@ -106,5 +112,20 @@ public class ProductController {
             @Valid @RequestBody AttributeRequest request) {
 
         return ResponseEntity.ok(productService.replaceAttributes(productId, request));
+    }
+
+    @GetMapping("/admin/products/{productId}/related-products")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasRole('ADMIN')")
+    public ResponseEntity<List<RelatedProductAdminResponse>> getAdminRelatedProducts(
+            @PathVariable UUID productId) {
+        return ResponseEntity.ok(productService.getAdminRelatedProducts(productId));
+    }
+
+    @PutMapping("/admin/products/{productId}/related-products")
+    @PreAuthorize("hasAuthority('PRODUCT_UPDATE') or hasRole('ADMIN')")
+    public ResponseEntity<List<RelatedProductAdminResponse>> replaceRelatedProducts(
+            @PathVariable UUID productId,
+            @Valid @RequestBody RelatedProductReplaceRequest request) {
+        return ResponseEntity.ok(productService.replaceRelatedProducts(productId, request));
     }
 }

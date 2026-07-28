@@ -17,4 +17,8 @@ public interface ProductService {
     ProductAdminResponse changeProductStatus(UUID id, PublicationStatus status);
     List<SpecificationResponse> replaceSpecifications(UUID productId, SpecificationRequest request);
     List<AttributeResponse> replaceAttributes(UUID productId, AttributeRequest request);
+    
+    List<ProductCardResponse> getRelatedProducts(String slug);
+    List<RelatedProductAdminResponse> getAdminRelatedProducts(UUID productId);
+    List<RelatedProductAdminResponse> replaceRelatedProducts(UUID productId, RelatedProductReplaceRequest request);
 }

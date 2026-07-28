@@ -74,7 +74,7 @@ public class PurchaseOrderController {
     @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
     public ResponseEntity<PurchaseOrderResponse> updateItem(
             @PathVariable UUID id,
-            @PathVariable UUID itemId,
+            @PathVariable Long itemId,
             @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest request) {
 
         return ResponseEntity.ok(purchaseOrderService.updateItem(id, itemId, request));
@@ -84,7 +84,7 @@ public class PurchaseOrderController {
     @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
     public ResponseEntity<PurchaseOrderResponse> removeItem(
             @PathVariable UUID id,
-            @PathVariable UUID itemId) {
+            @PathVariable Long itemId) {
 
         return ResponseEntity.ok(purchaseOrderService.removeItem(id, itemId));
     }

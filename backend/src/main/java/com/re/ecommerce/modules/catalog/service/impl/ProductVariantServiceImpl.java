@@ -213,6 +213,18 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         auditLogger.log("VARIANT_IMAGE_DELETE", "ProductImage", imageId.toString(), null, null, "SUCCESS");
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<com.re.ecommerce.modules.catalog.dto.response.ProductPriceHistoryResponse> getPriceHistory(UUID variantId, org.springframework.data.domain.Pageable pageable) {
+        if (!variantRepository.existsById(variantId)) {
+            throw new ResourceNotFoundException("VARIANT_NOT_FOUND", "Variant not found");
+        }
+        return priceHistoryRepository.findByVariantIdOrderByCreatedAtDesc(variantId, pageable)
+            .map(h -> new com.re.ecommerce.modules.catalog.dto.response.ProductPriceHistoryResponse(
+                h.getOldListPrice(), h.getNewListPrice(), h.getOldSalePrice(), h.getNewSalePrice(), 
+                h.getReason(), h.getCreatedBy(), h.getCreatedAt()));
+    }
+
     private VariantResponse mapToResponse(ProductVariant variant) {
         List<ImageResponse> images = imageRepository.findByVariantIdOrderBySortOrderAsc(variant.getId()).stream()
                 .map(img -> new ImageResponse(img.getId(), img.getImageUrl(), img.getAltText(), img.isPrimary(), img.getSortOrder()))

@@ -4,6 +4,7 @@ import com.re.ecommerce.common.exception.*;
 import com.re.ecommerce.modules.auth.dto.request.*;
 import com.re.ecommerce.modules.auth.dto.response.AuthResponse;
 import com.re.ecommerce.modules.auth.entity.AccountStatus;
+import com.re.ecommerce.modules.auth.entity.TokenFamily;
 import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.auth.repository.*;
 import com.re.ecommerce.security.JwtUtils;
@@ -40,6 +41,12 @@ class AuthServiceImplTest {
     private EmailVerificationTokenRepository emailVerificationTokenRepository;
 
     @Mock
+    private TokenFamilyRepository tokenFamilyRepository;
+
+    @Mock
+    private UserPasswordHistoryRepository userPasswordHistoryRepository;
+
+    @Mock
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Mock
@@ -67,8 +74,11 @@ class AuthServiceImplTest {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
         when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("access-token");
-        // We mock UUID for refresh token inside method but can't mock UUID.randomUUID() easily without static mock,
-        // but it doesn't matter since it creates new refreshToken.
+        when(tokenFamilyRepository.save(any())).thenAnswer(inv -> {
+            TokenFamily f = inv.getArgument(0);
+            f.setId(UUID.randomUUID());
+            return f;
+        });
         
         AuthResponse response = authService.login(req, "127.0.0.1", "test-agent");
         
@@ -124,6 +134,11 @@ class AuthServiceImplTest {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
         when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("access-token");
+        when(tokenFamilyRepository.save(any())).thenAnswer(inv -> {
+            TokenFamily f = inv.getArgument(0);
+            f.setId(UUID.randomUUID());
+            return f;
+        });
 
         AuthResponse res = authService.login(req, null, null);
 
@@ -153,6 +168,11 @@ class AuthServiceImplTest {
             User u = invocation.getArgument(0);
             u.setId(UUID.randomUUID());
             return u;
+        });
+        when(tokenFamilyRepository.save(any())).thenAnswer(inv -> {
+            TokenFamily f = inv.getArgument(0);
+            f.setId(UUID.randomUUID());
+            return f;
         });
         
         AuthResponse res = authService.register(req);

@@ -24,9 +24,9 @@ public interface PurchaseOrderService {
 
     PurchaseOrderResponse addItem(UUID poId, PurchaseOrderItemRequest request);
 
-    PurchaseOrderResponse updateItem(UUID poId, UUID itemId, PurchaseOrderItemRequest request);
+    PurchaseOrderResponse updateItem(UUID poId, Long itemId, PurchaseOrderItemRequest request);
 
-    PurchaseOrderResponse removeItem(UUID poId, UUID itemId);
+    PurchaseOrderResponse removeItem(UUID poId, Long itemId);
 
     PurchaseOrderResponse submitPurchaseOrder(UUID id, UUID submittedBy);
 

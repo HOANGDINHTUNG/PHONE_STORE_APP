@@ -65,6 +65,9 @@ public class User extends BaseEntity {
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
+    @Column(name = "password_changed_at")
+    private LocalDateTime passwordChangedAt;
+
     public User(String username, String email, String passwordHash, String role) {
         this.username = username;
         this.email = email;

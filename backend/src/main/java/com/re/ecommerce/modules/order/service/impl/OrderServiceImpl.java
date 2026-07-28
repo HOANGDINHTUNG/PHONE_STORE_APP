@@ -8,6 +8,8 @@ import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.cart.entity.Cart;
 import com.re.ecommerce.modules.cart.entity.CartItem;
 import com.re.ecommerce.modules.cart.entity.Coupon;
+import com.re.ecommerce.modules.cart.dto.request.CartItemRequest;
+import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.cart.repository.CartRepository;
 import com.re.ecommerce.modules.cart.repository.CouponRepository;
 import com.re.ecommerce.modules.catalog.entity.ProductVariant;
@@ -33,6 +35,7 @@ import com.re.ecommerce.modules.order.repository.OrderItemRepository;
 import com.re.ecommerce.modules.order.repository.OrderRepository;
 import com.re.ecommerce.modules.order.repository.OrderStatusHistoryRepository;
 import com.re.ecommerce.modules.order.service.OrderService;
+import com.re.ecommerce.modules.cart.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductVariantRepository productVariantRepository;
     
     private final ShippingAddressRepository shippingAddressRepository;
+    private final CartService cartService;
     
 
     @Override
@@ -415,5 +419,24 @@ public class OrderServiceImpl implements OrderService {
     public String generateGuestAccessLink(String orderCode, String email) {
         // Mock implementation for generating a secure access link for guests
         return "https://shop.local/guest/orders/" + orderCode + "?token=mock-token";
+    }
+
+    @Override
+    @Transactional
+    public CartResponse reorder(User currentUser, String orderCode) {
+        Order order = orderRepository.findByCustomer_IdAndOrderCode(currentUser.getId(), orderCode)
+                .orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+        List<CartItemRequest> requests = orderItems.stream()
+                .map(i -> {
+                    CartItemRequest req = new CartItemRequest();
+                    req.setProductVariantId(i.getProductVariant().getId());
+                    req.setQuantity(i.getQuantity());
+                    return req;
+                })
+                .collect(Collectors.toList());
+                
+        return cartService.reorderItems(currentUser.getId(), requests);
     }
 }

@@ -10,10 +10,13 @@ import com.re.ecommerce.modules.catalog.repository.CategoryRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductVariantRepository;
 import com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest;
+import com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderRequest;
 import com.re.ecommerce.modules.inventory.entity.PurchaseOrder;
+import com.re.ecommerce.modules.inventory.entity.PurchaseOrderItem;
 import com.re.ecommerce.modules.inventory.entity.Supplier;
 import com.re.ecommerce.modules.inventory.entity.Warehouse;
 import com.re.ecommerce.modules.inventory.entity.enums.PurchaseOrderStatus;
+
 import com.re.ecommerce.modules.inventory.repository.PurchaseOrderRepository;
 import com.re.ecommerce.modules.inventory.repository.SupplierRepository;
 import com.re.ecommerce.modules.inventory.repository.WarehouseRepository;
@@ -24,14 +27,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,11 +73,17 @@ public class PurchaseOrderControllerIntegrationTest {
     @Autowired
     private PurchaseOrderRepository purchaseOrderRepository;
 
+
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private ProductVariant testVariant;
+    private ProductVariant testVariant2;
+    private Supplier supplier;
+    private Warehouse warehouse;
     private PurchaseOrder testPo;
+    private PurchaseOrderItem testItem;
 
     @BeforeEach
     void setUp() {
@@ -97,15 +108,17 @@ public class PurchaseOrderControllerIntegrationTest {
         
         testVariant = new ProductVariant(product, "SKU_PO", "Variant 1", "Black", 8, 256, null, 12, BigDecimal.valueOf(100), BigDecimal.valueOf(100));
         testVariant = productVariantRepository.save(testVariant);
+        testVariant2 = new ProductVariant(product, "SKU_PO2", "Variant 2", "White", 8, 256, null, 12, BigDecimal.valueOf(200), BigDecimal.valueOf(200));
+        testVariant2 = productVariantRepository.save(testVariant2);
         
-        Supplier supplier = new Supplier();
+        supplier = new Supplier();
         supplier.setName("SupplierA");
         supplier.setSupplierCode("SUP-TEST-001");
         supplier.setContactName("John");
         supplier.setAddress("ABC");
         supplier = supplierRepository.save(supplier);
         
-        Warehouse warehouse = new Warehouse();
+        warehouse = new Warehouse();
         warehouse.setName("WarehouseA");
         warehouse.setCode("WH-PO-01");
         warehouse.setAddress("XYZ");
@@ -116,21 +129,128 @@ public class PurchaseOrderControllerIntegrationTest {
         testPo.setSupplier(supplier);
         testPo.setWarehouse(warehouse);
         testPo.setStatus(PurchaseOrderStatus.DRAFT);
-        testPo.setTotalAmount(BigDecimal.ZERO);
+        testPo.setTotalAmount(BigDecimal.valueOf(500.00));
         testPo.setExpectedAt(LocalDateTime.now().plusDays(5));
+        
+        testItem = new PurchaseOrderItem();
+        testItem.setProductVariant(testVariant);
+        testItem.setOrderedQuantity(5);
+        testItem.setUnitCost(BigDecimal.valueOf(100));
+        testPo.addItem(testItem);
+        
         testPo = purchaseOrderRepository.save(testPo);
     }
 
     @Test
-    @org.springframework.security.test.context.support.WithMockUser(authorities = {"SCOPE_PO_MANAGE"})
-    void addItem_shouldReturn201_whenValid() throws Exception {
-        PurchaseOrderItemRequest req = new PurchaseOrderItemRequest(testVariant.getId(), 50, BigDecimal.valueOf(120.00));
+    @WithMockUser(authorities = {"SCOPE_PO_VIEW"})
+    void getAllPurchaseOrders_shouldReturn200() throws Exception {
+        mockMvc.perform(get("/api/v1/purchase-orders"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.items.length()").value(1));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_VIEW"})
+    void getPurchaseOrder_shouldReturn200() throws Exception {
+        mockMvc.perform(get("/api/v1/purchase-orders/" + testPo.getId()))
+               .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"})
+    void createPurchaseOrder_shouldReturn201() throws Exception {
+        PurchaseOrderRequest req = new PurchaseOrderRequest(
+                "PO-TEST-002",
+                supplier.getId(),
+                warehouse.getId(),
+                LocalDateTime.now().plusDays(5),
+                "Note",
+                List.of(new PurchaseOrderItemRequest(testVariant.getId(), 10, BigDecimal.valueOf(110)))
+        );
+
+        mockMvc.perform(post("/api/v1/purchase-orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.purchaseOrderCode").value("PO-TEST-002"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"})
+    void updatePurchaseOrder_shouldReturn200() throws Exception {
+        PurchaseOrderRequest req = new PurchaseOrderRequest(
+                "PO-TEST-001",
+                supplier.getId(),
+                warehouse.getId(),
+                LocalDateTime.now().plusDays(5),
+                "Note Updated",
+                List.of(new PurchaseOrderItemRequest(testVariant.getId(), 20, BigDecimal.valueOf(110)))
+        );
+
+        mockMvc.perform(put("/api/v1/purchase-orders/" + testPo.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.note").value("Note Updated"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"})
+    void addItem_shouldReturn201() throws Exception {
+        PurchaseOrderItemRequest req = new PurchaseOrderItemRequest(testVariant2.getId(), 50, BigDecimal.valueOf(120.00));
         
         mockMvc.perform(post("/api/v1/purchase-orders/" + testPo.getId() + "/items")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.items.length()").value(1))
-                .andExpect(jsonPath("$.totalAmount").value(6000.0));
+                .andExpect(jsonPath("$.items.length()").value(2));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"})
+    void updateItem_shouldReturn200() throws Exception {
+        PurchaseOrderItemRequest req = new PurchaseOrderItemRequest(testVariant.getId(), 20, BigDecimal.valueOf(100.00));
+        
+        mockMvc.perform(patch("/api/v1/purchase-orders/" + testPo.getId() + "/items/" + testItem.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalAmount").value(2000.0));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"})
+    void removeItem_shouldReturn200() throws Exception {
+        mockMvc.perform(delete("/api/v1/purchase-orders/" + testPo.getId() + "/items/" + testItem.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalAmount").value(0.0));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"}, username = "d94b059f-d31c-43f1-b924-d2eab16fbb58")
+    void submitPurchaseOrder_shouldReturn200() throws Exception {
+        mockMvc.perform(post("/api/v1/purchase-orders/" + testPo.getId() + "/submit"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PENDING_APPROVAL"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_APPROVE"}, username = "d94b059f-d31c-43f1-b924-d2eab16fbb58")
+    void approvePurchaseOrder_shouldReturn200() throws Exception {
+        testPo.setStatus(PurchaseOrderStatus.PENDING_APPROVAL);
+        purchaseOrderRepository.save(testPo);
+
+        mockMvc.perform(post("/api/v1/purchase-orders/" + testPo.getId() + "/approve"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPROVED"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SCOPE_PO_MANAGE"}, username = "d94b059f-d31c-43f1-b924-d2eab16fbb58")
+    void cancelPurchaseOrder_shouldReturn200() throws Exception {
+        mockMvc.perform(post("/api/v1/purchase-orders/" + testPo.getId() + "/cancel")
+                        .param("cancelReason", "Not needed anymore"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 }

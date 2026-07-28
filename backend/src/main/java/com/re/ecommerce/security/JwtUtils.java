@@ -25,9 +25,14 @@ public class JwtUtils {
     }
 
     public String generateToken(String username, String role) {
+        return generateToken(username, role, null);
+    }
+
+    public String generateToken(String username, String role, String familyId) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
+                .claim("familyId", familyId)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey())
@@ -40,6 +45,10 @@ public class JwtUtils {
     
     public String getRoleFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("role", String.class));
+    }
+
+    public String getFamilyIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("familyId", String.class));
     }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {

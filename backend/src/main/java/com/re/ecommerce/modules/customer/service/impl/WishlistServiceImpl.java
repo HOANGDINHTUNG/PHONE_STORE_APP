@@ -8,6 +8,9 @@ import com.re.ecommerce.modules.customer.dto.response.WishlistItemResponse;
 import com.re.ecommerce.modules.customer.entity.WishlistItem;
 import com.re.ecommerce.modules.customer.repository.WishlistItemRepository;
 import com.re.ecommerce.modules.customer.service.WishlistService;
+import com.re.ecommerce.modules.catalog.repository.ProductRepository;
+import com.re.ecommerce.modules.catalog.entity.Product;
+import com.re.ecommerce.modules.catalog.entity.PublicationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +28,7 @@ public class WishlistServiceImpl implements WishlistService {
 
     private final WishlistItemRepository wishlistRepository;
     private final CustomerProfileRepository customerRepository;
+    private final ProductRepository productRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,8 +44,15 @@ public class WishlistServiceImpl implements WishlistService {
     @Transactional
     public void addProductToWishlist(String username, UUID productId) {
         CustomerProfile customer = getCustomer(username);
-        if (!wishlistRepository.existsByCustomerAndProductId(customer, productId)) {
-            WishlistItem item = new WishlistItem(customer, productId);
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
+            
+        if (product.getPublicationStatus() != PublicationStatus.ACTIVE || product.getDeletedAt() != null) {
+            throw new IllegalArgumentException("Product is not valid for wishlist");
+        }
+            
+        if (!wishlistRepository.existsByCustomerAndProduct(customer, product)) {
+            WishlistItem item = new WishlistItem(customer, product);
             wishlistRepository.save(item);
         }
     }
@@ -50,7 +61,9 @@ public class WishlistServiceImpl implements WishlistService {
     @Transactional
     public void removeProductFromWishlist(String username, UUID productId) {
         CustomerProfile customer = getCustomer(username);
-        wishlistRepository.deleteByCustomerAndProductId(customer, productId);
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
+        wishlistRepository.deleteByCustomerAndProduct(customer, product);
     }
 
     @Override
@@ -66,6 +79,9 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     private WishlistItemResponse mapToResponse(WishlistItem item) {
-        return new WishlistItemResponse(item.getId(), item.getProductId(), item.getCreatedAt());
+        com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse productCard = 
+            com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse.fromProduct(item.getProduct());
+        
+        return new WishlistItemResponse(item.getId(), productCard, item.getCreatedAt());
     }
 }

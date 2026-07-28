@@ -1,5 +1,6 @@
 package com.re.ecommerce.modules.order.service;
 
+import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.order.dto.request.CheckoutRequest;
 import com.re.ecommerce.modules.order.dto.response.OrderResponse;
 import com.re.ecommerce.modules.auth.entity.User;
@@ -30,4 +31,6 @@ public interface OrderService {
     OrderResponse getGuestOrder(String accessLink);
     
     String generateGuestAccessLink(String orderCode, String email);
+    
+    CartResponse reorder(User currentUser, String orderCode);
 }

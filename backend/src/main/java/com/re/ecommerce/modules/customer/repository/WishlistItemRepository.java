@@ -8,11 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
+import com.re.ecommerce.modules.catalog.entity.Product;
 
 @Repository
 public interface WishlistItemRepository extends JpaRepository<WishlistItem, UUID> {
     Page<WishlistItem> findByCustomer(CustomerProfile customer, Pageable pageable);
-    boolean existsByCustomerAndProductId(CustomerProfile customer, UUID productId);
-    void deleteByCustomerAndProductId(CustomerProfile customer, UUID productId);
+    boolean existsByCustomerAndProduct(CustomerProfile customer, Product product);
+    void deleteByCustomerAndProduct(CustomerProfile customer, Product product);
     void deleteAllByCustomer(CustomerProfile customer);
 }

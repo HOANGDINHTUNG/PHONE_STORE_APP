@@ -91,4 +91,12 @@ public class ProductVariantController {
         variantService.deleteImage(variantId, imageId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/variants/{variantId}/price-history")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasRole('ADMIN')")
+    public ResponseEntity<org.springframework.data.domain.Page<ProductPriceHistoryResponse>> getPriceHistory(
+            @PathVariable UUID variantId,
+            @org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(variantService.getPriceHistory(variantId, pageable));
+    }
 }

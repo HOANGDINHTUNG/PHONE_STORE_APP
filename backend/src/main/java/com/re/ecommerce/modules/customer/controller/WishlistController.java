@@ -11,12 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.re.ecommerce.security.CustomUserDetails;
+import com.re.ecommerce.modules.customer.dto.request.WishlistAddRequest;
 
 import java.util.UUID;
 
 @Tag(name = "11. Wishlist")
 @RestController
-@RequestMapping("/api/v1/me/wishlist")
+@RequestMapping("/api/v1/me/wishlist-items")
 @RequiredArgsConstructor
 @Slf4j
 public class WishlistController {
@@ -26,35 +28,35 @@ public class WishlistController {
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<PagedResponse<WishlistItemResponse>> listWishlist(
-            @AuthenticationPrincipal String username,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(wishlistService.listWishlist(username, page, size));
+        return ResponseEntity.ok(wishlistService.listWishlist(userDetails.getUsername(), page, size));
     }
 
-    @PostMapping("/{productId}")
+    @PostMapping
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Void> addProductToWishlist(
-            @AuthenticationPrincipal String username,
-            @PathVariable UUID productId) {
-        wishlistService.addProductToWishlist(username, productId);
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody WishlistAddRequest req) {
+        wishlistService.addProductToWishlist(userDetails.getUsername(), req.productId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/{productId}")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Void> removeProductFromWishlist(
-            @AuthenticationPrincipal String username,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable UUID productId) {
-        wishlistService.removeProductFromWishlist(username, productId);
-        return ResponseEntity.ok().build();
+        wishlistService.removeProductFromWishlist(userDetails.getUsername(), productId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Void> clearWishlist(
-            @AuthenticationPrincipal String username) {
-        wishlistService.clearWishlist(username);
-        return ResponseEntity.ok().build();
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        wishlistService.clearWishlist(userDetails.getUsername());
+        return ResponseEntity.noContent().build();
     }
 }

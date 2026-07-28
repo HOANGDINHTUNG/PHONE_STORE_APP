@@ -7,8 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
+import com.re.ecommerce.modules.catalog.entity.Product;
 
 @Entity
 @Table(name = "wishlist_items", uniqueConstraints = {
@@ -23,11 +22,12 @@ public class WishlistItem extends BaseEntity {
     @JoinColumn(name = "customer_id", nullable = false)
     private CustomerProfile customer;
 
-    @Column(name = "product_id", nullable = false)
-    private UUID productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
-    public WishlistItem(CustomerProfile customer, UUID productId) {
+    public WishlistItem(CustomerProfile customer, Product product) {
         this.customer = customer;
-        this.productId = productId;
+        this.product = product;
     }
 }
