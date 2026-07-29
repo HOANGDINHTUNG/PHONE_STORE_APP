@@ -27,7 +27,6 @@ import com.re.ecommerce.modules.order.enums.OrderSourceChannel;
 import com.re.ecommerce.modules.order.enums.OrderStatus;
 import com.re.ecommerce.modules.order.repository.OrderItemRepository;
 import com.re.ecommerce.modules.order.repository.OrderRepository;
-import com.re.ecommerce.security.CustomUserDetails;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,8 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -66,7 +63,7 @@ public class ReviewIntegrationTest {
     @Autowired private OrderRepository orderRepository;
     @Autowired private OrderItemRepository orderItemRepository;
     @Autowired private ReviewRepository reviewRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
+    // @Autowired private PasswordEncoder passwordEncoder;
 
     private User savedCustomer;
     private User savedAdmin;

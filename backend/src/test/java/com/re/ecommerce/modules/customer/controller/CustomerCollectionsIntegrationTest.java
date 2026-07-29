@@ -6,7 +6,6 @@ import com.re.ecommerce.modules.auth.dto.request.LoginRequest;
 import com.re.ecommerce.modules.auth.dto.request.RegisterRequest;
 import com.re.ecommerce.modules.auth.entity.CustomerProfile;
 import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
-import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.catalog.entity.Brand;
 import com.re.ecommerce.modules.catalog.entity.Category;
 import com.re.ecommerce.modules.catalog.entity.Product;
@@ -17,7 +16,6 @@ import com.re.ecommerce.modules.catalog.repository.ProductRepository;
 import com.re.ecommerce.modules.customer.dto.request.CompareAddRequest;
 import com.re.ecommerce.modules.customer.dto.request.WishlistAddRequest;
 import com.re.ecommerce.modules.customer.repository.CompareItemRepository;
-import com.re.ecommerce.modules.customer.repository.WishlistItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,14 +48,14 @@ public class CustomerCollectionsIntegrationTest {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private UserRepository userRepository;
+    // @Autowired
+    // private UserRepository userRepository;
     @Autowired
     private CustomerProfileRepository customerProfileRepository;
     @Autowired
     private CompareItemRepository compareItemRepository;
-    @Autowired
-    private WishlistItemRepository wishlistItemRepository;
+    // @Autowired
+    // private WishlistItemRepository wishlistItemRepository;
     @Autowired
     private ProductRepository productRepository;
     @Autowired

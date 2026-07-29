@@ -3,7 +3,6 @@ package com.re.ecommerce.modules.auth.service.impl;
 import com.re.ecommerce.common.exception.UnauthorizedException;
 import com.re.ecommerce.modules.auth.dto.request.PasswordChangeRequest;
 import com.re.ecommerce.modules.auth.dto.response.SessionResponse;
-import com.re.ecommerce.modules.auth.entity.RefreshToken;
 import com.re.ecommerce.modules.auth.entity.TokenFamily;
 import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.auth.entity.UserPasswordHistory;

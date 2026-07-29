@@ -1,7 +1,6 @@
 package com.re.ecommerce.modules.catalog.controller;
 
 import org.springframework.transaction.annotation.Transactional;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.re.ecommerce.modules.catalog.entity.*;
 import com.re.ecommerce.modules.catalog.repository.*;
 import org.junit.jupiter.api.BeforeEach;

@@ -7,7 +7,6 @@ import com.re.ecommerce.modules.auth.dto.request.PasswordChangeRequest;
 import com.re.ecommerce.modules.auth.dto.request.RegisterRequest;
 import com.re.ecommerce.modules.auth.entity.TokenFamily;
 import com.re.ecommerce.modules.auth.repository.TokenFamilyRepository;
-import com.re.ecommerce.modules.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +35,8 @@ public class AccountSecurityControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private UserRepository userRepository;
+//     @Autowired
+//     private UserRepository userRepository;
 
     @Autowired
     private TokenFamilyRepository tokenFamilyRepository;
