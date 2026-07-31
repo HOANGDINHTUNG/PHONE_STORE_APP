@@ -11,8 +11,9 @@ import {
   UserPlus,
   UserRound,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BrandLogo } from "../../../shared/components/BrandLogo";
+import { useStore } from "../../../context/StoreContext";
 
 type SiteHeaderProps = {
   search: string;
@@ -28,6 +29,9 @@ const tickerMessages = [
 
 export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
   const [accountOpen, setAccountOpen] = useState(false);
+  const { user } = useStore();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   return (
     <>
@@ -120,56 +124,69 @@ export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
           </Link>
           <button
             type="button"
-            onClick={() => setAccountOpen((open) => !open)}
-            className={`grid size-11 place-items-center rounded-xl transition ${
-              accountOpen ? "bg-primary text-white" : "hover:bg-surface-soft"
+            onClick={() => {
+              if (user) {
+                navigate("/tai-khoan");
+              } else {
+                setAccountOpen((open) => !open);
+              }
+            }}
+            className={`flex min-h-11 items-center gap-2 rounded-xl px-3 transition ${
+              accountOpen || pathname.startsWith("/tai-khoan")
+                ? "bg-primary text-white"
+                : "hover:bg-surface-soft text-foreground"
             }`}
-            aria-label="Mở tài khoản"
+            aria-label={user ? `Tài khoản của ${user.name}` : "Mở tài khoản"}
             aria-expanded={accountOpen}
             aria-haspopup="dialog"
           >
             <UserRound size={21} />
+            <span className="hidden text-sm font-semibold sm:inline">
+              {user ? user.name : "Tài khoản"}
+            </span>
           </button>
 
-          {accountOpen && (
+          {accountOpen && !user && (
             <div
               role="dialog"
               aria-label="Tài khoản chưa đăng nhập"
-              className="absolute right-0 top-[calc(100%+0.75rem)] w-[min(21rem,calc(100vw-2rem))] rounded-2xl border border-border bg-white p-5 text-left shadow-card"
+              className="absolute right-0 top-[calc(100%+0.75rem)] w-[min(21rem,calc(100vw-2rem))] rounded-2xl border border-border bg-white p-6 text-left shadow-2xl animate-fadeIn"
             >
-              <p className="text-xl font-extrabold tracking-[-0.03em]">Chào mừng bạn!</p>
+              <h2 className="text-xl font-extrabold tracking-[-0.03em] text-foreground">Chào mừng bạn!</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Đăng nhập để theo dõi đơn hàng, lưu sản phẩm yêu thích và nhận ưu đãi thành viên.
               </p>
-              <div className="mt-5 grid gap-2">
+              <div className="mt-5 grid gap-2.5">
                 <Link
                   to="/dang-nhap"
                   onClick={() => setAccountOpen(false)}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary-strong"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary-strong shadow-sm active:scale-[0.98]"
                 >
                   <LogIn size={17} /> Đăng nhập
                 </Link>
                 <Link
                   to="/dang-ky"
                   onClick={() => setAccountOpen(false)}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-neutral-soft px-4 text-sm font-bold transition hover:bg-border"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-neutral-soft px-4 text-sm font-bold text-foreground transition hover:bg-border active:scale-[0.98]"
                 >
                   <UserPlus size={17} /> Đăng ký tài khoản
                 </Link>
               </div>
-              <div className="mt-5 grid gap-1 border-t border-border pt-4">
-                <a
-                  href="#order-lookup"
-                  className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-sm text-muted hover:bg-surface-soft hover:text-primary"
+              <div className="mt-5 grid gap-1.5 border-t border-border pt-4 text-sm">
+                <Link
+                  to="/tai-khoan/theo-doi-don-hang"
+                  onClick={() => setAccountOpen(false)}
+                  className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-muted hover:bg-surface-soft hover:text-primary transition"
                 >
-                  <PackageSearch size={17} /> Tra cứu đơn hàng
-                </a>
-                <a
-                  href="#support"
-                  className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-sm text-muted hover:bg-surface-soft hover:text-primary"
+                  <PackageSearch size={17} className="text-primary" /> Tra cứu đơn hàng
+                </Link>
+                <Link
+                  to="/tai-khoan/ho-tro"
+                  onClick={() => setAccountOpen(false)}
+                  className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-muted hover:bg-surface-soft hover:text-primary transition"
                 >
-                  <HelpCircle size={17} /> Bạn cần hỗ trợ?
-                </a>
+                  <HelpCircle size={17} className="text-primary" /> Bạn cần hỗ trợ?
+                </Link>
               </div>
             </div>
           )}
