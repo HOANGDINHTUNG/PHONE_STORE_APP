@@ -1,12 +1,12 @@
 package com.re.ecommerce.common.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.ProblemDetail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,140 +16,84 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private ProblemDetail buildProblemDetail(HttpStatus status, String errorCode, String message) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, message);
+        problemDetail.setProperty("errorCode", errorCode);
+        String correlationId = UUID.randomUUID().toString();
+        problemDetail.setProperty("correlationId", correlationId);
+        log.warn("{} [{}]: {}", errorCode, correlationId, message);
+        return problemDetail;
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode("BAD_REQUEST")
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Business Exception [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ProblemDetail handleIllegalArgumentException(IllegalArgumentException ex) {
+        return buildProblemDetail(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode(ex.getErrorCode())
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Resource Not Found [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    public ProblemDetail handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return buildProblemDetail(HttpStatus.NOT_FOUND, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(BusinessConflictException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessConflictException(BusinessConflictException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode(ex.getErrorCode())
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Business Conflict [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    public ProblemDetail handleBusinessConflictException(BusinessConflictException ex) {
+        return buildProblemDetail(HttpStatus.CONFLICT, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(UnprocessableEntityException.class)
-    public ResponseEntity<ErrorResponse> handleUnprocessableEntityException(UnprocessableEntityException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode(ex.getErrorCode())
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Unprocessable Entity [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    public ProblemDetail handleUnprocessableEntityException(UnprocessableEntityException ex) {
+        return buildProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode(ex.getErrorCode())
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Unauthorized [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    public ProblemDetail handleUnauthorizedException(UnauthorizedException ex) {
+        return buildProblemDetail(HttpStatus.UNAUTHORIZED, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(AccountLockedException.class)
-    public ResponseEntity<ErrorResponse> handleAccountLockedException(AccountLockedException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode(ex.getErrorCode())
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Account Locked [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+    public ProblemDetail handleAccountLockedException(AccountLockedException ex) {
+        return buildProblemDetail(HttpStatus.LOCKED, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(RateLimitExceededException.class)
-    public ResponseEntity<ErrorResponse> handleRateLimitExceededException(RateLimitExceededException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode(ex.getErrorCode())
-                .message(ex.getMessage())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Rate Limit Exceeded [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
+    public ProblemDetail handleRateLimitExceededException(RateLimitExceededException ex) {
+        return buildProblemDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode("FORBIDDEN")
-                .message("Bạn không có quyền thực hiện thao tác này.")
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Access Denied [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    public ProblemDetail handleAccessDeniedException(AccessDeniedException ex) {
+        return buildProblemDetail(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bạn không có quyền thực hiện thao tác này.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error -> 
             fieldErrors.put(error.getField(), error.getDefaultMessage()));
             
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode("VALIDATION_FAILED")
-                .message("Dữ liệu đầu vào không hợp lệ.")
-                .fieldErrors(fieldErrors)
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Validation Failed [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        ProblemDetail problemDetail = buildProblemDetail(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Dữ liệu đầu vào không hợp lệ.");
+        problemDetail.setProperty("fieldErrors", fieldErrors);
+        return problemDetail;
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode("BAD_REQUEST")
-                .message("Dữ liệu đầu vào không đúng định dạng.")
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        
-        log.warn("Type Mismatch [{}]: {}", response.getCorrelationId(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ProblemDetail handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        return buildProblemDetail(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "Dữ liệu đầu vào không đúng định dạng.");
+    }
+
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolationException(jakarta.validation.ConstraintViolationException ex) {
+        return buildProblemDetail(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Dữ liệu đầu vào không hợp lệ: " + ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleAllUncaughtException(Exception ex) {
-        ErrorResponse response = ErrorResponse.builder()
-                .errorCode("INTERNAL_SERVER_ERROR")
-                .message("Đã có lỗi hệ thống xảy ra.")
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-                
-        log.error("System Error [{}]: ", response.getCorrelationId(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    public ProblemDetail handleAllUncaughtException(Exception ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Đã có lỗi hệ thống xảy ra.");
+        problemDetail.setProperty("errorCode", "INTERNAL_SERVER_ERROR");
+        String correlationId = UUID.randomUUID().toString();
+        problemDetail.setProperty("correlationId", correlationId);
+        log.error("System Error [{}]: ", correlationId, ex);
+        return problemDetail;
     }
 }

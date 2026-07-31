@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -76,7 +75,7 @@ public class AccountSecurityServiceImpl implements AccountSecurityService {
                     true, // placeholder for active
                     family.getCreatedAt().plusDays(7)
             );
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override

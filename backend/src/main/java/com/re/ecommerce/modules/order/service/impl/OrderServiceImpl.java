@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse checkout(User currentUser, byte[] guestTokenHash, CheckoutRequest request) {
+    public OrderResponse checkout(User currentUser, String guestToken, CheckoutRequest request) {
         log.info("Starting checkout process with idempotency: {}", request.idempotencyKey());
         
         byte[] idempotencyHash = hashIdempotency(request.idempotencyKey());
@@ -80,6 +80,11 @@ public class OrderServiceImpl implements OrderService {
         if (existingOrder.isPresent()) {
             log.info("Order already exists for idempotency key, ignoring and returning 200 (idempotent replay)");
             return toResponse(existingOrder.get(), orderItemRepository.findByOrderId(existingOrder.get().getId()));
+        }
+        
+        byte[] guestTokenHash = null;
+        if (currentUser == null && guestToken != null && !guestToken.isBlank()) {
+            guestTokenHash = hashIdempotency(guestToken);
         }
         
         Cart cart = getCart(currentUser, guestTokenHash);
@@ -94,8 +99,14 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal subtotal = BigDecimal.ZERO;
         
         // Prepare items array
+        List<UUID> variantIds = cart.getItems().stream()
+                .map(item -> item.getProductVariant().getId())
+                .toList();
+        java.util.Map<UUID, ProductVariant> variantMap = productVariantRepository.findAllById(variantIds).stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+                
         for (CartItem cartItem : cart.getItems()) {
-            ProductVariant variant = productVariantRepository.findById(cartItem.getProductVariant().getId())
+            ProductVariant variant = Optional.ofNullable(variantMap.get(cartItem.getProductVariant().getId()))
                     .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND", "Variant not found"));
             
             if (variant.getProduct().getPublicationStatus() != com.re.ecommerce.modules.catalog.entity.PublicationStatus.ACTIVE || 
@@ -273,9 +284,13 @@ public class OrderServiceImpl implements OrderService {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, size, org.springframework.data.domain.Sort.by("createdAt").descending());
         org.springframework.data.domain.Page<Order> ordersPage = orderRepository.findByCustomer_Id(currentUser.getId(), pageable);
         
+        List<UUID> orderIds = ordersPage.getContent().stream().map(Order::getId).toList();
+        List<OrderItem> allItems = orderIds.isEmpty() ? java.util.Collections.emptyList() : orderItemRepository.findByOrderIdIn(orderIds);
+        java.util.Map<UUID, List<OrderItem>> itemsByOrderId = allItems.stream().collect(Collectors.groupingBy(item -> item.getOrder().getId()));
+        
         List<OrderResponse> dtos = ordersPage.getContent().stream()
-                .map(o -> toResponse(o, orderItemRepository.findByOrderId(o.getId())))
-                .collect(Collectors.toList());
+                .map(o -> toResponse(o, itemsByOrderId.getOrDefault(o.getId(), java.util.Collections.emptyList())))
+                .toList();
                 
         return PagedResponse.of(ordersPage, dtos);
     }
@@ -294,9 +309,13 @@ public class OrderServiceImpl implements OrderService {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, size, org.springframework.data.domain.Sort.by("createdAt").descending());
         org.springframework.data.domain.Page<Order> ordersPage = orderRepository.findAll(pageable);
         
+        List<UUID> orderIds = ordersPage.getContent().stream().map(Order::getId).toList();
+        List<OrderItem> allItems = orderIds.isEmpty() ? java.util.Collections.emptyList() : orderItemRepository.findByOrderIdIn(orderIds);
+        java.util.Map<UUID, List<OrderItem>> itemsByOrderId = allItems.stream().collect(Collectors.groupingBy(item -> item.getOrder().getId()));
+        
         List<OrderResponse> dtos = ordersPage.getContent().stream()
-                .map(o -> toResponse(o, orderItemRepository.findByOrderId(o.getId())))
-                .collect(Collectors.toList());
+                .map(o -> toResponse(o, itemsByOrderId.getOrDefault(o.getId(), java.util.Collections.emptyList())))
+                .toList();
                 
         return PagedResponse.of(ordersPage, dtos);
     }
@@ -342,7 +361,7 @@ public class OrderServiceImpl implements OrderService {
                 .quantity(i.getQuantity())
                 .discountAmount(i.getDiscountAmount())
                 .lineTotal(i.getLineTotal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
                 
         return OrderResponse.builder()
                 .id(order.getId())
@@ -435,7 +454,7 @@ public class OrderServiceImpl implements OrderService {
                     req.setQuantity(i.getQuantity());
                     return req;
                 })
-                .collect(Collectors.toList());
+                .toList();
                 
         return cartService.reorderItems(currentUser.getId(), requests);
     }

@@ -3,9 +3,12 @@ package com.re.ecommerce.modules.auth.service.impl;
 import com.re.ecommerce.common.exception.BusinessConflictException;
 import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.auth.dto.request.UserProfileUpdateRequest;
+import com.re.ecommerce.modules.auth.dto.request.UserUpdateAdminRequest;
 import com.re.ecommerce.modules.auth.dto.response.UserResponse;
 import com.re.ecommerce.modules.auth.entity.AccountStatus;
+import com.re.ecommerce.modules.auth.entity.CustomerProfile;
 import com.re.ecommerce.modules.auth.entity.User;
+import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final com.re.ecommerce.modules.auth.repository.CustomerProfileRepository customerProfileRepository;
+    private final CustomerProfileRepository customerProfileRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -29,7 +31,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Người dùng không tồn tại."));
         
-        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
         return mapToResponse(user, profile);
     }
 
@@ -55,7 +57,7 @@ public class UserServiceImpl implements UserService {
 
         User saved = userRepository.save(user);
         
-        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
         if (profile != null) {
             if (request.fullName() != null && !request.fullName().isBlank()) {
                 profile.setFullName(request.fullName());
@@ -82,7 +84,7 @@ public class UserServiceImpl implements UserService {
                         u.getUsername().toLowerCase().contains(keyword.toLowerCase()) ||
                         u.getEmail().toLowerCase().contains(keyword.toLowerCase()))
                 .map(u -> mapToResponse(u, customerProfileRepository.findById(u.getId()).orElse(null)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -90,13 +92,13 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserById(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Người dùng không tồn tại."));
-        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
         return mapToResponse(user, profile);
     }
 
     @Override
     @Transactional
-    public UserResponse adminUpdateUser(UUID userId, com.re.ecommerce.modules.auth.dto.request.UserUpdateAdminRequest request) {
+    public UserResponse adminUpdateUser(UUID userId, UserUpdateAdminRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Người dùng không tồn tại."));
 
@@ -113,7 +115,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User saved = userRepository.save(user);
-        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
 
         if (profile != null && request.fullName() != null && !request.fullName().isBlank()) {
             profile.setFullName(request.fullName());
@@ -139,11 +141,11 @@ public class UserServiceImpl implements UserService {
         }
 
         User saved = userRepository.save(user);
-        com.re.ecommerce.modules.auth.entity.CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
+        CustomerProfile profile = customerProfileRepository.findById(user.getId()).orElse(null);
         return mapToResponse(saved, profile);
     }
 
-    private UserResponse mapToResponse(User user, com.re.ecommerce.modules.auth.entity.CustomerProfile profile) {
+    private UserResponse mapToResponse(User user, CustomerProfile profile) {
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),

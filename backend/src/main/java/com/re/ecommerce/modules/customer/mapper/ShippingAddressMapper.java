@@ -29,4 +29,17 @@ public class ShippingAddressMapper {
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
+    public void updateAddressFromRequest(com.re.ecommerce.modules.customer.dto.request.AddressUpdateRequest request, ShippingAddress address) {
+        if (org.springframework.util.StringUtils.hasText(request.receiverName())) address.setReceiverName(request.receiverName());
+        if (org.springframework.util.StringUtils.hasText(request.receiverPhone())) address.setReceiverPhone(request.receiverPhone());
+        if (org.springframework.util.StringUtils.hasText(request.countryCode())) address.setCountryCode(request.countryCode());
+        if (org.springframework.util.StringUtils.hasText(request.provinceCode())) address.setProvinceCode(request.provinceCode());
+        if (org.springframework.util.StringUtils.hasText(request.provinceName())) address.setProvinceName(request.provinceName());
+        if (org.springframework.util.StringUtils.hasText(request.districtCode())) address.setDistrictCode(request.districtCode());
+        if (org.springframework.util.StringUtils.hasText(request.districtName())) address.setDistrictName(request.districtName());
+        if (org.springframework.util.StringUtils.hasText(request.wardCode())) address.setWardCode(request.wardCode());
+        if (org.springframework.util.StringUtils.hasText(request.wardName())) address.setWardName(request.wardName());
+        if (org.springframework.util.StringUtils.hasText(request.detailAddress())) address.setDetailAddress(request.detailAddress());
+        if (org.springframework.util.StringUtils.hasText(request.postalCode())) address.setPostalCode(request.postalCode());
+    }
 }

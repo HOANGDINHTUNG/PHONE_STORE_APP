@@ -19,12 +19,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 @Slf4j
 @Tag(name = "11. Sales Order Management")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Validated
 public class OrderController {
 
     private final OrderService orderService;
@@ -41,17 +45,7 @@ public class OrderController {
             currentUser = userRepository.findByUsername(auth.getName()).orElse(null);
         }
         
-        byte[] guestTokenHash = null;
-        if (currentUser == null && guestToken != null && !guestToken.isBlank()) {
-            try {
-                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-                guestTokenHash = digest.digest(guestToken.getBytes());
-            } catch (Exception e) {
-                log.error("Failed to hash guest token for checkout", e);
-            }
-        }
-        
-        OrderResponse response = orderService.checkout(currentUser, guestTokenHash, request);
+        OrderResponse response = orderService.checkout(currentUser, guestToken, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -60,7 +54,7 @@ public class OrderController {
     public ResponseEntity<PagedResponse<OrderResponse>> getMyOrders(
             Authentication auth,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
         return ResponseEntity.ok(orderService.getMyOrders(currentUser, page, size));
     }
@@ -87,7 +81,7 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PagedResponse<OrderResponse>> getAdminOrders(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         return ResponseEntity.ok(orderService.getAdminOrders(page, size));
     }
 

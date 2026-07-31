@@ -14,6 +14,7 @@ import java.util.UUID;
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
     List<OrderItem> findByOrderId(UUID orderId);
+    List<OrderItem> findByOrderIdIn(List<UUID> orderIds);
 
     @Query("SELECT i FROM OrderItem i JOIN FETCH i.product p JOIN i.order o " +
            "WHERE o.customer = :customer AND o.completedAt IS NOT NULL " +

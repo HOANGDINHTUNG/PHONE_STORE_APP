@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductSpecificationRepository specificationRepository;
     private final ProductAttributeRepository attributeRepository;
     private final ProductImageRepository imageRepository;
-    private final com.re.ecommerce.modules.catalog.repository.RelatedProductRepository relatedProductRepository;
+    private final RelatedProductRepository relatedProductRepository;
     private final AuditLogger auditLogger;
 
     @Override
@@ -45,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
                 .filter(p -> categoryId == null || p.getCategory().getId().equals(categoryId))
                 .filter(p -> brandId == null || p.getBrand().getId().equals(brandId))
                 .map(this::mapToPublicResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -67,7 +66,7 @@ public class ProductServiceImpl implements ProductService {
                 .filter(p -> brandId == null || p.getBrand().getId().equals(brandId))
                 .map(this::mapToAdminResponse)
                 .sorted(Comparator.comparing(ProductAdminResponse::createdAt).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -205,7 +204,7 @@ public class ProductServiceImpl implements ProductService {
         
         List<ProductSpecification> newSpecs = request.items().stream()
                 .map(item -> new ProductSpecification(product, item.groupName(), item.specName(), item.specValue(), item.sortOrder()))
-                .collect(Collectors.toList());
+                .toList();
                 
         List<ProductSpecification> saved = specificationRepository.saveAll(newSpecs);
         
@@ -213,7 +212,7 @@ public class ProductServiceImpl implements ProductService {
         
         return saved.stream()
                 .map(s -> new SpecificationResponse(s.getId(), s.getGroupName(), s.getSpecName(), s.getSpecValue(), s.getSortOrder()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -226,7 +225,7 @@ public class ProductServiceImpl implements ProductService {
         
         List<ProductAttribute> newAttrs = request.items().stream()
                 .map(item -> new ProductAttribute(product, item.attributeName(), item.attributeValue()))
-                .collect(Collectors.toList());
+                .toList();
                 
         List<ProductAttribute> saved = attributeRepository.saveAll(newAttrs);
         
@@ -234,7 +233,7 @@ public class ProductServiceImpl implements ProductService {
         
         return saved.stream()
                 .map(a -> new AttributeResponse(a.getId(), a.getAttributeName(), a.getAttributeValue()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -251,7 +250,7 @@ public class ProductServiceImpl implements ProductService {
                     return ProductCardResponse.fromProduct(p);
                 })
                 .filter(r -> r != null) // spec says variant must be saleable
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -264,7 +263,7 @@ public class ProductServiceImpl implements ProductService {
             if (tp.getDeletedAt() != null) warning = "Target product is deleted.";
             else if (tp.getPublicationStatus() != PublicationStatus.ACTIVE) warning = "Target product is not active.";
             return new RelatedProductAdminResponse(tp.getId(), tp.getName(), tp.getPublicationStatus(), rp.getSortOrder(), warning);
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override
@@ -286,7 +285,7 @@ public class ProductServiceImpl implements ProductService {
             Product targetProduct = productRepository.findById(req.getTargetProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("RELATED_PRODUCT_NOT_FOUND", "Related product not found: " + req.getTargetProductId()));
             return new RelatedProduct(sourceProduct, targetProduct, req.getSortOrder());
-        }).collect(Collectors.toList());
+        }).toList();
 
         // Note: constraint handles duplicate target IDs check in DB (or we can use Set).
         relatedProductRepository.saveAll(newRps);
@@ -319,14 +318,14 @@ public class ProductServiceImpl implements ProductService {
         List<VariantResponse> variantResponses = variants.stream().map(v -> {
             List<ImageResponse> images = imageRepository.findByVariantIdOrderBySortOrderAsc(v.getId()).stream()
                     .map(img -> new ImageResponse(img.getId(), img.getImageUrl(), img.getAltText(), img.isPrimary(), img.getSortOrder()))
-                    .collect(Collectors.toList());
+                    .toList();
                     
             return new VariantResponse(
                     v.getId(), v.getProduct().getId(), v.getSku(), v.getName(), v.getColor(), v.getRamGb(), v.getStorageGb(),
                     v.getTrackingType(), v.getWarrantyMonths(), v.getListPrice(), v.getSalePrice(), v.getStatus(), v.getVersion(),
                     images, v.getCreatedAt(), v.getUpdatedAt()
             );
-        }).collect(Collectors.toList());
+        }).toList();
 
         BigDecimal minPrice = null;
         BigDecimal maxPrice = null;
@@ -339,11 +338,11 @@ public class ProductServiceImpl implements ProductService {
 
         List<SpecificationResponse> specs = specificationRepository.findByProductIdOrderBySortOrderAsc(product.getId()).stream()
                 .map(s -> new SpecificationResponse(s.getId(), s.getGroupName(), s.getSpecName(), s.getSpecValue(), s.getSortOrder()))
-                .collect(Collectors.toList());
+                .toList();
 
         List<AttributeResponse> attrs = attributeRepository.findByProductId(product.getId()).stream()
                 .map(a -> new AttributeResponse(a.getId(), a.getAttributeName(), a.getAttributeValue()))
-                .collect(Collectors.toList());
+                .toList();
 
         return new ProductPublicResponse(
                 product.getId(),
