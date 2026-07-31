@@ -1,44 +1,80 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+} from "react";
+import { User, Product, CartItem } from "../types";
 
-const StoreContext = createContext();
+interface StoreContextType {
+  user: User | null;
+  cart: CartItem[];
+  wishlist: Product[];
+  login: (emailOrPhone: string, password?: string) => boolean;
+  logout: () => void;
+  registerUser: (details: {
+    fullName: string;
+    phone: string;
+    email?: string;
+    [key: string]: any;
+  }) => boolean;
+  addToCart: (product: Product | CartItem) => void;
+  removeFromCart: (productId: number) => void;
+  updateCartQuantity: (productId: number, quantity: number) => void;
+  toggleWishlist: (product: Product) => void;
+  isInWishlist: (productId: number) => boolean;
+}
 
-export const useStore = () => useContext(StoreContext);
+const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-export const StoreProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('pinkphone_user');
+export const useStore = (): StoreContextType => {
+  const context = useContext(StoreContext);
+  if (!context) {
+    throw new Error("useStore must be used within a StoreProvider");
+  }
+  return context;
+};
+
+interface StoreProviderProps {
+  children: ReactNode;
+}
+
+export const StoreProvider = ({ children }: StoreProviderProps) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem("pinkphone_user");
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem('pinkphone_cart');
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    const saved = localStorage.getItem("pinkphone_cart");
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [wishlist, setWishlist] = useState(() => {
-    const saved = localStorage.getItem('pinkphone_wishlist');
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
+    const saved = localStorage.getItem("pinkphone_wishlist");
     return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem('pinkphone_user', user ? JSON.stringify(user) : '');
+    localStorage.setItem("pinkphone_user", user ? JSON.stringify(user) : "");
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('pinkphone_cart', JSON.stringify(cart));
+    localStorage.setItem("pinkphone_cart", JSON.stringify(cart));
   }, [cart]);
 
   useEffect(() => {
-    localStorage.setItem('pinkphone_wishlist', JSON.stringify(wishlist));
+    localStorage.setItem("pinkphone_wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
   // Auth actions
-  const login = (emailOrPhone, password) => {
+  const login = (emailOrPhone: string, password?: string) => {
     // Simple mock login
-    const mockUser = {
-      email: emailOrPhone.includes('@') ? emailOrPhone : 'user@example.com',
-      phone: !emailOrPhone.includes('@') ? emailOrPhone : '0901234567',
-      name: 'Nguyễn Văn A'
+    const mockUser: User = {
+      email: emailOrPhone.includes("@") ? emailOrPhone : "user@example.com",
+      phone: !emailOrPhone.includes("@") ? emailOrPhone : "0901234567",
+      name: "Nguyễn Văn A",
     };
     setUser(mockUser);
     return true;
@@ -48,47 +84,54 @@ export const StoreProvider = ({ children }) => {
     setUser(null);
   };
 
-  const registerUser = (details) => {
-    const newUser = {
+  const registerUser = (details: {
+    fullName: string;
+    phone: string;
+    email?: string;
+    [key: string]: any;
+  }) => {
+    const newUser: User = {
       name: details.fullName,
       phone: details.phone,
-      email: details.email || 'user@example.com'
+      email: details.email || "user@example.com",
     };
     setUser(newUser);
     return true;
   };
 
   // Cart actions
-  const addToCart = (product) => {
+  const addToCart = (product: Product | CartItem) => {
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.id === product.id);
       if (existing) {
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, quantity: 1 } as CartItem];
     });
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId: number) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  const updateCartQuantity = (productId, quantity) => {
+  const updateCartQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
+        item.id === productId ? { ...item, quantity } : item,
+      ),
     );
   };
 
   // Wishlist actions
-  const toggleWishlist = (product) => {
+  const toggleWishlist = (product: Product) => {
     setWishlist((prevWishlist) => {
       const isExist = prevWishlist.some((item) => item.id === product.id);
       if (isExist) {
@@ -98,7 +141,7 @@ export const StoreProvider = ({ children }) => {
     });
   };
 
-  const isInWishlist = (productId) => {
+  const isInWishlist = (productId: number) => {
     return wishlist.some((item) => item.id === productId);
   };
 
@@ -115,7 +158,7 @@ export const StoreProvider = ({ children }) => {
         removeFromCart,
         updateCartQuantity,
         toggleWishlist,
-        isInWishlist
+        isInWishlist,
       }}
     >
       {children}

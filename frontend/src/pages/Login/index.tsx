@@ -1,22 +1,22 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, message } from 'antd';
-import { GoogleOutlined, FacebookOutlined } from '@ant-design/icons';
-import { useStore } from '../../context/StoreContext';
-import styles from './Login.module.css';
+import React from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Form, Input, Button, Checkbox, message } from "antd";
+import { GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
+import { useStore } from "../../context/StoreContext";
+import styles from "./Login.module.css";
 
 const Login = () => {
   const { login } = useStore();
   const navigate = useNavigate();
 
-  const onFinish = (values) => {
+  const onFinish = (values: any) => {
     const { emailOrPhone, password } = values;
     const success = login(emailOrPhone, password);
     if (success) {
-      message.success('Đăng nhập thành công!');
-      navigate('/');
+      message.success("Đăng nhập thành công!");
+      navigate("/");
     } else {
-      message.error('Sai thông tin đăng nhập.');
+      message.error("Sai thông tin đăng nhập.");
     }
   };
 
@@ -34,7 +34,8 @@ const Login = () => {
             <div className={styles.leftBottom}>
               <h2 className={styles.overlayTitle}>PinkPhone</h2>
               <p className={styles.overlayDesc}>
-                Precision in every pixel. Experience the future of mobile technology with our signature pink collection.
+                Precision in every pixel. Experience the future of mobile
+                technology with our signature pink collection.
               </p>
             </div>
           </div>
@@ -59,22 +60,35 @@ const Login = () => {
               <Form.Item
                 label="Email hoặc Số điện thoại"
                 name="emailOrPhone"
-                rules={[{ required: true, message: 'Vui lòng nhập Email hoặc Số điện thoại!' }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng nhập Email hoặc Số điện thoại!",
+                  },
+                ]}
               >
-                <Input placeholder="name@example.com" className={styles.input} />
+                <Input
+                  placeholder="name@example.com"
+                  className={styles.input}
+                />
               </Form.Item>
 
               <Form.Item
                 label="Mật khẩu"
                 name="password"
-                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
               >
-                <Input.Password placeholder="••••••••" className={styles.input} />
+                <Input.Password
+                  placeholder="••••••••"
+                  className={styles.input}
+                />
               </Form.Item>
 
               <div className={styles.formActions}>
                 <Form.Item name="remember" valuePropName="checked" noStyle>
-                  <Checkbox className={styles.checkbox}>Ghi nhớ đăng nhập</Checkbox>
+                  <Checkbox className={styles.checkbox}>
+                    Ghi nhớ đăng nhập
+                  </Checkbox>
                 </Form.Item>
                 <a href="#forgot" className={styles.forgotLink}>
                   Quên mật khẩu?
@@ -82,7 +96,12 @@ const Login = () => {
               </div>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" block className={styles.submitBtn}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  className={styles.submitBtn}
+                >
                   Đăng nhập
                 </Button>
               </Form.Item>
@@ -92,10 +111,16 @@ const Login = () => {
               </div>
 
               <div className={styles.socialGrid}>
-                <Button className={styles.socialBtn} icon={<GoogleOutlined className={styles.googleIcon} />}>
+                <Button
+                  className={styles.socialBtn}
+                  icon={<GoogleOutlined className={styles.googleIcon} />}
+                >
                   Tiếp tục với Google
                 </Button>
-                <Button className={styles.socialBtn} icon={<FacebookOutlined className={styles.facebookIcon} />}>
+                <Button
+                  className={styles.socialBtn}
+                  icon={<FacebookOutlined className={styles.facebookIcon} />}
+                >
                   Tiếp tục với Facebook
                 </Button>
               </div>

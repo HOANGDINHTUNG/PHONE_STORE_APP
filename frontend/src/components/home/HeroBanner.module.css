@@ -1,6 +1,6 @@
 .heroSection {
   max-width: 1200px;
-  margin: 24px auto;
+  margin: 0 auto 24px;
   padding: 0 16px;
   position: relative;
 }
@@ -102,12 +102,13 @@
 .slideImage img {
   max-height: 320px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
   animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
