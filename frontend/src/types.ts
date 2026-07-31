@@ -1,0 +1,50 @@
+export interface User {
+  id?: number | string;
+  name: string;
+  phone: string;
+  email: string;
+  token?: string;
+}
+
+export interface Product {
+  id: number | string;
+  name: string;
+  brand?: string;
+  category?: string;
+  badge?: string;
+  badgeType?: string;
+  image: string;
+  price?: string;
+  newPrice?: string;
+  oldPrice?: string;
+  gift?: string;
+  rating?: number;
+  reviews?: number;
+  reviewsCount?: number;
+  specs?: Record<string, string>;
+  outOfStock?: boolean;
+  slug?: string;
+  description?: string;
+}
+
+export interface Category {
+  id: number | string;
+  name: string;
+  iconName?: string;
+  slug: string;
+  description?: string;
+}
+
+export interface Brand {
+  id: number | string;
+  name: string;
+  logo?: string;
+  slug?: string;
+}
+
+export interface CartItem extends Product {
+  quantity: number;
+  active?: boolean;
+  selectedStorage?: string;
+  selectedColor?: string;
+}

@@ -1,21 +1,25 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Row, Col, message } from 'antd';
-import { MobileOutlined, CarOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
-import { useStore } from '../../context/StoreContext';
-import styles from './Register.module.css';
+import React from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Form, Input, Button, Checkbox, Row, Col, message } from "antd";
+import {
+  MobileOutlined,
+  CarOutlined,
+  SafetyCertificateOutlined,
+} from "@ant-design/icons";
+import { useStore } from "../../context/StoreContext";
+import styles from "./Register.module.css";
 
 const Register = () => {
   const { registerUser } = useStore();
   const navigate = useNavigate();
 
-  const onFinish = (values) => {
+  const onFinish = (values: any) => {
     const success = registerUser(values);
     if (success) {
-      message.success('Đăng ký tài khoản thành công!');
-      navigate('/');
+      message.success("Đăng ký tài khoản thành công!");
+      navigate("/");
     } else {
-      message.error('Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+      message.error("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
 
@@ -30,7 +34,8 @@ const Register = () => {
             </div>
             <h2 className={styles.leftTitle}>Chào mừng đến với PinkPhone</h2>
             <p className={styles.leftSubtitle}>
-              Khám phá những mẫu smartphone mới nhất với ưu đãi độc quyền dành riêng cho thành viên.
+              Khám phá những mẫu smartphone mới nhất với ưu đãi độc quyền dành
+              riêng cho thành viên.
             </p>
 
             <div className={styles.infoBadges}>
@@ -60,7 +65,8 @@ const Register = () => {
             </Link>
             <h2 className={styles.formTitle}>Tạo tài khoản</h2>
             <p className={styles.formSubtitle}>
-              Đăng ký tài khoản để quản lý đơn hàng, lưu sản phẩm yêu thích và nhận ưu đãi.
+              Đăng ký tài khoản để quản lý đơn hàng, lưu sản phẩm yêu thích và
+              nhận ưu đãi.
             </p>
 
             <Form
@@ -73,28 +79,41 @@ const Register = () => {
               <Form.Item
                 label="Họ và tên"
                 name="fullName"
-                rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng nhập họ và tên!" },
+                ]}
               >
                 <Input placeholder="Nguyễn Văn A" className={styles.input} />
               </Form.Item>
 
               <Row gutter={16}>
-                <Col xs={24} sm={12} style={{ paddingRight: '8px' }}>
+                <Col xs={24} sm={12} style={{ paddingRight: "8px" }}>
                   <Form.Item
                     label="Số điện thoại"
                     name="phone"
-                    rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Vui lòng nhập số điện thoại!",
+                      },
+                    ]}
                   >
-                    <Input placeholder="0901 234 567" className={styles.input} />
+                    <Input
+                      placeholder="0901 234 567"
+                      className={styles.input}
+                    />
                   </Form.Item>
                 </Col>
-                <Col xs={24} sm={12} style={{ paddingLeft: '8px' }}>
+                <Col xs={24} sm={12} style={{ paddingLeft: "8px" }}>
                   <Form.Item
                     label="Email (Tùy chọn)"
                     name="email"
-                    rules={[{ type: 'email', message: 'Email không hợp lệ!' }]}
+                    rules={[{ type: "email", message: "Email không hợp lệ!" }]}
                   >
-                    <Input placeholder="example@gmail.com" className={styles.input} />
+                    <Input
+                      placeholder="example@gmail.com"
+                      className={styles.input}
+                    />
                   </Form.Item>
                 </Col>
               </Row>
@@ -102,9 +121,12 @@ const Register = () => {
               <Form.Item
                 label="Mật khẩu"
                 name="password"
-                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
               >
-                <Input.Password placeholder="••••••••" className={styles.input} />
+                <Input.Password
+                  placeholder="••••••••"
+                  className={styles.input}
+                />
               </Form.Item>
               <div className={styles.passwordStrength}>
                 Độ bảo mật: Chưa nhập
@@ -113,20 +135,25 @@ const Register = () => {
               <Form.Item
                 label="Xác nhận mật khẩu"
                 name="confirmPassword"
-                dependencies={['password']}
+                dependencies={["password"]}
                 rules={[
-                  { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                  { required: true, message: "Vui lòng xác nhận mật khẩu!" },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      if (!value || getFieldValue('password') === value) {
+                      if (!value || getFieldValue("password") === value) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('Mật khẩu nhập lại không khớp!'));
+                      return Promise.reject(
+                        new Error("Mật khẩu nhập lại không khớp!"),
+                      );
                     },
                   }),
                 ]}
               >
-                <Input.Password placeholder="••••••••" className={styles.input} />
+                <Input.Password
+                  placeholder="••••••••"
+                  className={styles.input}
+                />
               </Form.Item>
 
               <Form.Item
@@ -135,12 +162,18 @@ const Register = () => {
                 rules={[
                   {
                     validator: (_, value) =>
-                      value ? Promise.resolve() : Promise.reject(new Error('Bạn phải đồng ý với điều khoản!')),
+                      value
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Bạn phải đồng ý với điều khoản!"),
+                          ),
                   },
                 ]}
               >
                 <Checkbox className={styles.checkbox}>
-                  Tôi đồng ý với <span className={styles.pinkText}>Điều khoản sử dụng</span> và <span className={styles.pinkText}>Chính sách bảo mật</span>
+                  Tôi đồng ý với{" "}
+                  <span className={styles.pinkText}>Điều khoản sử dụng</span> và{" "}
+                  <span className={styles.pinkText}>Chính sách bảo mật</span>
                 </Checkbox>
               </Form.Item>
 
@@ -151,7 +184,12 @@ const Register = () => {
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" block className={styles.submitBtn}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  className={styles.submitBtn}
+                >
                   Tạo tài khoản
                 </Button>
               </Form.Item>

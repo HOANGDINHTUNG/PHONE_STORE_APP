@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
   Bell,
   Camera,
@@ -23,6 +24,8 @@ import type { ProductImage } from "../../catalog/types/catalog";
 import { Breadcrumbs } from "../../storefront/components/Breadcrumbs";
 import { PhoneStripImage } from "../../storefront/components/PhoneStripImage";
 import { StorePageLayout } from "../../storefront/components/StorePageLayout";
+import { fetchProductBySlug } from "../../../api/productService";
+import { Product } from "../../../types";
 
 export type ProductAvailability = "available" | "out-of-stock";
 
@@ -99,6 +102,14 @@ export function ProductDetailPage({ availability = "available" }: ProductDetailP
     if (next) setVariantId(next.id);
   };
 
+  useEffect(() => {
+    if (slug) {
+      fetchProductBySlug(slug).then((prod) => {
+        if (prod) setProductData(prod);
+      });
+    }
+  }, [slug]);
+
   return (
     <StorePageLayout
       title={outOfStock ? `${product.name} (Hết hàng) - PinkPhone` : `${product.name} - PinkPhone`}
@@ -106,10 +117,12 @@ export function ProductDetailPage({ availability = "available" }: ProductDetailP
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
         <Breadcrumbs current={product.name} />
 
+
         <section className="mt-6 grid gap-8 lg:grid-cols-[1.04fr_0.96fr]">
           <div>
             <div className="relative grid aspect-[5/4] place-items-center overflow-hidden rounded-card border border-border bg-surface-soft p-5">
               <CatalogImage image={activeImage} className="size-full rounded-2xl object-cover" />
+
               <button
                 type="button"
                 onClick={() => setFavorite((value) => !value)}

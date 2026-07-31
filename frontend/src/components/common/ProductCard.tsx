@@ -1,22 +1,37 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, Rate, Button } from 'antd';
-import { HeartOutlined, HeartFilled, GiftOutlined } from '@ant-design/icons';
-import { useStore } from '../../context/StoreContext';
-import styles from './ProductCard.module.css';
+import { useNavigate } from "react-router-dom";
+import { Card, Rate, Button } from "antd";
+import { HeartOutlined, HeartFilled, GiftOutlined } from "@ant-design/icons";
+import { useStore } from "../../context/StoreContext";
+import styles from "./ProductCard.module.css";
+import { Product } from "../../types";
 
-const ProductCard = ({ product }) => {
+interface ProductCardProps {
+  product: Product & {
+    brand: string;
+    badgeType?: string;
+    gift?: string;
+    reviewsCount?: number;
+  };
+}
+
+const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
   const navigate = useNavigate();
 
   const isFavorite = isInWishlist(product.id);
 
   return (
-    <Card className={styles.card} hoverable onClick={() => navigate('/product')}>
+    <Card
+      className={styles.card}
+      hoverable
+      onClick={() => navigate("/product")}
+    >
       {/* Top Badges / Icons */}
       <div className={styles.cardTop}>
         {product.badge ? (
-          <span className={`${styles.badge} ${styles[product.badgeType || 'sale']}`}>
+          <span
+            className={`${styles.badge} ${styles[product.badgeType || "sale"]}`}
+          >
             {product.badge}
           </span>
         ) : (
@@ -40,7 +55,11 @@ const ProductCard = ({ product }) => {
 
       {/* Image Container */}
       <div className={styles.imageContainer}>
-        <img src={product.image} alt={product.name} className={styles.productImage} />
+        <img
+          src={product.image}
+          alt={product.name}
+          className={styles.productImage}
+        />
       </div>
 
       {/* Brand & Subtitle */}
@@ -70,10 +89,16 @@ const ProductCard = ({ product }) => {
       )}
 
       {/* Rating & Review */}
-      {product.rating > 0 ? (
+      {(product.rating || 0) > 0 ? (
         <div className={styles.ratingRow}>
-          <Rate disabled defaultValue={product.rating} className={styles.stars} />
-          <span className={styles.reviewsCount}>({product.reviewsCount} đánh giá)</span>
+          <Rate
+            disabled
+            defaultValue={product.rating || 0}
+            className={styles.stars}
+          />
+          <span className={styles.reviewsCount}>
+            ({product.reviewsCount} đánh giá)
+          </span>
         </div>
       ) : (
         <div className={styles.ratingPlaceholder} />
