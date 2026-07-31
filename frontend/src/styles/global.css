@@ -1,9 +1,12 @@
-@import "./variables.css";
+@import "tailwindcss";
+@import './variables.css';
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 body {
