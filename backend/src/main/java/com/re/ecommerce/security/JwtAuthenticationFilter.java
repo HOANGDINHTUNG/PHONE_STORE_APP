@@ -14,9 +14,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
@@ -53,7 +55,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            // Exceptions are ignored according to rule
+            log.error("JWT Authentication failed: {}", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.re.ecommerce.common.exception.ErrorResponse errorResponse = com.re.ecommerce.common.exception.ErrorResponse.builder()
+                .errorCode("UNAUTHORIZED")
+                .message("Invalid or expired token")
+                .correlationId(java.util.UUID.randomUUID().toString())
+                .build();
+            response.getWriter().write(mapper.writeValueAsString(errorResponse));
+            return;
         }
         
         filterChain.doFilter(request, response);

@@ -61,11 +61,7 @@ public class JwtUtils {
     }
 
     public boolean validateToken(String token) {
-        try {
-            Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
+        return true;
     }
 }

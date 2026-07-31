@@ -132,7 +132,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .filter(c -> c.getParent() == null)
                 .map(root -> buildCategoryResponseTree(root, childrenMap, new HashSet<>()))
                 .sorted(Comparator.comparingInt(CategoryResponse::sortOrder))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -146,7 +146,7 @@ public class CategoryServiceImpl implements CategoryService {
                         (c.getDescription() != null && c.getDescription().toLowerCase().contains(keyword.toLowerCase())))
                 .map(this::mapToResponse)
                 .sorted(Comparator.comparing(CategoryResponse::createdAt).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -218,7 +218,7 @@ public class CategoryServiceImpl implements CategoryService {
         List<CategoryResponse> childrenResp = childrenNodes.stream()
             .map(child -> buildCategoryResponseTree(child, childrenMap, new HashSet<>(visited)))
             .sorted(Comparator.comparingInt(CategoryResponse::sortOrder))
-            .collect(Collectors.toList());
+            .toList();
 
         return new CategoryResponse(
                 category.getId(), parentId, category.getName(), category.getSlug(), category.getDescription(), 

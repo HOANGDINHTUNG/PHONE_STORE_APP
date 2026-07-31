@@ -21,8 +21,11 @@ import com.re.ecommerce.common.exception.UnprocessableEntityException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -134,10 +137,15 @@ public class CartServiceImpl implements CartService {
             return mapToResponse(customerCart);
         }
 
+        List<UUID> guestVariantIds = guestCart.getItems().stream()
+                .map(item -> item.getProductVariant().getId())
+                .toList();
+        Map<UUID, CartItem> existingCustomerItems = guestVariantIds.isEmpty() ? new HashMap<>() :
+                cartItemRepository.findByCartIdAndProductVariantIdIn(customerCart.getId(), guestVariantIds).stream()
+                .collect(Collectors.toMap(item -> item.getProductVariant().getId(), item -> item));
+
         for (CartItem guestItem : guestCart.getItems()) {
-            CartItem existingCustomerItem = cartItemRepository
-                    .findByCartIdAndProductVariantId(customerCart.getId(), guestItem.getProductVariant().getId())
-                    .orElse(null);
+            CartItem existingCustomerItem = existingCustomerItems.get(guestItem.getProductVariant().getId());
 
             if (existingCustomerItem == null) {
                 guestItem.setCart(customerCart);
@@ -166,8 +174,14 @@ public class CartServiceImpl implements CartService {
         boolean anyValid = false;
         List<String> reorderWarnings = new ArrayList<>();
         
+        List<UUID> reqVariantIds = items.stream().map(CartItemRequest::getProductVariantId).toList();
+        Map<UUID, ProductVariant> variantMap = reqVariantIds.isEmpty() ? new HashMap<>() : 
+                productVariantRepository.findAllById(reqVariantIds).stream().collect(Collectors.toMap(ProductVariant::getId, v -> v));
+        Map<UUID, CartItem> existingCartItems = reqVariantIds.isEmpty() ? new HashMap<>() : 
+                cartItemRepository.findByCartIdAndProductVariantIdIn(cart.getId(), reqVariantIds).stream().collect(Collectors.toMap(item -> item.getProductVariant().getId(), item -> item));
+        
         for (CartItemRequest req : items) {
-            ProductVariant variant = productVariantRepository.findById(req.getProductVariantId()).orElse(null);
+            ProductVariant variant = variantMap.get(req.getProductVariantId());
             
             if (variant == null) {
                 reorderWarnings.add("Product variant " + req.getProductVariantId() + " is no longer available");
@@ -183,7 +197,7 @@ public class CartServiceImpl implements CartService {
             }
             anyValid = true;
             
-            CartItem item = cartItemRepository.findByCartIdAndProductVariantId(cart.getId(), variant.getId()).orElse(null);
+            CartItem item = existingCartItems.get(variant.getId());
             if (item == null) {
                 item = new CartItem();
                 item.setCart(cart);
@@ -203,12 +217,7 @@ public class CartServiceImpl implements CartService {
         }
         
         cartRepository.save(cart);
-        CartResponse response = mapToResponse(cart);
-        if (response.getWarnings() == null) {
-            response.setWarnings(new ArrayList<>());
-        }
-        response.getWarnings().addAll(reorderWarnings);
-        return response;
+        return mapToResponse(cart, reorderWarnings);
     }
 
     private Cart getOrCreateCart(UUID customerId, byte[] guestTokenHash) {
@@ -242,9 +251,13 @@ public class CartServiceImpl implements CartService {
     }
 
     private CartResponse mapToResponse(Cart cart) {
+        return mapToResponse(cart, new ArrayList<>());
+    }
+
+    private CartResponse mapToResponse(Cart cart, List<String> extraWarnings) {
         List<CartItemResponse> itemResponses = new ArrayList<>();
         BigDecimal grandTotal = BigDecimal.ZERO;
-        List<String> warnings = new ArrayList<>();
+        List<String> warnings = extraWarnings != null ? new ArrayList<>(extraWarnings) : new ArrayList<>();
 
         if (cart.getId() != null && cart.getItems() != null) {
             for (CartItem item : cart.getItems()) {

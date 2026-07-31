@@ -19,6 +19,7 @@ import java.util.UUID;
 @Tag(name = "15. Admin Return")
 @RestController
 @RequestMapping("/api/v1/admin/return-requests")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminReturnRequestController {
@@ -73,13 +74,11 @@ public class AdminReturnRequestController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAdminReturnRequests() {
         return ResponseEntity.ok(Collections.emptyMap());
     }
 
     @GetMapping("/{requestId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAdminReturnRequestDetail(@PathVariable UUID requestId) {
         return ResponseEntity.ok(Collections.emptyMap());
     }

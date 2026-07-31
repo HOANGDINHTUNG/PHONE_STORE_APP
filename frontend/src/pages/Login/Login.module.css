@@ -1,0 +1,230 @@
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--secondary-bg-color);
+  padding: 40px 16px;
+}
+
+.loginCard {
+  width: 1000px;
+  max-width: 100%;
+  background-color: var(--bg-color);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  overflow: hidden;
+  min-height: 620px;
+}
+
+/* Left Column */
+.leftCol {
+  background-image: url('/images/login_bg.png');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(233, 30, 99, 0.3) 0%, rgba(233, 30, 99, 0.7) 100%);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #ffffff;
+}
+
+.leftLogo {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.leftLogo span {
+  opacity: 0.8;
+}
+
+.overlayTitle {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.overlayDesc {
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Right Column */
+.rightCol {
+  padding: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.formWrapper {
+  width: 100%;
+}
+
+.formTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+.formSubtitle {
+  font-size: 14px;
+  color: #777777;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.form :global(.ant-form-item-label > label) {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444444;
+}
+
+.input {
+  height: 44px !important;
+  border-radius: 8px !important;
+  background-color: #f5f5f5 !important;
+  border: 1px solid transparent !important;
+}
+
+.input:focus, .input:hover {
+  background-color: #ffffff !important;
+  border-color: var(--primary-color) !important;
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.checkbox {
+  font-size: 13px;
+  color: #666666;
+}
+
+.forgotLink {
+  font-size: 13px;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.submitBtn {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #ffffff !important;
+  height: 46px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  transition: all 0.2s !important;
+}
+
+.submitBtn:hover {
+  background-color: #d81b60 !important;
+  border-color: #d81b60 !important;
+  transform: translateY(-1px);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  color: #999999;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.divider:not(:empty)::before {
+  margin-right: 16px;
+}
+
+.divider:not(:empty)::after {
+  margin-left: 16px;
+}
+
+.socialGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.socialBtn {
+  height: 44px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  border-color: var(--border-color) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.socialBtn:hover {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.googleIcon {
+  color: #db4437;
+}
+
+.facebookIcon {
+  color: #4267b2;
+}
+
+.footerLink {
+  text-align: center;
+  font-size: 13px;
+  color: #666666;
+}
+
+.footerLink a {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .loginCard {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .leftCol {
+    display: none; /* Hide visual column on mobile */
+  }
+  .rightCol {
+    padding: 32px 24px;
+  }
+}

@@ -1,0 +1,131 @@
+.newsSection {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.seeAll {
+  font-size: 13px;
+  color: #888888;
+  font-weight: 500;
+  transition: color var(--transition-speed);
+}
+
+.seeAll:hover {
+  color: var(--primary-color);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.newsCard {
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-color) !important;
+  box-shadow: var(--shadow-light) !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all var(--transition-speed) !important;
+}
+
+.newsCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover) !important;
+  border-color: var(--primary-color) !important;
+}
+
+:global(.ant-card-body) {
+  padding: 0 !important;
+}
+
+.imageWrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-speed);
+}
+
+.newsCard:hover .thumbnail {
+  transform: scale(1.05);
+}
+
+.content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+}
+
+.newsTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.4;
+  height: 38px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.newsDesc {
+  font-size: 12px;
+  color: #666666;
+  line-height: 1.5;
+  height: 54px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.date {
+  font-size: 11px;
+  color: #999999;
+  margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

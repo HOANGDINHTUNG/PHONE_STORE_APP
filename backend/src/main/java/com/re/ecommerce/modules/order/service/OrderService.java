@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface OrderService {
     
-    OrderResponse checkout(User currentUser, byte[] guestTokenHash, CheckoutRequest request);
+    OrderResponse checkout(User currentUser, String guestToken, CheckoutRequest request);
     
     PagedResponse<OrderResponse> getMyOrders(User currentUser, int page, int size);
     

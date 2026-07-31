@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -228,7 +227,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     private VariantResponse mapToResponse(ProductVariant variant) {
         List<ImageResponse> images = imageRepository.findByVariantIdOrderBySortOrderAsc(variant.getId()).stream()
                 .map(img -> new ImageResponse(img.getId(), img.getImageUrl(), img.getAltText(), img.isPrimary(), img.getSortOrder()))
-                .collect(Collectors.toList());
+                .toList();
 
         return new VariantResponse(
                 variant.getId(),

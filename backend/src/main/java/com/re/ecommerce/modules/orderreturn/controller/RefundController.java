@@ -9,19 +9,23 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import java.util.Collections;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 @Tag(name = "15. Refunds")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class RefundController {
 
     @GetMapping("/admin/refunds")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAdminRefunds(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         return ResponseEntity.ok(Collections.emptyMap());
     }
 
@@ -49,7 +53,7 @@ public class RefundController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> getMyRefunds(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         return ResponseEntity.ok(Collections.emptyMap());
     }
 }

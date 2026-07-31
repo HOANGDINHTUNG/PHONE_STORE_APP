@@ -3,6 +3,7 @@ package com.re.ecommerce.modules.customer.service;
 import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.auth.entity.CustomerProfile;
 import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
+import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.customer.dto.request.AddressCreateRequest;
 import com.re.ecommerce.modules.customer.dto.request.AddressUpdateRequest;
 import com.re.ecommerce.modules.customer.dto.response.AddressResponse;
@@ -17,7 +18,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class ShippingAddressService {
 
     private final ShippingAddressRepository addressRepository;
     private final CustomerProfileRepository customerProfileRepository;
-    private final com.re.ecommerce.modules.auth.repository.UserRepository userRepository;
+    private final UserRepository userRepository;
     private final ShippingAddressMapper mapper;
 
     @Transactional(readOnly = true)
@@ -33,7 +33,7 @@ public class ShippingAddressService {
         UUID customerId = getUserIdOrThrow(username);
         return addressRepository.findActiveByCustomerId(customerId).stream()
                 .map(mapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -81,17 +81,7 @@ public class ShippingAddressService {
         UUID customerId = getUserIdOrThrow(username);
         ShippingAddress address = getActiveAddressOrThrow(addressId, customerId);
 
-        if (StringUtils.hasText(request.receiverName())) address.setReceiverName(request.receiverName());
-        if (StringUtils.hasText(request.receiverPhone())) address.setReceiverPhone(request.receiverPhone());
-        if (StringUtils.hasText(request.countryCode())) address.setCountryCode(request.countryCode());
-        if (StringUtils.hasText(request.provinceCode())) address.setProvinceCode(request.provinceCode());
-        if (StringUtils.hasText(request.provinceName())) address.setProvinceName(request.provinceName());
-        if (StringUtils.hasText(request.districtCode())) address.setDistrictCode(request.districtCode());
-        if (StringUtils.hasText(request.districtName())) address.setDistrictName(request.districtName());
-        if (StringUtils.hasText(request.wardCode())) address.setWardCode(request.wardCode());
-        if (StringUtils.hasText(request.wardName())) address.setWardName(request.wardName());
-        if (StringUtils.hasText(request.detailAddress())) address.setDetailAddress(request.detailAddress());
-        if (StringUtils.hasText(request.postalCode())) address.setPostalCode(request.postalCode());
+        mapper.updateAddressFromRequest(request, address);
 
         if (request.isDefault() != null && request.isDefault() && !address.isDefault()) {
             addressRepository.clearDefaultByCustomerId(customerId);
