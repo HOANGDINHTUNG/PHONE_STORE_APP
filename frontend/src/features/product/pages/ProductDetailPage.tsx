@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   Camera,
@@ -13,13 +13,15 @@ import {
   Smartphone,
   Star,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import heroImage from "../../../assets/pinkphone-hero.png";
 import authImage from "../../../assets/pinkphone-auth.png";
 import { Button } from "../../../shared/components/Button";
 import { Breadcrumbs } from "../../storefront/components/Breadcrumbs";
 import { PhoneStripImage } from "../../storefront/components/PhoneStripImage";
 import { StorePageLayout } from "../../storefront/components/StorePageLayout";
+import { fetchProductBySlug } from "../../../api/productService";
+import { Product } from "../../../types";
 
 export type ProductAvailability = "available" | "out-of-stock";
 
@@ -38,11 +40,21 @@ export function ProductDetailPage({
   availability = "available",
 }: ProductDetailPageProps) {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
+  const [productData, setProductData] = useState<Product | null>(null);
   const [storage, setStorage] = useState("128GB");
   const [color, setColor] = useState("Hồng");
   const [favorite, setFavorite] = useState(false);
   const [notified, setNotified] = useState(false);
   const outOfStock = availability === "out-of-stock";
+
+  useEffect(() => {
+    if (slug) {
+      fetchProductBySlug(slug).then((prod) => {
+        if (prod) setProductData(prod);
+      });
+    }
+  }, [slug]);
 
   return (
     <StorePageLayout
@@ -53,14 +65,14 @@ export function ProductDetailPage({
       }
     >
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
-        <Breadcrumbs current="PinkPhone Ultra X 2024" />
+        <Breadcrumbs current={productData?.name || "PinkPhone Ultra X 2024"} />
 
         <section className="mt-6 grid gap-8 lg:grid-cols-[1.04fr_0.96fr]">
           <div>
             <div className="relative grid aspect-[5/4] place-items-center overflow-hidden rounded-card border border-border bg-surface-soft p-5">
               <img
-                src={heroImage}
-                alt="PinkPhone Ultra X 2024 màu hồng"
+                src={productData?.image || heroImage}
+                alt={productData?.name || "PinkPhone Ultra X 2024"}
                 className="size-full rounded-2xl object-cover"
               />
               <button
@@ -75,7 +87,7 @@ export function ProductDetailPage({
             </div>
 
             <div className="mt-3 grid grid-cols-4 gap-3">
-              {[heroImage, authImage, heroImage, authImage].map((image, index) => (
+              {[productData?.image || heroImage, authImage, heroImage, authImage].map((image, index) => (
                 <button
                   key={`${image}-${index}`}
                   type="button"
@@ -101,10 +113,10 @@ export function ProductDetailPage({
 
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
-              Smartphone cao cấp · 2024
+              {productData?.brand || "Smartphone cao cấp · 2024"}
             </p>
             <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] sm:text-4xl">
-              PinkPhone Ultra X 2024
+              {productData?.name || "PinkPhone Ultra X 2024"}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted">
               <span className="flex items-center gap-1 text-warning">

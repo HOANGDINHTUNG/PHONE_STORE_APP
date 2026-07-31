@@ -1,9 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "antd";
-import { brands } from "../../mock/brands";
+import { fetchBrands } from "../../api/brandService";
+import { Brand } from "../../types";
 import styles from "./BrandGrid.module.css";
 
 const BrandGrid = () => {
+  const [brandList, setBrandList] = useState<Brand[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchBrands().then((data) => {
+      if (isMounted) {
+        setBrandList(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className={styles.brandSection}>
       <div className={styles.sectionHeader}>
@@ -13,7 +28,7 @@ const BrandGrid = () => {
         </a>
       </div>
       <div className={styles.grid}>
-        {brands.map((brand) => (
+        {brandList.map((brand) => (
           <Card key={brand.id} className={styles.brandCard} hoverable>
             <div className={styles.logoWrapper}>
               <img

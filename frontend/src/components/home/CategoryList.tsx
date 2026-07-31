@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Select } from "antd";
 import {
   AppleOutlined,
@@ -9,7 +9,8 @@ import {
   AppstoreOutlined,
   DownOutlined,
 } from "@ant-design/icons";
-import { categories } from "../../mock/categories";
+import { fetchCategories } from "../../api/categoryService";
+import { Category } from "../../types";
 import styles from "./CategoryList.module.css";
 
 type IconKey =
@@ -38,6 +39,7 @@ const CategoryList = ({
   onCategoryChange,
   activeCategory,
 }: CategoryListProps) => {
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
   const [selectedFilters, setSelectedFilters] = useState({
     price: "all",
     requirement: "all",
@@ -45,18 +47,30 @@ const CategoryList = ({
     sort: "popular",
   });
 
+  useEffect(() => {
+    let isMounted = true;
+    fetchCategories().then((cats) => {
+      if (isMounted) {
+        setCategoryList(cats);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className={styles.categorySection} id="category-list">
       {/* Round Categories Grid */}
       <div className={styles.categoryGrid}>
-        {categories.map((cat) => (
+        {categoryList.map((cat) => (
           <div
             key={cat.id}
             className={`${styles.categoryItem} ${activeCategory === cat.slug ? styles.active : ""}`}
             onClick={() => onCategoryChange && onCategoryChange(cat.slug)}
           >
             <div className={styles.iconCircle}>
-              {iconMap[cat.iconName as IconKey]}
+              {iconMap[(cat.iconName || "AppstoreOutlined") as IconKey] || <AppstoreOutlined />}
             </div>
             <span className={styles.categoryName}>{cat.name}</span>
           </div>

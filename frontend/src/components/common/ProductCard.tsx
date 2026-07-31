@@ -6,12 +6,7 @@ import styles from "./ProductCard.module.css";
 import { Product } from "../../types";
 
 interface ProductCardProps {
-  product: Product & {
-    brand: string;
-    badgeType?: string;
-    gift?: string;
-    reviewsCount?: number;
-  };
+  product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
@@ -64,7 +59,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Brand & Subtitle */}
       <div className={styles.brandSub}>
-        {product.brand.toUpperCase()} / TRẢ GÓP
+        {(product.brand || "").toUpperCase()} / TRẢ GÓP
       </div>
 
       {/* Product Name */}
