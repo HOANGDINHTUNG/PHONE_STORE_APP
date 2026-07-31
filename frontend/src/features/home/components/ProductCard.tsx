@@ -1,34 +1,30 @@
 import { Gift, Heart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import productStrip from "../../../assets/phone-product-strip.png";
+import type { CatalogProductCard } from "../../catalog/selectors/catalogSelectors";
 
-export type Product = {
-  name: string;
-  brand: string;
-  price: string;
-  oldPrice: string;
-  storage: string;
-  badge: string;
-  rating: string;
-  imageIndex: number;
-  promotion?: string;
-};
-
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: CatalogProductCard }) {
   const [liked, setLiked] = useState(false);
 
   return (
     <article className="group relative flex h-full min-w-0 flex-col bg-white">
       <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-surface-soft">
-        <img
-          src={productStrip}
-          alt=""
-          className="absolute top-1/2 h-auto w-[500%] max-w-none -translate-y-1/2 transition duration-500 group-hover:scale-[1.03]"
-          style={{ left: `-${product.imageIndex * 100}%` }}
-        />
+        {product.imageIndex === undefined ? (
+          <img
+            src={product.imageUrl}
+            alt={product.imageAlt}
+            className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <img
+            src={product.imageUrl}
+            alt={product.imageAlt}
+            className="absolute top-1/2 h-auto w-[500%] max-w-none -translate-y-1/2 transition duration-500 group-hover:scale-[1.03]"
+            style={{ left: `-${product.imageIndex * 100}%` }}
+          />
+        )}
         <Link
-          to="/san-pham/pinkphone-ultra-x"
+          to={`/san-pham/${product.slug}`}
           className="absolute inset-0 z-[1]"
           aria-label={`Xem chi tiết ${product.name}`}
         />
@@ -51,13 +47,13 @@ export function ProductCard({ product }: { product: Product }) {
           {product.storage}
         </span>
         <h3 className="mt-2 min-h-10 text-sm font-bold leading-5">
-          <Link to="/san-pham/pinkphone-ultra-x" className="transition hover:text-primary">
+          <Link to={`/san-pham/${product.slug}`} className="transition hover:text-primary">
             {product.name}
           </Link>
         </h3>
         <div className="pt-2">
           <p className="text-base font-extrabold text-primary">{product.price}</p>
-          <p className="mt-1 text-xs text-muted line-through">{product.oldPrice}</p>
+          {product.oldPrice && <p className="mt-1 text-xs text-muted line-through">{product.oldPrice}</p>}
           <div className="mt-3 min-h-9">
             {product.promotion && (
               <p className="flex min-h-9 items-center gap-2 rounded-md bg-neutral-soft px-2 text-[10px] text-muted">
@@ -67,10 +63,11 @@ export function ProductCard({ product }: { product: Product }) {
             )}
           </div>
           <p className="mt-3 text-[11px] text-warning">
-            ★★★★★ <span className="text-muted">({product.rating} đánh giá)</span>
+            ★ {product.rating || "Mới"} <span className="text-muted">({product.reviewCount} đánh giá)</span>
           </p>
+          {!product.inStock && <p className="mt-2 text-xs font-bold text-primary">Hết hàng</p>}
           <Link
-            to="/san-pham/pinkphone-ultra-x"
+            to={`/san-pham/${product.slug}`}
             className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-primary text-sm font-bold text-primary transition hover:bg-primary hover:text-white"
           >
             Xem chi tiết

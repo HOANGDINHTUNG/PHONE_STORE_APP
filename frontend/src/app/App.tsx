@@ -38,7 +38,7 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/dang-nhap" element={<LoginPage />} />
       <Route path="/dang-ky" element={<RegisterPage />} />
-      <Route path="/san-pham/pinkphone-ultra-x" element={<ProductDetailPage />} />
+      <Route path="/san-pham/pinkphone-ultra-x" element={<Navigate to="/san-pham/pinkphone-ultra-x-2024" replace />} />
       <Route
         path="/san-pham/pinkphone-ultra-x/het-hang"
         element={<ProductDetailPage availability="out-of-stock" />}
@@ -47,6 +47,8 @@ export function App() {
         path="/san-pham/pinkphone-ultra-x/dang-tai"
         element={<ProductDetailLoadingPage />}
       />
+      <Route path="/san-pham/:slug" element={<ProductDetailPage />} />
+      <Route path="/san-pham/:slug/het-hang" element={<ProductDetailPage availability="out-of-stock" />} />
       <Route path="/gio-hang" element={<CartPage />} />
       <Route path="/gio-hang/trong" element={<CartEmptyPage />} />
       <Route path="/gio-hang/trang-thai" element={<CartStatusPage />} />

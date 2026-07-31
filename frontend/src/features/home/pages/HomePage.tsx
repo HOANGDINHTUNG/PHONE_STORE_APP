@@ -15,66 +15,15 @@ import {
   Truck,
 } from "lucide-react";
 import newsStrip from "../../../assets/phone-news-strip.png";
-import heroImage from "../../../assets/pinkphone-hero.png";
 import { Button } from "../../../shared/components/Button";
-import { ProductCard, type Product } from "../components/ProductCard";
+import {
+  getActiveBrands,
+  getActiveHomeBanner,
+  getBestSellingPhones,
+} from "../../catalog/selectors/catalogSelectors";
+import { ProductCard } from "../components/ProductCard";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
-
-const products: Product[] = [
-  {
-    name: "PinkPhone 15 Pro Max",
-    brand: "PinkPhone",
-    price: "29.490.000đ",
-    oldPrice: "34.990.000đ",
-    storage: "256GB",
-    badge: "Giảm 15%",
-    rating: "124",
-    imageIndex: 0,
-    promotion: "Tặng ốp lưng chính hãng",
-  },
-  {
-    name: "Galaxy S24 Ultra",
-    brand: "Samsung",
-    price: "26.990.000đ",
-    oldPrice: "30.990.000đ",
-    storage: "512GB",
-    badge: "Hot",
-    rating: "89",
-    imageIndex: 1,
-    promotion: "Tặng Buds2 Pro",
-  },
-  {
-    name: "Xiaomi 14 Ultra",
-    brand: "Xiaomi",
-    price: "22.490.000đ",
-    oldPrice: "25.990.000đ",
-    storage: "256GB",
-    badge: "Mới",
-    rating: "76",
-    imageIndex: 2,
-  },
-  {
-    name: "OPPO Find X7 Ultra",
-    brand: "OPPO",
-    price: "24.500.000đ",
-    oldPrice: "28.000.000đ",
-    storage: "512GB",
-    badge: "Trả góp 0%",
-    rating: "62",
-    imageIndex: 3,
-  },
-  {
-    name: "realme GT5 Pro",
-    brand: "realme",
-    price: "15.990.000đ",
-    oldPrice: "18.990.000đ",
-    storage: "256GB",
-    badge: "Ưu đãi",
-    rating: "48",
-    imageIndex: 4,
-  },
-];
 
 const phoneNeeds = [
   { name: "Điện thoại cao cấp", icon: Smartphone },
@@ -112,6 +61,9 @@ export function HomePage() {
   const [search, setSearch] = useState("");
   const [brand, setBrand] = useState("Tất cả");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const products = useMemo(() => getBestSellingPhones(), []);
+  const brands = useMemo(() => getActiveBrands(), []);
+  const heroBanner = useMemo(() => getActiveHomeBanner(), []);
 
   const visibleProducts = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -122,7 +74,7 @@ export function HomePage() {
           product.name.toLowerCase().includes(keyword) ||
           product.brand.toLowerCase().includes(keyword)),
     );
-  }, [brand, search]);
+  }, [brand, products, search]);
 
   return (
     <div className="min-h-screen bg-white text-foreground">
@@ -132,8 +84,8 @@ export function HomePage() {
         <section className="mx-auto max-w-7xl px-4 pb-8 pt-5 sm:px-6 lg:pt-8">
           <div className="relative min-h-[29rem] overflow-hidden rounded-card border border-border bg-surface shadow-card sm:min-h-[32rem]">
             <img
-              src={heroImage}
-              alt="PinkPhone Ultra X màu hồng"
+              src={heroBanner?.image_url}
+              alt={heroBanner?.title ?? "Điện thoại PinkPhone nổi bật"}
               className="absolute inset-0 size-full object-cover object-[64%_center]"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary-strong/80 via-primary/35 to-transparent sm:from-primary-strong/70 sm:via-primary/20" />
@@ -142,14 +94,14 @@ export function HomePage() {
                 Exclusive release · 2026
               </p>
               <h1 className="mt-4 max-w-[18rem] text-3xl font-extrabold leading-[1.08] tracking-[-0.05em] sm:max-w-xl sm:text-6xl">
-                Ultra X — sắc hồng của công nghệ.
+                {heroBanner?.title ?? "Ultra X — sắc hồng của công nghệ."}
               </h1>
               <p className="mt-5 max-w-[18rem] text-sm leading-6 text-white/85 sm:max-w-md sm:text-base">
                 Camera 200MP, hiệu năng bứt phá và thiết kế được hoàn thiện cho những trải nghiệm tinh tế.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button variant="inverted">Mua ngay</Button>
-                <Button className="border-white/35 bg-white/10 text-white hover:bg-white/20" variant="outline">
+                <Button variant="inverted" onClick={() => heroBanner && (window.location.href = heroBanner.link_url)}>Mua ngay</Button>
+                <Button className="border-white/35 bg-white/10 text-white hover:bg-white/20" variant="outline" onClick={() => heroBanner && (window.location.href = heroBanner.link_url)}>
                   Xem chi tiết <ChevronRight size={18} />
                 </Button>
               </div>
@@ -189,15 +141,15 @@ export function HomePage() {
             </a>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {["PinkPhone", "SAMSUNG", "XIAOMI", "OPPO"].map((name) => (
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {brands.map(({ id, name }) => (
               <button
                 type="button"
-                key={name}
-                onClick={() => setBrand(name === "PinkPhone" ? "PinkPhone" : name[0] + name.slice(1).toLowerCase())}
+                key={id}
+                onClick={() => setBrand(name)}
                 className="min-h-20 rounded-2xl border border-border bg-white px-4 text-sm font-extrabold tracking-wide transition hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-sm"
               >
-                {name}
+                {name.toUpperCase()}
               </button>
             ))}
           </div>

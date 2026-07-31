@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
   Camera,
@@ -13,10 +13,13 @@ import {
   Smartphone,
   Star,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import heroImage from "../../../assets/pinkphone-hero.png";
-import authImage from "../../../assets/pinkphone-auth.png";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../../shared/components/Button";
+import {
+  formatVnd,
+  getProductDetailBySlug,
+} from "../../catalog/selectors/catalogSelectors";
+import type { ProductImage } from "../../catalog/types/catalog";
 import { Breadcrumbs } from "../../storefront/components/Breadcrumbs";
 import { PhoneStripImage } from "../../storefront/components/PhoneStripImage";
 import { StorePageLayout } from "../../storefront/components/StorePageLayout";
@@ -27,42 +30,86 @@ type ProductDetailPageProps = {
   availability?: ProductAvailability;
 };
 
-const storageOptions = ["128GB", "256GB", "512GB"];
-const colorOptions = [
-  { name: "Hồng", swatch: "bg-secondary" },
-  { name: "Trắng", swatch: "bg-white" },
-  { name: "Đen", swatch: "bg-foreground" },
-];
-
-export function ProductDetailPage({
-  availability = "available",
-}: ProductDetailPageProps) {
+export function ProductDetailPage({ availability = "available" }: ProductDetailPageProps) {
+  const { slug = "pinkphone-ultra-x-2024" } = useParams();
   const navigate = useNavigate();
-  const [storage, setStorage] = useState("128GB");
-  const [color, setColor] = useState("Hồng");
+  const [variantId, setVariantId] = useState<string>();
+  const [activeImageId, setActiveImageId] = useState<string>();
   const [favorite, setFavorite] = useState(false);
   const [notified, setNotified] = useState(false);
-  const outOfStock = availability === "out-of-stock";
+  const detail = useMemo(() => getProductDetailBySlug(slug, variantId), [slug, variantId]);
+  const firstImageId = detail?.images[0]?.id;
+
+  useEffect(() => {
+    setVariantId(undefined);
+    setActiveImageId(undefined);
+  }, [slug]);
+
+  useEffect(() => {
+    setActiveImageId(firstImageId);
+  }, [firstImageId]);
+
+  if (!detail) {
+    return (
+      <StorePageLayout title="Không tìm thấy điện thoại - PinkPhone">
+        <div className="mx-auto max-w-3xl px-4 py-24 text-center">
+          <Smartphone className="mx-auto text-primary" size={52} />
+          <h1 className="mt-5 text-3xl font-extrabold">Không tìm thấy điện thoại</h1>
+          <p className="mt-3 text-muted">Sản phẩm không tồn tại hoặc hiện không được kinh doanh.</p>
+          <Link to="/" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-6 font-bold text-white">
+            Về trang chủ
+          </Link>
+        </div>
+      </StorePageLayout>
+    );
+  }
+
+  const {
+    product,
+    brand,
+    variants,
+    selectedVariant,
+    images,
+    specifications,
+    attributes,
+    reviews,
+    relatedProducts,
+    rating,
+    reviewCount,
+    availableQuantity,
+    effectivePrice,
+    discountPercent,
+  } = detail;
+  const activeImage = images.find((image) => image.id === activeImageId) ?? images[0];
+  const storageOptions = unique(variants.map((variant) => variant.storage));
+  const colorOptions = unique(variants.map((variant) => variant.color));
+  const outOfStock = availability === "out-of-stock" || availableQuantity <= 0;
+
+  const chooseStorage = (storage: string) => {
+    const next =
+      variants.find((variant) => variant.storage === storage && variant.color === selectedVariant.color) ??
+      variants.find((variant) => variant.storage === storage);
+    if (next) setVariantId(next.id);
+  };
+
+  const chooseColor = (color: string) => {
+    const next =
+      variants.find((variant) => variant.color === color && variant.storage === selectedVariant.storage) ??
+      variants.find((variant) => variant.color === color);
+    if (next) setVariantId(next.id);
+  };
 
   return (
     <StorePageLayout
-      title={
-        availability === "out-of-stock"
-          ? "Chi tiết sản phẩm (Hết hàng) - PinkPhone"
-          : "Chi tiết sản phẩm - PinkPhone"
-      }
+      title={outOfStock ? `${product.name} (Hết hàng) - PinkPhone` : `${product.name} - PinkPhone`}
     >
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
-        <Breadcrumbs current="PinkPhone Ultra X 2024" />
+        <Breadcrumbs current={product.name} />
 
         <section className="mt-6 grid gap-8 lg:grid-cols-[1.04fr_0.96fr]">
           <div>
             <div className="relative grid aspect-[5/4] place-items-center overflow-hidden rounded-card border border-border bg-surface-soft p-5">
-              <img
-                src={heroImage}
-                alt="PinkPhone Ultra X 2024 màu hồng"
-                className="size-full rounded-2xl object-cover"
-              />
+              <CatalogImage image={activeImage} className="size-full rounded-2xl object-cover" />
               <button
                 type="button"
                 onClick={() => setFavorite((value) => !value)}
@@ -75,249 +122,184 @@ export function ProductDetailPage({
             </div>
 
             <div className="mt-3 grid grid-cols-4 gap-3">
-              {[heroImage, authImage, heroImage, authImage].map((image, index) => (
+              {images.map((image, index) => (
                 <button
-                  key={`${image}-${index}`}
+                  key={image.id}
                   type="button"
-                  className={`aspect-square overflow-hidden rounded-xl border bg-surface-soft p-1 transition ${
-                    index === 0 ? "border-primary ring-2 ring-primary/10" : "border-border hover:border-primary"
+                  onClick={() => setActiveImageId(image.id)}
+                  className={`relative aspect-square overflow-hidden rounded-xl border bg-surface-soft p-1 transition ${
+                    activeImage?.id === image.id
+                      ? "border-primary ring-2 ring-primary/10"
+                      : "border-border hover:border-primary"
                   }`}
                   aria-label={`Xem ảnh sản phẩm ${index + 1}`}
                 >
-                  <img
-                    src={image}
-                    alt=""
-                    className="size-full rounded-lg object-cover"
-                  />
+                  <CatalogImage image={image} className="size-full rounded-lg object-cover" />
                 </button>
               ))}
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <TrustItem icon={ShieldCheck} title="Bảo hành 12 tháng" note="Lỗi là đổi mới" />
+              <TrustItem
+                icon={ShieldCheck}
+                title={`Bảo hành ${selectedVariant.warranty_months} tháng`}
+                note="Chính hãng toàn quốc"
+              />
               <TrustItem icon={RefreshCcw} title="Đổi mới 30 ngày" note="Điều kiện linh hoạt" />
             </div>
           </div>
 
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
-              Smartphone cao cấp · 2024
+              {brand.name} · Smartphone chính hãng
             </p>
-            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] sm:text-4xl">
-              PinkPhone Ultra X 2024
-            </h1>
+            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] sm:text-4xl">{product.name}</h1>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted">
               <span className="flex items-center gap-1 text-warning">
-                <Star size={14} fill="currentColor" /> 4.9/5
+                <Star size={14} fill="currentColor" /> {rating ? `${rating}/5` : "Chưa có đánh giá"}
               </span>
-              <span>128 đánh giá</span>
-              <span>Mã: PPU-X24</span>
+              <span>{reviewCount} đánh giá đã duyệt</span>
+              <span>Mã: {selectedVariant.sku}</span>
             </div>
 
             <div className="mt-6 rounded-2xl bg-surface-soft p-5">
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <p className="text-3xl font-extrabold tracking-[-0.03em] text-primary">
-                  28.490.000đ
-                </p>
-                <p className="pb-1 text-sm text-muted line-through">32.990.000đ</p>
-                <span className="mb-1 rounded-md bg-primary px-2 py-1 text-[10px] font-bold text-white">
-                  -14%
-                </span>
+                <p className="text-3xl font-extrabold tracking-[-0.03em] text-primary">{formatVnd(effectivePrice)}</p>
+                {selectedVariant.sale_price && (
+                  <p className="pb-1 text-sm text-muted line-through">{formatVnd(selectedVariant.list_price)}</p>
+                )}
+                {discountPercent > 0 && (
+                  <span className="mb-1 rounded-md bg-primary px-2 py-1 text-[10px] font-bold text-white">-{discountPercent}%</span>
+                )}
               </div>
-              <p className="mt-2 text-xs text-muted">
-                Giá đã gồm VAT và miễn phí giao hàng toàn quốc.
-              </p>
+              <p className="mt-2 text-xs text-muted">Giá đã gồm VAT. Còn {availableQuantity} sản phẩm khả dụng trên hệ thống.</p>
             </div>
 
             <OptionGroup label="Chọn bộ nhớ">
-              {storageOptions.map((option) => (
-                <OptionButton
-                  key={option}
-                  active={storage === option}
-                  onClick={() => setStorage(option)}
-                >
-                  {option}
+              {storageOptions.map((storage) => (
+                <OptionButton key={storage} active={selectedVariant.storage === storage} onClick={() => chooseStorage(storage)}>
+                  {storage}
                 </OptionButton>
               ))}
             </OptionGroup>
 
             <OptionGroup label="Chọn màu sắc">
-              {colorOptions.map((option) => (
-                <OptionButton
-                  key={option.name}
-                  active={color === option.name}
-                  onClick={() => setColor(option.name)}
-                >
-                  <span className={`size-3 rounded-full border border-border ${option.swatch}`} />
-                  {option.name}
+              {colorOptions.map((color) => (
+                <OptionButton key={color} active={selectedVariant.color === color} onClick={() => chooseColor(color)}>
+                  <span className={`size-3 rounded-full border border-border ${colorSwatch(color)}`} />
+                  {color}
                 </OptionButton>
               ))}
             </OptionGroup>
 
-            <button
-              type="button"
-              className="mt-5 flex w-full items-center justify-between rounded-xl border border-border bg-white px-4 py-3 text-sm hover:border-primary"
-            >
-              <span className="flex items-center gap-2">
-                <MapPin size={17} className="text-primary" />
-                Xem kho hàng tại <strong>Hà Nội</strong>
-              </span>
+            <button type="button" className="mt-5 flex w-full items-center justify-between rounded-xl border border-border bg-white px-4 py-3 text-sm hover:border-primary">
+              <span className="flex items-center gap-2"><MapPin size={17} className="text-primary" />Xem kho hàng tại <strong>Hà Nội</strong></span>
               <ChevronDown size={17} />
             </button>
 
             <div className="mt-5 overflow-hidden rounded-2xl border border-border">
-              <p className="bg-neutral-soft px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-primary">
-                Khuyến mãi hấp dẫn
-              </p>
+              <p className="bg-neutral-soft px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-primary">Khuyến mãi hấp dẫn</p>
               <ul className="grid gap-3 p-4 text-sm text-muted">
                 <li className="flex gap-2"><Check size={17} className="shrink-0 text-primary" /> Giảm thêm 500.000đ khi thanh toán qua PinkPay.</li>
-                <li className="flex gap-2"><Check size={17} className="shrink-0 text-primary" /> Tặng gói bảo hành rơi vỡ 12 tháng.</li>
+                <li className="flex gap-2"><Check size={17} className="shrink-0 text-primary" /> Bảo hành chính hãng {selectedVariant.warranty_months} tháng.</li>
                 <li className="flex gap-2"><Check size={17} className="shrink-0 text-primary" /> Miễn phí giao hàng hỏa tốc nội thành.</li>
               </ul>
             </div>
 
             {outOfStock ? (
               <>
-                <button
-                  type="button"
-                  disabled
-                  className="mt-5 min-h-12 w-full rounded-xl bg-neutral-soft font-bold text-muted"
-                >
-                  Hết hàng
-                </button>
+                <button type="button" disabled className="mt-5 min-h-12 w-full rounded-xl bg-neutral-soft font-bold text-muted">Hết hàng</button>
                 <div className="mt-4 rounded-2xl border border-border bg-surface-soft p-4">
-                  <p className="flex items-center gap-2 text-sm font-bold">
-                    <Bell size={17} className="text-primary" /> Thông báo khi có hàng
-                  </p>
+                  <p className="flex items-center gap-2 text-sm font-bold"><Bell size={17} className="text-primary" /> Thông báo khi có hàng</p>
                   <div className="mt-3 flex gap-2">
-                    <input
-                      type="email"
-                      placeholder="Email hoặc số điện thoại"
-                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary"
-                    />
-                    <Button onClick={() => setNotified(true)}>
-                      {notified ? "Đã đăng ký" : "Gửi yêu cầu"}
-                    </Button>
+                    <input type="email" aria-label="Email hoặc số điện thoại" placeholder="Email hoặc số điện thoại" className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary" />
+                    <Button onClick={() => setNotified(true)}>{notified ? "Đã đăng ký" : "Gửi yêu cầu"}</Button>
                   </div>
                 </div>
               </>
             ) : (
               <div className="mt-5 grid gap-3">
-                <Button
-                  className="w-full"
-                  onClick={() => navigate("/gio-hang")}
-                >
-                  Mua ngay
-                </Button>
+                <Button className="w-full" onClick={() => navigate("/gio-hang")}>Mua ngay</Button>
                 <div className="grid grid-cols-2 gap-3">
                   <Button variant="outline">Trả góp 0%</Button>
-                  <Button variant="outline" onClick={() => navigate("/gio-hang")}>
-                    <ShoppingCart size={17} /> Thêm giỏ hàng
-                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/gio-hang")}><ShoppingCart size={17} /> Thêm giỏ hàng</Button>
                 </div>
               </div>
             )}
           </div>
         </section>
 
-        <section className="py-14" aria-labelledby="highlights-title">
-          <h2 id="highlights-title" className="text-center text-2xl font-extrabold">
-            Đặc điểm nổi bật
-          </h2>
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
-            <Highlight icon={Smartphone} title='PinkDisplay 6.7"' copy="Tần số quét 120Hz, màu sắc rực rỡ và độ sáng cao." />
-            <Highlight icon={Camera} title="Hệ thống Camera AI" copy="Cảm biến chính 108MP cho ảnh sắc nét trong mọi điều kiện." />
-            <Highlight icon={Cpu} title="Chip P14 Ultra" copy="Hiệu năng vượt trội, tối ưu đa nhiệm nhưng vẫn tiết kiệm pin." />
-          </div>
-        </section>
+        {attributes.length > 0 && (
+          <section className="py-14" aria-labelledby="highlights-title">
+            <h2 id="highlights-title" className="text-center text-2xl font-extrabold">Đặc điểm nổi bật</h2>
+            <div className="mt-7 grid gap-4 md:grid-cols-3">
+              {attributes.map((attribute, index) => (
+                <Highlight key={attribute.id} icon={[Smartphone, Camera, Cpu][index % 3]} title={attribute.attribute_value} copy={product.short_description} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="grid gap-8 pb-14 lg:grid-cols-[1fr_22rem]" aria-labelledby="details-title">
           <article>
-            <h2 id="details-title" className="text-2xl font-extrabold">
-              Đánh giá chi tiết PinkPhone Ultra X 2024
-            </h2>
+            <h2 id="details-title" className="text-2xl font-extrabold">Đánh giá chi tiết {product.name}</h2>
             <div className="mt-5 rounded-2xl bg-surface-soft p-5">
-              <p className="text-sm font-bold">Mục lục</p>
-              <ol className="mt-3 grid gap-2 text-sm text-primary">
-                <li>1. Thiết kế sang trọng đầy tinh tế</li>
-                <li>2. Màn hình rực rỡ sắc nét</li>
-                <li>3. Camera 108MP đỉnh cao công nghệ</li>
-                <li>4. Thời lượng pin ấn tượng</li>
-              </ol>
+              <p className="text-sm font-bold">Tổng quan sản phẩm</p>
+              <p className="mt-3 text-sm leading-7 text-muted">{product.short_description}</p>
             </div>
-            <h3 className="mt-7 text-lg font-bold">1. Thiết kế sang trọng đầy tinh tế</h3>
-            <p className="mt-3 text-sm leading-7 text-muted">
-              PinkPhone Ultra X mang trong mình ngôn ngữ thiết kế tối giản nhưng không kém phần
-              sang trọng. Khung viền kim loại cao cấp kết hợp cùng mặt lưng kính nhám tạo cảm giác
-              cầm nắm chắc chắn, đồng thời hạn chế dấu vân tay.
-            </p>
-            <img
-              src={authImage}
-              alt="Thiết kế PinkPhone Ultra X màu hồng"
-              className="mt-6 aspect-[16/9] w-full rounded-2xl object-cover"
-            />
-            <h3 className="mt-7 text-lg font-bold">2. Màn hình rực rỡ sắc nét</h3>
-            <p className="mt-3 text-sm leading-7 text-muted">
-              Màn hình PinkDisplay 6.7 inch hỗ trợ tần số quét 120Hz, mang lại chuyển động mượt mà,
-              màu sắc chính xác và khả năng hiển thị rõ ràng ngoài trời.
-            </p>
+            <h3 className="mt-7 text-lg font-bold">Thiết kế và trải nghiệm</h3>
+            <p className="mt-3 text-sm leading-7 text-muted">{product.description}</p>
+            {images[1] && <CatalogImage image={images[1]} className="mt-6 aspect-[16/9] w-full rounded-2xl object-cover" />}
           </article>
 
           <aside className="h-fit rounded-2xl border border-border bg-white p-5 lg:sticky lg:top-36">
             <h2 className="text-lg font-extrabold">Thông số kỹ thuật</h2>
             <dl className="mt-5 grid gap-4 text-sm">
-              <Spec label="Màn hình" value='6.7", PinkDisplay LTPO 120Hz' />
-              <Spec label="Camera sau" value="108MP + 12MP + 12MP" />
-              <Spec label="Camera trước" value="32MP" />
-              <Spec label="Chipset" value="P14 Ultra AI Process" />
-              <Spec label="RAM" value="12GB LPDDR5X" />
-              <Spec label="Pin" value="5000mAh, sạc 45W" />
+              {specifications.length ? specifications.map((specification) => (
+                <Spec key={specification.id} label={specification.spec_name} value={specification.spec_value} />
+              )) : <p className="text-sm text-muted">Thông số đang được cập nhật.</p>}
+              <Spec label="RAM / Bộ nhớ" value={`${selectedVariant.ram} / ${selectedVariant.storage}`} />
             </dl>
-            <Button variant="secondary" className="mt-6 w-full">Xem cấu hình chi tiết</Button>
           </aside>
         </section>
 
-        <section className="pb-14" aria-labelledby="similar-title">
-          <h2 id="similar-title" className="text-2xl font-extrabold">Điện thoại tương tự</h2>
-          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {[
-              ["PinkPhone Lite S", "12.490.000đ", 0],
-              ["Ultra X Black Edition", "29.490.000đ", 3],
-              ["PinkPhone Air", "18.990.000đ", 2],
-              ["PinkPhone Max", "24.500.000đ", 4],
-            ].map(([name, price, index]) => (
-              <article key={name} className="rounded-2xl border border-border bg-white p-3">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-soft">
-                  <PhoneStripImage index={Number(index)} />
-                </div>
-                <h3 className="mt-3 text-sm font-bold">{name}</h3>
-                <p className="mt-1 text-sm font-extrabold text-primary">{price}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+        {relatedProducts.length > 0 && (
+          <section className="pb-14" aria-labelledby="similar-title">
+            <h2 id="similar-title" className="text-2xl font-extrabold">Điện thoại tương tự</h2>
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+              {relatedProducts.map((related) => (
+                <Link key={related.id} to={`/san-pham/${related.slug}`} className="rounded-2xl border border-border bg-white p-3 transition hover:border-primary hover:shadow-sm">
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-soft">
+                    {related.imageIndex === undefined ? <img src={related.imageUrl} alt={related.imageAlt} className="size-full object-cover" /> : <PhoneStripImage index={related.imageIndex} alt={related.imageAlt} />}
+                  </div>
+                  <h3 className="mt-3 text-sm font-bold">{related.name}</h3>
+                  <p className="mt-1 text-sm font-extrabold text-primary">{related.price}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mb-10 rounded-card border border-border bg-white p-6" aria-labelledby="reviews-title">
           <div className="grid gap-7 md:grid-cols-[15rem_1fr]">
             <div className="rounded-2xl bg-surface-soft p-5 text-center">
               <h2 id="reviews-title" className="text-sm font-bold">Đánh giá sản phẩm</h2>
-              <p className="mt-4 text-4xl font-extrabold text-primary">4.5/5</p>
+              <p className="mt-4 text-4xl font-extrabold text-primary">{rating ? `${rating}/5` : "—"}</p>
               <p className="mt-2 text-warning">★★★★★</p>
-              <p className="mt-1 text-xs text-muted">128 đánh giá khách hàng</p>
+              <p className="mt-1 text-xs text-muted">{reviewCount} đánh giá đã duyệt</p>
               <Button className="mt-5 w-full">Viết đánh giá</Button>
             </div>
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-                <div>
-                  <p className="font-bold">Nguyễn Văn A</p>
-                  <p className="mt-1 text-xs text-success">Đã mua hàng</p>
-                </div>
-                <p className="text-xs text-muted">2 ngày trước</p>
-              </div>
-              <p className="mt-4 text-warning">★★★★★</p>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Máy rất đẹp, màu hồng sang trọng đúng như hình. Camera chụp đêm tốt và nhân viên tư vấn nhiệt tình.
-              </p>
+            <div className="divide-y divide-border">
+              {reviews.length ? reviews.map((review) => (
+                <article key={review.id} className="py-4 first:pt-0">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div><p className="font-bold">{review.customer_name}</p><p className="mt-1 text-xs text-success">Đã mua hàng</p></div>
+                    <time className="text-xs text-muted">{new Intl.DateTimeFormat("vi-VN").format(new Date(review.created_at))}</time>
+                  </div>
+                  <p className="mt-3 text-warning">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{review.comment}</p>
+                </article>
+              )) : <p className="text-sm text-muted">Chưa có đánh giá nào được duyệt.</p>}
             </div>
           </div>
         </section>
@@ -326,66 +308,46 @@ export function ProductDetailPage({
   );
 }
 
+function CatalogImage({ image, className }: { image?: ProductImage; className: string }) {
+  if (!image) return <Smartphone className="text-tertiary" size={64} aria-label="Chưa có ảnh sản phẩm" />;
+  if (image.mock_sprite_index !== undefined) {
+    return <PhoneStripImage index={image.mock_sprite_index} alt={image.alt_text} className={className} />;
+  }
+  return <img src={image.image_url} alt={image.alt_text} className={className} />;
+}
+
+function unique(values: string[]) {
+  return [...new Set(values)];
+}
+
+function colorSwatch(color: string) {
+  if (color.includes("Hồng")) return "bg-secondary";
+  if (color.includes("Trắng")) return "bg-white";
+  if (color.includes("Đen") || color.includes("titan")) return "bg-foreground";
+  if (color.includes("Xanh")) return "bg-sky-200";
+  if (color.includes("Xám")) return "bg-neutral-400";
+  if (color.includes("Nâu")) return "bg-amber-700";
+  return "bg-orange-400";
+}
+
 type IconComponent = typeof ShieldCheck;
 
 function TrustItem({ icon: Icon, title, note }: { icon: IconComponent; title: string; note: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-surface-soft p-4">
-      <Icon size={20} className="shrink-0 text-primary" />
-      <div>
-        <p className="text-xs font-bold">{title}</p>
-        <p className="mt-1 text-[11px] text-muted">{note}</p>
-      </div>
-    </div>
-  );
+  return <div className="flex items-center gap-3 rounded-xl bg-surface-soft p-4"><Icon size={20} className="shrink-0 text-primary" /><div><p className="text-xs font-bold">{title}</p><p className="mt-1 text-[11px] text-muted">{note}</p></div></div>;
 }
 
 function OptionGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <fieldset className="mt-5">
-      <legend className="mb-2 text-sm font-bold">{label}</legend>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </fieldset>
-  );
+  return <fieldset className="mt-5"><legend className="mb-2 text-sm font-bold">{label}</legend><div className="flex flex-wrap gap-2">{children}</div></fieldset>;
 }
 
-function OptionButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-4 text-xs font-semibold ${
-        active ? "border-primary bg-surface-soft text-primary" : "border-border bg-white hover:border-primary"
-      }`}
-    >
-      {children}
-    </button>
-  );
+function OptionButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return <button type="button" onClick={onClick} className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-4 text-xs font-semibold ${active ? "border-primary bg-surface-soft text-primary" : "border-border bg-white hover:border-primary"}`}>{children}</button>;
 }
 
 function Highlight({ icon: Icon, title, copy }: { icon: IconComponent; title: string; copy: string }) {
-  return (
-    <article className="rounded-2xl border border-border bg-surface-soft p-6 first:bg-white">
-      <Icon size={23} className="text-primary" />
-      <h3 className="mt-5 font-extrabold">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-muted">{copy}</p>
-    </article>
-  );
+  return <article className="rounded-2xl border border-border bg-surface-soft p-6 first:bg-white"><Icon size={23} className="text-primary" /><h3 className="mt-5 font-extrabold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{copy}</p></article>;
 }
 
 function Spec({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid grid-cols-[6rem_1fr] gap-3 border-b border-border pb-3 last:border-0">
-      <dt className="text-muted">{label}</dt>
-      <dd className="text-right font-semibold">{value}</dd>
-    </div>
-  );
+  return <div className="grid grid-cols-[6rem_1fr] gap-3 border-b border-border pb-3 last:border-0"><dt className="text-muted">{label}</dt><dd className="text-right font-semibold">{value}</dd></div>;
 }
