@@ -6,8 +6,11 @@ import { Button } from "../../../shared/components/Button";
 import { FormField } from "../../../shared/components/FormField";
 import { AuthShell } from "../components/AuthShell";
 
+import { useStore } from "../../../context/StoreContext";
+
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { registerUser } = useStore();
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [accepted, setAccepted] = useState(false);
@@ -23,16 +26,24 @@ export function RegisterPage() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
     const valid =
       form.name.trim() &&
       form.phone.trim() &&
-      form.password.length >= 8 &&
+      form.password.length >= 6 &&
       form.password === form.confirmPassword &&
       accepted;
-    if (valid) navigate("/");
+    if (valid) {
+      await registerUser({
+        fullName: form.name,
+        phone: form.phone,
+        email: form.email,
+        password: form.password,
+      });
+      navigate("/tai-khoan");
+    }
   };
 
   return (
