@@ -1,0 +1,225 @@
+.card {
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-color) !important;
+  box-shadow: var(--shadow-light) !important;
+  padding: 16px !important;
+  transition: all var(--transition-speed) !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-hover) !important;
+  border-color: var(--primary-color) !important;
+}
+
+:global(.ant-card-body) {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  min-height: 24px;
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.sale {
+  background-color: var(--primary-color);
+}
+
+.new {
+  background-color: #2196f3;
+}
+
+.wishlistBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heartOutlined {
+  font-size: 18px;
+  color: #bbbbbb;
+  transition: color 0.2s;
+}
+
+.heartOutlined:hover {
+  color: var(--primary-color);
+}
+
+.heartFilled {
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+.imageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  margin-bottom: 16px;
+}
+
+.productImage {
+  max-height: 140px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform var(--transition-speed);
+}
+
+.card:hover .productImage {
+  transform: scale(1.05);
+}
+
+.brandSub {
+  font-size: 10px;
+  font-weight: 700;
+  color: #999999;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.productName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  height: 42px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.newPrice {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary-color);
+}
+
+.oldPrice {
+  font-size: 12px;
+  color: #999999;
+  text-decoration: line-through;
+}
+
+/* Gift strip styles */
+.giftStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  min-height: 32px;
+}
+
+.giftIcon {
+  color: var(--primary-color);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.giftText {
+  font-size: 11px;
+  color: #666666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.giftPlaceholder {
+  height: 32px;
+  margin-bottom: 12px;
+}
+
+/* Rating styles */
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  min-height: 18px;
+}
+
+.stars {
+  font-size: 12px !important;
+}
+
+.reviewsCount {
+  font-size: 11px;
+  color: #888888;
+}
+
+.ratingPlaceholder {
+  height: 18px;
+  margin-bottom: 16px;
+}
+
+/* Buy Button container */
+.btnWrapper {
+  margin-top: auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.card:hover .btnWrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.buyBtn {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  border-radius: 8px !important;
+}
+
+.buyBtn:hover {
+  background-color: #d81b60 !important;
+  border-color: #d81b60 !important;
+}
+
+/* Responsive adjustment for buy button */
+@media (max-width: 992px) {
+  .btnWrapper {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

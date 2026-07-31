@@ -1,0 +1,150 @@
+.categorySection {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.categoryGrid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.categoryGrid::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-speed);
+}
+
+.iconCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #555555;
+  box-shadow: var(--shadow-light);
+  transition: all var(--transition-speed);
+}
+
+.categoryName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  transition: color var(--transition-speed);
+}
+
+/* Hover & Active States */
+.categoryItem:hover .iconCircle,
+.categoryItem.active .iconCircle {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.15);
+  transform: translateY(-2px);
+}
+
+.categoryItem:hover .categoryName,
+.categoryItem.active .categoryName {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Filter Section */
+.filterContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.filterContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.filterPills {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filterPill {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333333;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  white-space: nowrap;
+}
+
+.activePill {
+  background-color: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.filterPill:hover:not(.activePill) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Ant Design Select overrides to look like pills */
+.filterSelect {
+  min-width: 110px;
+}
+
+.filterSelect :global(.ant-select-selector) {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 20px !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #333333 !important;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background-color: transparent !important;
+  transition: all var(--transition-speed) !important;
+}
+
+.filterSelect:hover :global(.ant-select-selector) {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.filterSelect :global(.ant-select-selection-item) {
+  color: #333333 !important;
+}
+
+.filterSelect:hover :global(.ant-select-selection-item) {
+  color: var(--primary-color) !important;
+}
+
+.filterSelect :global(.ant-select-arrow) {
+  color: #333333 !important;
+}
+
+.filterSelect:hover :global(.ant-select-arrow) {
+  color: var(--primary-color) !important;
+}
