@@ -1,0 +1,72 @@
+export const products = [
+  {
+    id: 1,
+    name: "iPhone 15 Pro Max",
+    brand: "Apple",
+    category: "iphone",
+    badge: "GIẢM 15%",
+    badgeType: "sale",
+    image: "/images/prod_iphone15.png",
+    newPrice: "29.490.000đ",
+    oldPrice: "34.990.000đ",
+    gift: "Tặng ốp lưng chính hãng",
+    rating: 5,
+    reviewsCount: 256
+  },
+  {
+    id: 2,
+    name: "Galaxy S24 Ultra",
+    brand: "Samsung",
+    category: "samsung",
+    badge: "MỚI",
+    badgeType: "new",
+    image: "/images/prod_s24.png",
+    newPrice: "26.990.000đ",
+    oldPrice: "33.990.000đ",
+    gift: "Tặng sạc 45W",
+    rating: 0,
+    reviewsCount: 0
+  },
+  {
+    id: 3,
+    name: "Xiaomi 14 Ultra",
+    brand: "Xiaomi",
+    category: "xiaomi",
+    badge: "",
+    badgeType: "",
+    image: "/images/prod_xiaomi14.png",
+    newPrice: "22.490.000đ",
+    oldPrice: "29.990.000đ",
+    gift: "",
+    rating: 0,
+    reviewsCount: 0
+  },
+  {
+    id: 4,
+    name: "OPPO Find X7 Ultra",
+    brand: "OPPO",
+    category: "oppo",
+    badge: "",
+    badgeType: "",
+    image: "/images/prod_oppofind.png",
+    newPrice: "24.500.000đ",
+    oldPrice: "28.990.000đ",
+    gift: "",
+    rating: 0,
+    reviewsCount: 0
+  },
+  {
+    id: 5,
+    name: "Realme GT5 Pro",
+    brand: "Realme",
+    category: "realme",
+    badge: "",
+    badgeType: "",
+    image: "/images/prod_realmegt.png",
+    newPrice: "15.990.000đ",
+    oldPrice: "18.990.000đ",
+    gift: "",
+    rating: 0,
+    reviewsCount: 0
+  }
+];

@@ -1,0 +1,106 @@
+.brandSection {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.seeAll {
+  font-size: 13px;
+  color: #888888;
+  font-weight: 500;
+  transition: color var(--transition-speed);
+}
+
+.seeAll:hover {
+  color: var(--primary-color);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.brandCard {
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-color) !important;
+  box-shadow: var(--shadow-light) !important;
+  overflow: hidden;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed) !important;
+}
+
+.brandCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover) !important;
+  border-color: var(--primary-color) !important;
+}
+
+:global(.ant-card-body) {
+  padding: 0 !important;
+  width: 100%;
+  height: 100%;
+}
+
+.logoWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.brandTextLogo {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.apple {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #000000;
+}
+
+.samsung {
+  font-family: sans-serif;
+  color: #034EA2;
+  font-style: italic;
+  font-weight: 900;
+}
+
+.xiaomi {
+  color: #FF6700;
+  font-weight: 800;
+}
+
+.oppo {
+  color: #00965C;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
