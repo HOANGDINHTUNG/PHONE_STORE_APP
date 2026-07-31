@@ -6,18 +6,22 @@ import { Button } from "../../../shared/components/Button";
 import { FormField } from "../../../shared/components/FormField";
 import { AuthShell } from "../components/AuthShell";
 
+import { useStore } from "../../../context/StoreContext";
+
 export function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useStore();
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
     if (email.trim() && password.length >= 6) {
-      navigate("/");
+      await login(email, password);
+      navigate("/tai-khoan");
     }
   };
 

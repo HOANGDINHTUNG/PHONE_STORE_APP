@@ -47,9 +47,28 @@ type AccountShellProps = {
   actions?: ReactNode;
 };
 
+import { useState } from "react";
+import { useStore } from "../../../context/StoreContext";
+import { AuthModal } from "../../auth/components/AuthModal";
+import { useNavigate } from "react-router-dom";
+
 export function AccountShell({ title, description, actions, children }: AccountShellProps) {
+  const { user } = useStore();
+  const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(!user);
+
   return (
     <StorePageLayout title={`${title} - PinkPhone`}>
+      {!user && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => {
+            setShowAuthModal(false);
+            navigate("/");
+          }}
+        />
+      )}
+
       <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:py-10">
         <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
           <AccountSidebar />
@@ -72,15 +91,28 @@ export function AccountShell({ title, description, actions, children }: AccountS
 
 export function AccountSidebar() {
   const { pathname } = useLocation();
+  const { user, logout } = useStore();
+  const navigate = useNavigate();
+
+  const getInitials = (name?: string) => {
+    if (!name) return "MA";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
 
   return (
-    <aside className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-white p-4 lg:sticky lg:top-32">
+    <aside className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-white p-4 lg:sticky lg:top-32 shadow-sm">
       <div className="flex items-center gap-3 border-b border-border pb-4">
-        <div className="grid size-12 shrink-0 place-items-center rounded-full bg-primary text-lg font-black text-white">
-          MA
+        <div className="grid size-12 shrink-0 place-items-center rounded-full bg-primary text-lg font-black text-white shadow-sm">
+          {getInitials(user?.name)}
         </div>
         <div className="min-w-0">
-          <p className="truncate font-extrabold text-primary">Thành viên PinkPhone</p>
+          <p className="truncate font-extrabold text-primary">
+            {user ? user.name : "Thành viên PinkPhone"}
+          </p>
           <p className="text-xs text-muted">Chào mừng bạn trở lại</p>
         </div>
       </div>
@@ -93,7 +125,7 @@ export function AccountSidebar() {
               to={href}
               className={`flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition ${
                 active
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-white font-bold"
                   : "text-muted hover:bg-surface-soft hover:text-primary"
               }`}
             >
@@ -102,16 +134,16 @@ export function AccountSidebar() {
             </Link>
           );
         })}
-        <Link
-          to="/tai-khoan/dang-xuat"
-          className={`flex min-h-11 shrink-0 items-center gap-3 rounded-xl border-t border-border px-3 text-sm font-semibold ${
-            pathname === "/tai-khoan/dang-xuat"
-              ? "bg-primary text-white"
-              : "text-danger hover:bg-red-50"
-          }`}
+        <button
+          type="button"
+          onClick={() => {
+            logout();
+            navigate("/");
+          }}
+          className={`flex min-h-11 w-full shrink-0 items-center gap-3 rounded-xl border-t border-border px-3 text-sm font-semibold transition text-danger hover:bg-red-50`}
         >
           <LogOut size={18} /> Đăng xuất
-        </Link>
+        </button>
       </nav>
     </aside>
   );
