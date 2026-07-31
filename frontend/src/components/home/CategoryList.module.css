@@ -38,7 +38,7 @@
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  color: #555555;
+  color: var(--primary-color);
   box-shadow: var(--shadow-light);
   transition: all var(--transition-speed);
 }
@@ -98,9 +98,9 @@
 }
 
 .activePill {
-  background-color: #000000;
+  background-color: var(--primary-color);
   color: #ffffff;
-  border-color: #000000;
+  border-color: var(--primary-color);
 }
 
 .filterPill:hover:not(.activePill) {

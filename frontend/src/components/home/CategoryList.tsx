@@ -70,14 +70,14 @@ const CategoryList = ({
             className={`${styles.filterPill} ${styles.activePill}`}
             onClick={() => onCategoryChange && onCategoryChange("all")}
           >
-            Tất cả hãng
+            Tất cả hãng{" "}
+            <DownOutlined style={{ fontSize: "10px", marginLeft: "4px" }} />
           </button>
 
           <Select
             defaultValue="Mức giá"
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
-            bordered={false}
             options={[
               { value: "all", label: "Tất cả mức giá" },
               { value: "under-10m", label: "Dưới 10 triệu" },
@@ -90,7 +90,6 @@ const CategoryList = ({
             defaultValue="Nhu cầu"
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
-            bordered={false}
             options={[
               { value: "all", label: "Tất cả nhu cầu" },
               { value: "gaming", label: "Chơi game" },
@@ -103,7 +102,6 @@ const CategoryList = ({
             defaultValue="Bộ nhớ"
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
-            bordered={false}
             options={[
               { value: "all", label: "Tất cả dung lượng" },
               { value: "128gb", label: "128 GB" },
@@ -116,7 +114,6 @@ const CategoryList = ({
             defaultValue="Sắp xếp"
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
-            bordered={false}
             options={[
               { value: "popular", label: "Bán chạy nhất" },
               { value: "price-asc", label: "Giá thấp đến cao" },

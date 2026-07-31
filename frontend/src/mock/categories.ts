@@ -3,36 +3,36 @@ export const categories = [
     id: 1,
     name: "iPhone",
     iconName: "AppleOutlined",
-    slug: "iphone"
+    slug: "iphone",
   },
   {
     id: 2,
     name: "Samsung",
     iconName: "AndroidOutlined",
-    slug: "samsung"
+    slug: "samsung",
   },
   {
     id: 3,
     name: "Xiaomi",
     iconName: "MobileOutlined",
-    slug: "xiaomi"
+    slug: "xiaomi",
   },
   {
     id: 4,
     name: "OPPO",
     iconName: "ClockCircleOutlined",
-    slug: "oppo"
+    slug: "oppo",
   },
   {
     id: 5,
-    name: "Mobile",
+    name: "realme",
     iconName: "CustomerServiceOutlined",
-    slug: "mobile"
+    slug: "realme",
   },
   {
     id: 6,
     name: "Phổ thông",
     iconName: "AppstoreOutlined",
-    slug: "pho-thong"
-  }
+    slug: "pho-thong",
+  },
 ];
