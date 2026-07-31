@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HeroBanner from '../../components/home/HeroBanner';
 import BrandGrid from '../../components/home/BrandGrid';
 import CategoryList from '../../components/home/CategoryList';
@@ -7,25 +7,39 @@ import NewsSection from '../../components/home/NewsSection';
 import AboutSection from '../../components/home/AboutSection';
 import FAQSection from '../../components/home/FAQSection';
 import StoreFinder from '../../components/home/StoreFinder';
-import { products } from '../../mock/products';
+import { fetchProducts } from '../../api/productService';
+import { Product } from '../../types';
 import styles from './Home.module.css';
 
 const Home = () => {
+  const [productList, setProductList] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [prodFilter, setProdFilter] = useState('all');
 
+  useEffect(() => {
+    let isMounted = true;
+    fetchProducts().then((data) => {
+      if (isMounted) {
+        setProductList(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Filter products by brand or category
   const getFilteredProducts = () => {
-    let result = products;
+    let result = productList;
     
     // First, filter by active category click from CategoryList (round buttons)
     if (activeCategory !== 'all') {
-      result = result.filter(p => p.category === activeCategory);
+      result = result.filter(p => (p.category || '').toLowerCase() === activeCategory.toLowerCase());
     }
     
     // Second, filter by the "Điện thoại bán chạy" tab filters ("Tất cả", "iPhone", "Samsung")
     if (prodFilter !== 'all') {
-      result = result.filter(p => p.brand.toLowerCase() === prodFilter.toLowerCase());
+      result = result.filter(p => (p.brand || '').toLowerCase() === prodFilter.toLowerCase());
     }
     
     return result;
