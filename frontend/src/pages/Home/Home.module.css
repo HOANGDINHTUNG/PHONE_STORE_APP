@@ -88,6 +88,43 @@
   background-color: var(--secondary-bg-color);
 }
 
+.searchBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff0f5;
+  border: 1px solid #ffccd8;
+  padding: 12px 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.searchBannerText {
+  font-size: 14px;
+  color: #333333;
+}
+
+.searchKeyword {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.clearSearchBtn {
+  border-radius: 16px;
+  font-size: 12px;
+}
+
+.paginationWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .productGrid {

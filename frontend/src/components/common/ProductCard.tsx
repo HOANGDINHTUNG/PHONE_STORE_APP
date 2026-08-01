@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, Rate, Button } from "antd";
 import { HeartOutlined, HeartFilled, GiftOutlined } from "@ant-design/icons";
 import { useStore } from "../../context/StoreContext";
+import { getDefaultProductImage } from "../../api/productService";
 import styles from "./ProductCard.module.css";
 import { Product } from "../../types";
 
@@ -14,6 +15,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
 
   const isFavorite = isInWishlist(product.id);
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const fallbackSrc = getDefaultProductImage(product.brand, product.slug);
+    if (e.currentTarget.src !== fallbackSrc) {
+      e.currentTarget.src = fallbackSrc;
+    }
+  };
 
   return (
     <Card
@@ -51,9 +59,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
       {/* Image Container */}
       <div className={styles.imageContainer}>
         <img
-          src={product.image}
+          src={product.image || getDefaultProductImage(product.brand, product.slug)}
           alt={product.name}
           className={styles.productImage}
+          onError={handleImageError}
         />
       </div>
 

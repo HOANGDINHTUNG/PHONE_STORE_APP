@@ -1,57 +1,127 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Input, Badge, Dropdown, MenuProps } from "antd";
 import { useStore } from "../../context/StoreContext";
+import { fetchProducts, getDefaultProductImage } from "../../api/productService";
+import { Product, CartItem } from "../../types";
 import styles from "./Header.module.css";
-import { CartItem } from "../../types";
 
 const Header = () => {
   const { user, cart, logout } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSearch = (value: string) => {
-    console.log("Search:", value);
+  const [searchValue, setSearchValue] = useState("");
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [isFocused, setIsFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync search input with URL search param on page load / change
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get("search") || "";
+    setSearchValue(query);
+  }, [location.search]);
+
+  // Load product list for suggestions
+  useEffect(() => {
+    let isMounted = true;
+    fetchProducts().then((prods) => {
+      if (isMounted) {
+        setAllProducts(prods);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handle outside click to close suggestion dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const trimSearch = searchValue.trim().toLowerCase();
+
+  // Filter matching suggestions
+  const suggestions = trimSearch
+    ? allProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(trimSearch) ||
+        p.brand.toLowerCase().includes(trimSearch) ||
+        (p.category || "").toLowerCase().includes(trimSearch)
+    )
+    : [];
+
+  const handleSearchSubmit = (val: string) => {
+    setIsFocused(false);
+    const query = val.trim();
+    if (query) {
+      navigate(`/?search=${encodeURIComponent(query)}`);
+      // Scroll to products section smoothly
+      setTimeout(() => {
+        const el = document.getElementById("products");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleSelectProduct = (product: Product) => {
+    setIsFocused(false);
+    navigate(`/product/${product.slug || product.id}`);
   };
 
   const dropdownItems: MenuProps["items"] = user
     ? [
-        {
-          key: "profile",
-          label: `Xin chào, ${user.name}`,
-          disabled: true,
-        },
-        {
-          key: "account",
-          label: "Tài khoản của tôi",
-          onClick: () => navigate("/account"),
-        },
-        {
-          key: "orders",
-          label: "Đơn hàng của tôi",
-          onClick: () => navigate("/account/orders"),
-        },
-        {
-          type: "divider",
-        },
-        {
-          key: "logout",
-          label: "Đăng xuất",
-          onClick: logout,
-        },
-      ]
+      {
+        key: "profile",
+        label: `Xin chào, ${user.name}`,
+        disabled: true,
+      },
+      {
+        key: "account",
+        label: "Tài khoản của tôi",
+        onClick: () => navigate("/account"),
+      },
+      {
+        key: "orders",
+        label: "Đơn hàng của tôi",
+        onClick: () => navigate("/account/orders"),
+      },
+      {
+        type: "divider",
+      },
+      {
+        key: "logout",
+        label: "Đăng xuất",
+        onClick: logout,
+      },
+    ]
     : [
-        {
-          key: "login",
-          label: "Đăng nhập",
-          onClick: () => navigate("/login"),
-        },
-        {
-          key: "register",
-          label: "Đăng ký",
-          onClick: () => navigate("/register"),
-        },
-      ];
+      {
+        key: "login",
+        label: "Đăng nhập",
+        onClick: () => navigate("/login"),
+      },
+      {
+        key: "register",
+        label: "Đăng ký",
+        onClick: () => navigate("/register"),
+      },
+    ];
 
   const cartCount = cart.reduce(
     (acc: number, item: CartItem) => acc + item.quantity,
@@ -172,10 +242,14 @@ const Header = () => {
             Pink<span>Phone</span>
           </Link>
 
-          {/* Search Bar - Center */}
-          <div className={styles.searchWrapper}>
+          {/* Search Bar - Center with Autocomplete */}
+          <div className={styles.searchWrapper} ref={searchContainerRef}>
             <Input
-              placeholder="Bạn muốn tìm điện thoại nào?"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              placeholder="Bạn muốn tìm điện thoại nào? (Ví dụ: iPhone 15, S24, Xiaomi...)"
+              allowClear
               prefix={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -188,16 +262,87 @@ const Header = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="lucide lucide-search"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleSearchSubmit(searchValue)}
                 >
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.3-4.3" />
                 </svg>
               }
               onPressEnter={(e) =>
-                handleSearch((e.target as HTMLInputElement).value)
+                handleSearchSubmit((e.target as HTMLInputElement).value)
               }
               className={styles.searchInput}
             />
+
+            {/* Suggestions Overlay Dropdown */}
+            {isFocused && trimSearch.length > 0 && (
+              <div className={styles.suggestionsDropdown}>
+                <div className={styles.suggestionHeader}>
+                  Gợi ý sản phẩm ({suggestions.length})
+                </div>
+
+                {suggestions.length > 0 ? (
+                  <>
+                    <div className={styles.suggestionList}>
+                      {suggestions.slice(0, 6).map((item) => (
+                        <div
+                          key={item.id}
+                          className={styles.suggestionItem}
+                          onClick={() => handleSelectProduct(item)}
+                        >
+                          <img
+                            src={
+                              item.image ||
+                              getDefaultProductImage(item.brand, item.slug)
+                            }
+                            alt={item.name}
+                            className={styles.suggestionThumb}
+                            onError={(e) => {
+                              const fallback = getDefaultProductImage(
+                                item.brand,
+                                item.slug
+                              );
+                              if (e.currentTarget.src !== fallback) {
+                                e.currentTarget.src = fallback;
+                              }
+                            }}
+                          />
+                          <div className={styles.suggestionInfo}>
+                            <div className={styles.suggestionTitle}>
+                              {item.name}
+                            </div>
+                            <div className={styles.suggestionMeta}>
+                              <span className={styles.suggestionBrand}>
+                                {item.brand}
+                              </span>
+                              <span className={styles.suggestionPrice}>
+                                {item.newPrice}
+                              </span>
+                              {item.oldPrice && (
+                                <span className={styles.suggestionOldPrice}>
+                                  {item.oldPrice}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      className={styles.suggestionFooter}
+                      onClick={() => handleSearchSubmit(searchValue)}
+                    >
+                      Xem tất cả {suggestions.length} sản phẩm phù hợp cho "{searchValue}" &rarr;
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.emptySuggestions}>
+                    Không tìm thấy sản phẩm nào khớp với "{searchValue}"
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Icons - Right */}

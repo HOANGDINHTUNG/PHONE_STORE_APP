@@ -47,10 +47,37 @@ const formatCurrency = (amount?: number): string => {
     .replace("₫", "đ");
 };
 
+export const getDefaultProductImage = (brandName?: string, slug?: string): string => {
+  const brand = (brandName || "").toLowerCase();
+  const s = (slug || "").toLowerCase();
+
+  if (brand.includes("apple") || s.includes("iphone")) return "/images/prod_iphone15.png";
+  if (
+    brand.includes("samsung") ||
+    s.includes("samsung") ||
+    s.includes("galaxy") ||
+    s.includes("s24") ||
+    s.includes("z-fold") ||
+    s.includes("z-flip") ||
+    s.includes("a55")
+  ) {
+    return "/images/prod_s24.png";
+  }
+  if (brand.includes("xiaomi") || s.includes("xiaomi") || s.includes("redmi")) {
+    return "/images/prod_xiaomi14.png";
+  }
+  if (brand.includes("oppo") || s.includes("oppo") || s.includes("find") || s.includes("reno")) {
+    return "/images/prod_oppofind.png";
+  }
+  if (brand.includes("realme") || s.includes("realme")) return "/images/prod_realmegt.png";
+
+  return "/images/prod_iphone15.png";
+};
+
 export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
   const minP = bp.minPrice || (bp.variants && bp.variants[0]?.price) || 0;
   const maxP = bp.maxPrice || (bp.variants && bp.variants[0]?.salePrice) || minP;
-  
+
   let mainImage = "";
   if (bp.variants && bp.variants.length > 0) {
     for (const v of bp.variants) {
@@ -67,7 +94,7 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
   }
 
   if (!mainImage) {
-    mainImage = `/images/prod_${bp.slug.replace(/-/g, "")}.png`;
+    mainImage = getDefaultProductImage(bp.brandName, bp.slug);
   }
 
   return {
