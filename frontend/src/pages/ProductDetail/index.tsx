@@ -231,11 +231,10 @@ const ProductDetail = () => {
                       <button
                         key={storage}
                         onClick={() => setSelectedStorage(storage)}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                          selectedStorage === storage
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${selectedStorage === storage
                             ? "border-[#E91E63] bg-[#FFF0F4] text-[#E91E63]"
                             : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         {storage}
                       </button>
@@ -252,11 +251,10 @@ const ProductDetail = () => {
                       <button
                         key={color.name}
                         onClick={() => setSelectedColor(color.name)}
-                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
-                          selectedColor === color.name
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${selectedColor === color.name
                             ? "border-[#E91E63] bg-[#FFF0F4] text-[#E91E63]"
                             : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <span
                           className="h-4 w-4 rounded-full"

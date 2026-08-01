@@ -86,10 +86,12 @@
 }
 
 /* Center Search */
+/* Center Search */
 .searchWrapper {
   flex: 1;
   max-width: 500px;
   margin: 0 40px;
+  position: relative;
 }
 
 .searchInput {
@@ -110,6 +112,135 @@
 .searchInput:hover {
   background-color: #ffffff !important;
   border-color: var(--primary-color) !important;
+}
+
+/* Autocomplete Search Dropdown */
+.suggestionsDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1050;
+  overflow: hidden;
+  max-height: 440px;
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestionHeader {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestionList {
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f7f7f7;
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:hover {
+  background-color: #fff4f7;
+}
+
+.suggestionThumb {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f9f9f9;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.suggestionInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.suggestionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestionBrand {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--primary-color);
+  background: rgba(233, 30, 99, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.suggestionPrice {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d32f2f;
+}
+
+.suggestionOldPrice {
+  font-size: 11px;
+  color: #999999;
+  text-decoration: line-through;
+}
+
+.suggestionFooter {
+  padding: 12px 16px;
+  text-align: center;
+  background-color: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-color);
+  transition: background-color 0.2s;
+}
+
+.suggestionFooter:hover {
+  background-color: #fff0f5;
+}
+
+.emptySuggestions {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: #888888;
 }
 
 /* Right Actions */
