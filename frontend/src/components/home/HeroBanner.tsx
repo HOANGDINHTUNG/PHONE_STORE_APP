@@ -1,21 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { Button } from 'antd';
-import { banners } from '../../mock/banners';
+import { fetchBanners, Banner } from '../../api/bannerService';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
 import styles from './HeroBanner.module.css';
 
 const HeroBanner = () => {
+  const [banners, setBanners] = useState<Banner[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchBanners()
+      .then((data) => {
+        if (isMounted) {
+          setBanners(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load banners:", err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (!banners || banners.length === 0) {
+    return null;
+  }
+
   return (
     <section className={styles.heroSection}>
       <Swiper
         modules={[Pagination, Autoplay]}
         pagination={{ clickable: true, el: `.${styles.swiperPagination}` }}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
-        loop={true}
+        loop={banners.length > 1}
         className={styles.mySwiper}
       >
         {banners.map((banner) => (
@@ -25,13 +47,15 @@ const HeroBanner = () => {
               style={{ background: banner.bgColor }}
             >
               <div className={styles.slideContent}>
-                <span className={styles.label}>{banner.label}</span>
+                {banner.label && <span className={styles.label}>{banner.label}</span>}
                 <h1 className={styles.title} style={{ color: banner.textColor }}>
                   {banner.title}
                 </h1>
-                <p className={styles.subtitle} style={{ color: banner.textColor }}>
-                  {banner.subtitle}
-                </p>
+                {banner.subtitle && (
+                  <p className={styles.subtitle} style={{ color: banner.textColor }}>
+                    {banner.subtitle}
+                  </p>
+                )}
                 <div className={styles.actions}>
                   <Button type="primary" size="large" className={styles.buyBtn}>
                     Mua Ngay

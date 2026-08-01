@@ -32,18 +32,46 @@ const Home = () => {
   const getFilteredProducts = () => {
     let result = productList;
 
-    // First, filter by active category click from CategoryList (round buttons)
+    // First, filter by active category click from CategoryList
     if (activeCategory !== "all") {
-      result = result.filter(
-        (p) =>
-          (p.category || "").toLowerCase() === activeCategory.toLowerCase(),
-      );
+      result = result.filter((p) => {
+        const catSlug = (p.categorySlug || "").toLowerCase();
+        const catName = (p.category || "").toLowerCase();
+        const target = activeCategory.toLowerCase();
+
+        if (catSlug === target || catName === target || p.categoryId === activeCategory) {
+          return true;
+        }
+
+        if (target === "dien-thoai" && (catName.includes("điện thoại") || catSlug.includes("dien-thoai") || catName.includes("phone"))) {
+          return true;
+        }
+        if (target === "tablet" && (catName.includes("tablet") || catSlug.includes("tablet") || catName.includes("ipad"))) {
+          return true;
+        }
+        if (target === "phu-kien" && (catName.includes("phụ kiện") || catSlug.includes("phu-kien") || catName.includes("accessory"))) {
+          return true;
+        }
+        if (target === "laptop" && (catName.includes("laptop") || catSlug.includes("laptop") || catName.includes("máy tính"))) {
+          return true;
+        }
+        if (target === "smartwatch" && (catName.includes("smartwatch") || catSlug.includes("smartwatch") || catName.includes("đồng hồ"))) {
+          return true;
+        }
+        if (target === "tai-nghe" && (catName.includes("tai nghe") || catSlug.includes("tai-nghe") || catName.includes("audio"))) {
+          return true;
+        }
+
+        return false;
+      });
     }
 
-    // Second, filter by the "Điện thoại bán chạy" tab filters
+    // Second, filter by brand selection
     if (prodFilter !== "all") {
       result = result.filter(
-        (p) => (p.brand || "").toLowerCase() === prodFilter.toLowerCase(),
+        (p) =>
+          (p.brand || "").toLowerCase() === prodFilter.toLowerCase() ||
+          (p.brandId || "") === prodFilter
       );
     }
 
@@ -58,14 +86,23 @@ const Home = () => {
       <HeroBanner />
 
       {/* Featured Brands */}
-      <BrandGrid />
+      <BrandGrid
+        activeBrand={prodFilter}
+        onBrandSelect={(brandSlug) => {
+          setProdFilter(brandSlug);
+          const el = document.getElementById("products");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }}
+      />
 
       {/* Categories & Filter Bar */}
       <CategoryList
         activeCategory={activeCategory}
         onCategoryChange={(cat) => {
           setActiveCategory(cat);
-          setProdFilter("all"); // Reset the sub-tab filter
+          setProdFilter("all"); // Reset the brand filter when changing category
         }}
       />
 
@@ -74,7 +111,11 @@ const Home = () => {
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <div className={styles.headerText}>
-              <h2 className={styles.sectionTitle}>Điện thoại bán chạy</h2>
+              <h2 className={styles.sectionTitle}>
+                {activeCategory !== "all" || prodFilter !== "all"
+                  ? `Sản phẩm lọc (${filteredProducts.length})`
+                  : "Điện thoại bán chạy"}
+              </h2>
               <p className={styles.sectionDesc}>
                 Top những sản phẩm được săn đón nhất tháng này
               </p>
@@ -106,7 +147,7 @@ const Home = () => {
       {/* FAQ Accordion */}
       <FAQSection />
 
-      {/* Store Finder & Footer will be wrapped by Layout */}
+      {/* Store Finder */}
       <StoreFinder />
     </div>
   );

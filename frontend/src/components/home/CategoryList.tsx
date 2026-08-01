@@ -6,6 +6,8 @@ import {
   MobileOutlined,
   ClockCircleOutlined,
   CustomerServiceOutlined,
+  TabletOutlined,
+  LaptopOutlined,
   AppstoreOutlined,
   DownOutlined,
 } from "@ant-design/icons";
@@ -19,6 +21,8 @@ type IconKey =
   | "MobileOutlined"
   | "ClockCircleOutlined"
   | "CustomerServiceOutlined"
+  | "TabletOutlined"
+  | "LaptopOutlined"
   | "AppstoreOutlined";
 
 const iconMap: Record<IconKey, React.ReactNode> = {
@@ -27,6 +31,8 @@ const iconMap: Record<IconKey, React.ReactNode> = {
   MobileOutlined: <MobileOutlined />,
   ClockCircleOutlined: <ClockCircleOutlined />,
   CustomerServiceOutlined: <CustomerServiceOutlined />,
+  TabletOutlined: <TabletOutlined />,
+  LaptopOutlined: <LaptopOutlined />,
   AppstoreOutlined: <AppstoreOutlined />,
 };
 

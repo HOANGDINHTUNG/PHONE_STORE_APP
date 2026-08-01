@@ -26,10 +26,10 @@ SET @b_xiaomi = UNHEX(REPLACE('22222222-2222-2222-2222-222222222223', '-', ''));
 SET @b_oppo = UNHEX(REPLACE('22222222-2222-2222-2222-222222222224', '-', ''));
 
 INSERT INTO brands (id, name, slug, logo_url, status) VALUES
-(@b_apple, 'Apple', 'apple', 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg', 'ACTIVE'),
-(@b_samsung, 'Samsung', 'samsung', 'https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg', 'ACTIVE'),
-(@b_xiaomi, 'Xiaomi', 'xiaomi', 'https://upload.wikimedia.org/wikipedia/commons/a/ae/Xiaomi_logo_%282021-%29.svg', 'ACTIVE'),
-(@b_oppo, 'Oppo', 'oppo', 'https://upload.wikimedia.org/wikipedia/commons/b/b3/OPPO_logo_2019.svg', 'ACTIVE');
+(@b_apple, 'Apple', 'apple', 'https://cdn2.cellphones.com.vn/x/media/wysiwyg/brand/apple.png', 'ACTIVE'),
+(@b_samsung, 'Samsung', 'samsung', 'https://cdn2.cellphones.com.vn/x/media/wysiwyg/brand/samsung.png', 'ACTIVE'),
+(@b_xiaomi, 'Xiaomi', 'xiaomi', 'https://cdn2.cellphones.com.vn/x/media/wysiwyg/brand/xiaomi.png', 'ACTIVE'),
+(@b_oppo, 'Oppo', 'oppo', 'https://cdn2.cellphones.com.vn/x/media/wysiwyg/brand/oppo.png', 'ACTIVE');
 
 -- 4. Products
 SET @p_iphone15 = UNHEX(REPLACE('33333333-3333-3333-3333-333333333331', '-', ''));
@@ -37,9 +37,9 @@ SET @p_s24u = UNHEX(REPLACE('33333333-3333-3333-3333-333333333332', '-', ''));
 SET @p_x14 = UNHEX(REPLACE('33333333-3333-3333-3333-333333333333', '-', ''));
 
 INSERT INTO products (id, category_id, brand_id, name, slug, description, publication_status) VALUES
-(@p_iphone15, @cat_phone, @b_apple, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max', 'PUBLISHED'),
-(@p_s24u, @cat_phone, @b_samsung, 'Samsung Galaxy S24 Ultra', 'samsung-galaxy-s24-ultra', 'Samsung AI Phone', 'PUBLISHED'),
-(@p_x14, @cat_phone, @b_xiaomi, 'Xiaomi 14 Ultra', 'xiaomi-14-ultra', 'Siêu phẩm camera Leica', 'PUBLISHED');
+(@p_iphone15, @cat_phone, @b_apple, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max', 'ACTIVE'),
+(@p_s24u, @cat_phone, @b_samsung, 'Samsung Galaxy S24 Ultra', 'samsung-galaxy-s24-ultra', 'Samsung AI Phone', 'ACTIVE'),
+(@p_x14, @cat_phone, @b_xiaomi, 'Xiaomi 14 Ultra', 'xiaomi-14-ultra', 'Siêu phẩm camera Leica', 'ACTIVE');
 
 -- 5. Product Variants
 SET @v_ip15_1 = UNHEX(REPLACE('44444444-4444-4444-4444-444444444441', '-', ''));

@@ -1,47 +1,49 @@
 import React, { ReactNode, MouseEventHandler } from "react";
 
-type ButtonVariant = "primary" | "outline" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
-
 interface ButtonProps {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
   children: ReactNode;
+  type?: "primary" | "secondary" | "outline" | "text";
+  size?: "sm" | "md" | "lg";
+  fullWidth?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
-  className?: string;
   disabled?: boolean;
+  className?: string;
 }
 
 export const Button = ({
-  variant = "primary",
-  size = "md",
   children,
+  type = "primary",
+  size = "md",
+  fullWidth = false,
   onClick,
-  className = "",
   disabled = false,
+  className = "",
 }: ButtonProps) => {
-  const baseStyle =
-    "inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+  const baseStyles =
+    "inline-flex items-center justify-center font-medium transition-all duration-200 rounded-lg focus:outline-none";
 
-  const variants = {
-    primary: "bg-[#E91E63] text-white hover:bg-[#d81b60] focus:ring-[#E91E63]",
+  const typeStyles = {
+    primary: "bg-[#E91E63] hover:bg-[#d81b60] text-white shadow-sm",
+    secondary: "bg-gray-100 hover:bg-gray-200 text-gray-800",
     outline:
-      "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-[#E91E63]",
-    ghost:
-      "text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-300",
+      "border border-[#E91E63] text-[#E91E63] hover:bg-[#FFF0F4]",
+    text: "text-gray-600 hover:text-[#E91E63] hover:bg-gray-50",
   };
 
-  const sizes = {
+  const sizeStyles = {
     sm: "px-3 py-1.5 text-xs",
     md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base",
+    lg: "px-6 py-3 text-base font-semibold",
   };
+
+  const widthStyle = fullWidth ? "w-full" : "";
+  const disabledStyle = disabled ? "opacity-50 cursor-not-allowed" : "";
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseStyles} ${typeStyles[type]} ${sizeStyles[size]} ${widthStyle} ${disabledStyle} ${className}`}
     >
       {children}
     </button>
@@ -55,6 +57,7 @@ interface ProductCardProps {
   price?: string;
   oldPrice?: string;
   buttonText?: string;
+  onClick?: () => void;
   onAdd?: MouseEventHandler<HTMLButtonElement>;
 }
 
@@ -65,10 +68,14 @@ export const ProductCard = ({
   price,
   oldPrice,
   buttonText,
+  onClick,
   onAdd,
 }: ProductCardProps) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-full hover:shadow-lg transition-all duration-300 group">
+    <div
+      onClick={onClick}
+      className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-full hover:shadow-lg transition-all duration-300 group cursor-pointer"
+    >
       <div className="relative mb-3 flex items-center justify-center h-40 bg-gray-50 rounded-lg overflow-hidden">
         {badge && (
           <span
@@ -84,7 +91,13 @@ export const ProductCard = ({
         <img
           src={image || "/images/prod_iphone15.png"}
           alt={title || ""}
-          className="max-h-32 object-contain group-hover:scale-105 transition-transform duration-300"
+          referrerPolicy="no-referrer"
+          className="max-h-32 object-contain group-hover:scale-105 transition-transform duration-300 rounded-lg"
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.onerror = null;
+            target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' width='80' height='80'><rect width='100' height='100' rx='20' fill='%23FFF0F4'/><path fill='%23E91E63' d='M30 40h40v30H30zM40 30h20v10H40z'/></svg>";
+          }}
         />
       </div>
 
@@ -101,14 +114,19 @@ export const ProductCard = ({
         )}
       </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full mt-auto text-xs text-[#E91E63] border-[#E91E63] hover:bg-[#FDE6EC] hover:text-[#E91E63]"
-        onClick={onAdd}
-      >
-        {buttonText || "Thêm vào giỏ"}
-      </Button>
+      <div className="mt-auto">
+        <Button
+          type="outline"
+          size="sm"
+          fullWidth
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onAdd) onAdd(e);
+          }}
+        >
+          {buttonText || "Thêm vào giỏ"}
+        </Button>
+      </div>
     </div>
   );
 };
