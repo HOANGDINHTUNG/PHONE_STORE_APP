@@ -13,20 +13,28 @@ export interface BackendCategoryResponse {
   subCategories?: BackendCategoryResponse[];
 }
 
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+
 const getCategoryIcon = (slug: string): string => {
   const s = slug.toLowerCase();
-  if (s.includes("iphone") || s.includes("apple")) return "AppleOutlined";
+  if (s.includes("dien-thoai") || s.includes("phone") || s.includes("mobile")) return "MobileOutlined";
+  if (s.includes("tablet") || s.includes("pad")) return "TabletOutlined";
+  if (s.includes("laptop") || s.includes("macbook")) return "LaptopOutlined";
+  if (s.includes("smartwatch") || s.includes("dong-ho")) return "ClockCircleOutlined";
+  if (s.includes("tai-nghe") || s.includes("headphone") || s.includes("audio")) return "CustomerServiceOutlined";
+  if (s.includes("phu-kien") || s.includes("accessory")) return "AppstoreOutlined";
+  if (s.includes("apple") || s.includes("iphone")) return "AppleOutlined";
   if (s.includes("samsung")) return "AndroidOutlined";
-  if (s.includes("xiaomi")) return "MobileOutlined";
-  if (s.includes("oppo")) return "ClockCircleOutlined";
-  if (s.includes("mobile")) return "CustomerServiceOutlined";
   return "AppstoreOutlined";
 };
 
 export const fetchCategories = async (): Promise<Category[]> => {
+  if (USE_MOCK) {
+    return mockCategories as Category[];
+  }
   try {
     const response = await apiClient.get<BackendCategoryResponse[]>("/categories/tree");
-    if (Array.isArray(response.data) && response.data.length > 0) {
+    if (Array.isArray(response.data)) {
       return response.data.map((cat) => ({
         id: cat.id,
         name: cat.name,
@@ -35,8 +43,9 @@ export const fetchCategories = async (): Promise<Category[]> => {
         description: cat.description,
       }));
     }
+    return [];
   } catch (error) {
-    console.warn("Could not fetch categories from backend SQL API, using mock fallback:", error);
+    console.error("API error fetching categories from backend SQL API:", error);
+    throw error;
   }
-  return mockCategories as Category[];
 };

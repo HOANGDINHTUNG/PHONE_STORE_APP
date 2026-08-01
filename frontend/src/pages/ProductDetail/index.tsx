@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Star,
@@ -73,26 +73,26 @@ const ProductDetail = () => {
   const bundleProducts = [
     {
       id: 201,
-      name: "Ốp lưng Silicon Pink",
+      name: "Ốp lưng Clear Case MagSafe",
       price: "290.000đ",
       oldPrice: "450.000đ",
-      image: "/images/brand_apple.png",
+      image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&auto=format&fit=crop&q=80",
       badge: "SALE",
     },
     {
       id: 202,
-      name: "Sạc nhanh 65W GaN",
+      name: "Sạc nhanh GaN 67W Anker",
       price: "650.000đ",
       oldPrice: "890.000đ",
-      image: "/images/brand_samsung.png",
+      image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400&auto=format&fit=crop&q=80",
       badge: "HOT",
     },
     {
       id: 203,
-      name: "PinkBuds Pro 2",
+      name: "Tai nghe Bluetooth Buds FE",
       price: "1.890.000đ",
       oldPrice: "2.490.000đ",
-      image: "/images/brand_xiaomi.png",
+      image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&auto=format&fit=crop&q=80",
     },
   ];
 

@@ -19,7 +19,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <Card
       className={styles.card}
       hoverable
-      onClick={() => navigate("/product")}
+      onClick={() => navigate(`/product/${product.slug || product.id}`)}
     >
       {/* Top Badges / Icons */}
       <div className={styles.cardTop}>

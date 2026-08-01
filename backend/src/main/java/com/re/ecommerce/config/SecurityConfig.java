@@ -41,7 +41,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/logout").authenticated()
-                .requestMatchers("/api/v1/auth/**", "/api/v1/categories/tree", "/api/v1/brands", "/api/v1/products", "/api/v1/products/**", "/api/v1/catalog/**", "/api/v1/product-comparisons", "/api/v1/cart/**", "/api/v1/orders/checkout", "/actuator/health", "/swagger-ui/**", "/v3/api-docs/**", "/openapi.yaml").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/v1/categories/tree", "/api/v1/brands", "/api/v1/products", "/api/v1/products/**", "/api/v1/catalog/**", "/api/v1/product-comparisons", "/api/v1/banners", "/api/v1/banners/**", "/api/v1/news", "/api/v1/news/**", "/api/v1/cart/**", "/api/v1/orders/checkout", "/actuator/health", "/swagger-ui/**", "/v3/api-docs/**", "/openapi.yaml").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
