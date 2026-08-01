@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { message } from "antd";
 import {
   Star,
   Heart,
@@ -390,7 +391,17 @@ const ProductDetail = () => {
                 price={item.price}
                 oldPrice={item.oldPrice}
                 buttonText="Chọn mua"
-                onAdd={() => addToCart(item)}
+                onAdd={() => {
+                  addToCart({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    image: item.image,
+                    quantity: 1,
+                    active: true,
+                  });
+                  message.success(`Đã thêm ${item.name} vào giỏ hàng!`);
+                }}
               />
             ))}
           </div>

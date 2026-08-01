@@ -6,6 +6,8 @@ import {
   MobileOutlined,
   ClockCircleOutlined,
   CustomerServiceOutlined,
+  TabletOutlined,
+  LaptopOutlined,
   AppstoreOutlined,
   DownOutlined,
 } from "@ant-design/icons";
@@ -19,6 +21,8 @@ type IconKey =
   | "MobileOutlined"
   | "ClockCircleOutlined"
   | "CustomerServiceOutlined"
+  | "TabletOutlined"
+  | "LaptopOutlined"
   | "AppstoreOutlined";
 
 const iconMap: Record<IconKey, React.ReactNode> = {
@@ -27,25 +31,37 @@ const iconMap: Record<IconKey, React.ReactNode> = {
   MobileOutlined: <MobileOutlined />,
   ClockCircleOutlined: <ClockCircleOutlined />,
   CustomerServiceOutlined: <CustomerServiceOutlined />,
+  TabletOutlined: <TabletOutlined />,
+  LaptopOutlined: <LaptopOutlined />,
   AppstoreOutlined: <AppstoreOutlined />,
 };
 
 interface CategoryListProps {
   onCategoryChange?: (category: string) => void;
   activeCategory?: string;
+  priceFilter?: string;
+  onPriceFilterChange?: (price: string) => void;
+  storageFilter?: string;
+  onStorageFilterChange?: (storage: string) => void;
+  sortFilter?: string;
+  onSortFilterChange?: (sort: string) => void;
+  requirementFilter?: string;
+  onRequirementFilterChange?: (req: string) => void;
 }
 
 const CategoryList = ({
   onCategoryChange,
-  activeCategory,
+  activeCategory = "all",
+  priceFilter = "all",
+  onPriceFilterChange,
+  storageFilter = "all",
+  onStorageFilterChange,
+  sortFilter = "popular",
+  onSortFilterChange,
+  requirementFilter = "all",
+  onRequirementFilterChange,
 }: CategoryListProps) => {
   const [categoryList, setCategoryList] = useState<Category[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState({
-    price: "all",
-    requirement: "all",
-    storage: "all",
-    sort: "popular",
-  });
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +79,16 @@ const CategoryList = ({
     <section className={styles.categorySection} id="category-list">
       {/* Round Categories Grid */}
       <div className={styles.categoryGrid}>
+        <div
+          className={`${styles.categoryItem} ${activeCategory === "all" ? styles.active : ""}`}
+          onClick={() => onCategoryChange && onCategoryChange("all")}
+        >
+          <div className={styles.iconCircle}>
+            <AppstoreOutlined />
+          </div>
+          <span className={styles.categoryName}>Tất cả</span>
+        </div>
+
         {categoryList.map((cat) => (
           <div
             key={cat.id}
@@ -77,61 +103,66 @@ const CategoryList = ({
         ))}
       </div>
 
-      {/* Filter Tabs / Pills */}
-      <div className={styles.filterContainer}>
-        <div className={styles.filterPills}>
+      {/* Filter Options Bar */}
+      <div className={styles.filterBar}>
+        <div className={styles.filterGroup}>
           <button
-            className={`${styles.filterPill} ${styles.activePill}`}
+            className={`${styles.filterBtn} ${activeCategory === "all" ? styles.activeFilterBtn : ""}`}
             onClick={() => onCategoryChange && onCategoryChange("all")}
           >
-            Tất cả hãng{" "}
-            <DownOutlined style={{ fontSize: "10px", marginLeft: "4px" }} />
+            Tất cả hãng <span>▼</span>
           </button>
 
           <Select
-            defaultValue="Mức giá"
+            value={priceFilter}
+            onChange={(val) => onPriceFilterChange && onPriceFilterChange(val)}
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
             options={[
-              { value: "all", label: "Tất cả mức giá" },
+              { value: "all", label: "Mức giá: Tất cả" },
               { value: "under-10m", label: "Dưới 10 triệu" },
               { value: "10m-20m", label: "10 - 20 triệu" },
-              { value: "over-20m", label: "Trên 20 triệu" },
+              { value: "20m-30m", label: "20 - 30 triệu" },
+              { value: "above-30m", label: "Trên 30 triệu" },
             ]}
           />
 
           <Select
-            defaultValue="Nhu cầu"
+            value={requirementFilter}
+            onChange={(val) => onRequirementFilterChange && onRequirementFilterChange(val)}
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
             options={[
-              { value: "all", label: "Tất cả nhu cầu" },
-              { value: "gaming", label: "Chơi game" },
-              { value: "photography", label: "Chụp ảnh đẹp" },
-              { value: "battery", label: "Pin trâu" },
+              { value: "all", label: "Nhu cầu: Tất cả" },
+              { value: "gaming", label: "Chơi game / Cấu hình cao" },
+              { value: "camera", label: "Camera sắc nét" },
+              { value: "battery", label: "Pin dung lượng lớn" },
             ]}
           />
 
           <Select
-            defaultValue="Bộ nhớ"
+            value={storageFilter}
+            onChange={(val) => onStorageFilterChange && onStorageFilterChange(val)}
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
             options={[
-              { value: "all", label: "Tất cả dung lượng" },
+              { value: "all", label: "Bộ nhớ: Tất cả" },
               { value: "128gb", label: "128 GB" },
               { value: "256gb", label: "256 GB" },
-              { value: "512gb", label: "512 GB" },
+              { value: "512gb", label: "512 GB / 1 TB" },
             ]}
           />
 
           <Select
-            defaultValue="Sắp xếp"
+            value={sortFilter}
+            onChange={(val) => onSortFilterChange && onSortFilterChange(val)}
             className={styles.filterSelect}
             suffixIcon={<DownOutlined />}
             options={[
-              { value: "popular", label: "Bán chạy nhất" },
-              { value: "price-asc", label: "Giá thấp đến cao" },
-              { value: "price-desc", label: "Giá cao đến thấp" },
+              { value: "popular", label: "Sắp xếp: Phổ biến" },
+              { value: "price-asc", label: "Giá tăng dần" },
+              { value: "price-desc", label: "Giá giảm dần" },
+              { value: "newest", label: "Hàng mới nhất" },
             ]}
           />
         </div>

@@ -19,7 +19,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <Card
       className={styles.card}
       hoverable
-      onClick={() => navigate("/product")}
+      onClick={() => navigate(`/product/${product.slug || product.id}`)}
     >
       {/* Top Badges / Icons */}
       <div className={styles.cardTop}>
@@ -53,7 +53,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <img
           src={product.image}
           alt={product.name}
+          referrerPolicy="no-referrer"
           className={styles.productImage}
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.onerror = null;
+            target.src = "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png";
+          }}
         />
       </div>
 

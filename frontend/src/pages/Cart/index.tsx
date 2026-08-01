@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { message } from "antd";
 import {
   Trash,
   Heart,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button, ProductCard } from "../../components/cart_and_pdp/Shared";
 import { useStore } from "../../context/StoreContext";
+import { fetchProducts } from "../../api/productService";
 import { CartItem, Product } from "../../types";
 
 const cartPromos = [
@@ -40,59 +42,24 @@ const cartPromos = [
 const crossSellProducts = [
   {
     id: 401,
-    name: "Ốp lưng Silicon Pink",
+    name: "Ốp lưng Clear Case MagSafe",
     price: "290.000đ",
     oldPrice: "450.000đ",
-    image: "/images/brand_apple.png",
+    image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&auto=format&fit=crop&q=80",
   },
   {
     id: 402,
-    name: "Sạc nhanh 65W GaN",
+    name: "Sạc nhanh GaN 67W Anker",
     price: "650.000đ",
     oldPrice: "890.000đ",
-    image: "/images/brand_samsung.png",
+    image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400&auto=format&fit=crop&q=80",
   },
   {
     id: 403,
-    name: "PinkBuds Pro 2",
+    name: "Tai nghe Bluetooth Buds FE",
     price: "1.890.000đ",
     oldPrice: "2.490.000đ",
-    image: "/images/brand_xiaomi.png",
-  },
-];
-
-const recommendedProducts = [
-  {
-    id: 301,
-    name: "iPhone 15 Pro Max",
-    price: "29.490.000đ",
-    oldPrice: "34.990.000đ",
-    image: "/images/prod_iphone15.png",
-    badge: "BEST SELLER",
-  },
-  {
-    id: 302,
-    name: "Samsung Galaxy Z Flip5",
-    price: "15.990.000đ",
-    oldPrice: "19.990.000đ",
-    image: "/images/brand_samsung.png",
-    badge: "MỚI VỀ",
-  },
-  {
-    id: 303,
-    name: "iPhone 15 Pink",
-    price: "22.190.000đ",
-    oldPrice: undefined,
-    image: "/images/prod_iphone15.png",
-    badge: undefined,
-  },
-  {
-    id: 304,
-    name: "Xiaomi 14 Ultra",
-    price: "26.990.000đ",
-    oldPrice: "29.990.000đ",
-    image: "/images/prod_xiaomi14.png",
-    badge: "GIẢM GIÁ SỐC",
+    image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -103,8 +70,21 @@ const Cart = () => {
   const [shippingMethod, setShippingMethod] = useState("delivery");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Local state to hold cart items matching the reference screenshot
+  // Local state to hold cart items
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchProducts().then((products) => {
+      if (isMounted && products.length > 0) {
+        setRecommendedProducts(products.slice(0, 4));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     setLocalCart(
@@ -118,12 +98,12 @@ const Cart = () => {
     );
   }, [cart]);
 
-  const handleRemove = (id: number) => {
+  const handleRemove = (id: number | string) => {
     setLocalCart((prev) => prev.filter((item) => item.id !== id));
     removeFromCart(id);
   };
 
-  const handleUpdateQuantity = (id: number, newQty: number) => {
+  const handleUpdateQuantity = (id: number | string, newQty: number) => {
     if (newQty <= 0) {
       handleRemove(id);
       return;
@@ -137,8 +117,13 @@ const Cart = () => {
   };
 
   const handleAddCrossSell = (prod: any) => {
-    const isExist = localCart.some((item) => item.id === prod.id);
-    if (!isExist) {
+    setLocalCart((prev) => {
+      const isExist = prev.some((item) => item.id === prod.id);
+      if (isExist) {
+        return prev.map((item) =>
+          item.id === prod.id ? { ...item, quantity: item.quantity + 1, active: true } : item,
+        );
+      }
       const newItem: CartItem = {
         id: prod.id,
         name: prod.name,
@@ -147,9 +132,18 @@ const Cart = () => {
         quantity: 1,
         active: true,
       };
-      setLocalCart((prev) => [...prev, newItem]);
-      addToCart(newItem);
-    }
+      return [...prev, newItem];
+    });
+
+    addToCart({
+      id: prod.id,
+      name: prod.name,
+      price: prod.price,
+      image: prod.image,
+      quantity: 1,
+      active: true,
+    });
+    message.success(`Đã thêm ${prod.name} vào giỏ hàng!`);
   };
 
   // Calculations based on active items only
@@ -223,20 +217,22 @@ const Cart = () => {
                     image={prod.image}
                     badge={prod.badge}
                     title={prod.name}
-                    price={prod.price}
+                    price={prod.newPrice}
                     oldPrice={prod.oldPrice}
                     buttonText="Thêm vào giỏ"
+                    onClick={() => navigate(`/product/${prod.slug || prod.id}`)}
                     onAdd={() => {
-                      const newItem = {
-                        id: prod.id,
+                      const newItem: CartItem = {
+                        id: prod.id as any,
                         name: prod.name,
-                        price: prod.price,
+                        price: prod.newPrice,
                         image: prod.image,
                         quantity: 1,
                         active: true,
                       };
                       setLocalCart((prev) => [...prev, newItem]);
                       addToCart(newItem);
+                      message.success(`Đã thêm ${prod.name} vào giỏ hàng!`);
                     }}
                   />
                 </div>
@@ -464,13 +460,19 @@ const Cart = () => {
                 {crossSellProducts.map((prod) => (
                   <div
                     key={prod.id}
-                    className="flex flex-col items-center rounded-[18px] border border-gray-200 p-4 text-center shadow-sm"
+                    className="flex flex-col items-center rounded-[18px] border border-gray-200 bg-white p-4 text-center shadow-sm overflow-hidden"
                   >
-                    <div className="mb-3 flex h-20 items-center justify-center">
+                    <div className="mb-3 flex h-24 w-full items-center justify-center rounded-xl bg-[#FFF8FA] p-2 overflow-hidden">
                       <img
                         src={prod.image}
                         alt={prod.name}
-                        className="h-full object-contain"
+                        referrerPolicy="no-referrer"
+                        className="max-h-full max-w-full object-cover rounded-lg"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.onerror = null;
+                          target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' width='80' height='80'><rect width='100' height='100' rx='20' fill='%23FFF0F4'/><path fill='%23E91E63' d='M30 40h40v30H30zM40 30h20v10H40z'/></svg>";
+                        }}
                       />
                     </div>
                     <h4 className="mb-1 text-[13px] font-bold text-[#222222]">
@@ -486,7 +488,7 @@ const Cart = () => {
                     </div>
                     <button
                       onClick={() => handleAddCrossSell(prod)}
-                      className="w-full rounded-[10px] bg-[#FAFAFA] py-2 text-[13px] font-bold text-[#E91E63] transition hover:bg-[#F0F0F0]"
+                      className="w-full rounded-[10px] bg-[#FFF0F4] py-2 text-[13px] font-bold text-[#E91E63] transition hover:bg-[#E91E63] hover:text-white"
                     >
                       Chọn
                     </button>
@@ -640,6 +642,50 @@ const Cart = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Recommended Best Seller Products Connected to MySQL Database */}
+        <div className="mt-12 rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-[20px] font-bold text-[#222222]">
+              Sản phẩm bán chạy
+            </h3>
+            <Link
+              to="/"
+              className="text-[14px] font-semibold text-[#E91E63] hover:underline"
+            >
+              Xem tất cả
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {recommendedProducts.map((prod) => (
+              <div key={prod.id}>
+                <ProductCard
+                  image={prod.image}
+                  badge={prod.badge}
+                  title={prod.name}
+                  price={prod.newPrice}
+                  oldPrice={prod.oldPrice}
+                  buttonText="Thêm vào giỏ"
+                  onClick={() => navigate(`/product/${prod.slug || prod.id}`)}
+                  onAdd={() => {
+                    const newItem: CartItem = {
+                      id: prod.id as any,
+                      name: prod.name,
+                      price: prod.newPrice,
+                      image: prod.image,
+                      quantity: 1,
+                      active: true,
+                    };
+                    setLocalCart((prev) => [...prev, newItem]);
+                    addToCart(newItem);
+                    message.success(`Đã thêm ${prod.name} vào giỏ hàng!`);
+                  }}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>
