@@ -27,6 +27,7 @@ type CartItem = {
   price: number;
   oldPrice?: number;
   imageIndex: number;
+  outOfStock?: boolean;
 };
 
 const initialItems: CartItem[] = [
@@ -34,22 +35,26 @@ const initialItems: CartItem[] = [
     id: 1,
     name: "PinkPhone Ultra X 2024",
     variant: "12GB · 256GB · Hồng",
-    price: 28_490_000,
-    oldPrice: 32_990_000,
+    price: 32_990_000,
+    oldPrice: 38_990_000,
     imageIndex: 4,
   },
   {
     id: 2,
-    name: "PinkPhone Lite S",
-    variant: "8GB · 128GB · Trắng",
-    price: 12_490_000,
-    imageIndex: 0,
+    name: "Ốp lưng Silicon Pink",
+    variant: "SKU: ACC-SL-PNK",
+    price: 290_000,
+    imageIndex: 3,
+    outOfStock: true,
   },
 ];
 
 export function CartPage() {
   const [items, setItems] = useState(initialItems);
-  const [quantities, setQuantities] = useState<Record<number, number>>({ 1: 1, 2: 1 });
+  const [quantities, setQuantities] = useState<Record<number, number>>({
+    1: 1,
+    2: 1,
+  });
   const [selected, setSelected] = useState<number[]>([1, 2]);
   const [voucher, setVoucher] = useState("");
   const [voucherApplied, setVoucherApplied] = useState(false);
@@ -59,11 +64,15 @@ export function CartPage() {
   const subtotal = useMemo(
     () =>
       items
-        .filter((item) => selected.includes(item.id))
-        .reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 1), 0),
+        .filter((item) => selected.includes(item.id) && !item.outOfStock)
+        .reduce(
+          (sum, item) => sum + item.price * (quantities[item.id] ?? 1),
+          0,
+        ),
     [items, quantities, selected],
   );
-  const discount = voucherApplied ? 500_000 : 0;
+  // Mocking the static discount from the mockup, plus a voucher if applied
+  const discount = 4_500_000 + (voucherApplied ? 500_000 : 0);
   const total = Math.max(subtotal - discount, 0);
 
   const changeQuantity = (id: number, delta: number) => {
@@ -78,10 +87,12 @@ export function CartPage() {
     setSelected((current) => current.filter((itemId) => itemId !== id));
   };
 
+  const selectableItems = items.filter((item) => !item.outOfStock);
+  const selectedAll =
+    selected.length === selectableItems.length && selectableItems.length > 0;
+
   const toggleAll = () => {
-    setSelected((current) =>
-      current.length === items.length ? [] : items.map((item) => item.id),
-    );
+    setSelected(selectedAll ? [] : selectableItems.map((item) => item.id));
   };
 
   return (
@@ -92,7 +103,10 @@ export function CartPage() {
             <CircleUserRound size={20} className="text-primary" />
             Đăng nhập để nhận thêm ưu đãi và đồng bộ giỏ hàng.
           </p>
-          <Link to="/dang-nhap" className="text-sm font-bold text-primary hover:underline">
+          <Link
+            to="/dang-nhap"
+            className="text-sm font-bold text-primary hover:underline"
+          >
             Đăng nhập ngay
           </Link>
         </div>
@@ -111,16 +125,18 @@ export function CartPage() {
                 <label className="flex items-center gap-3 text-sm font-bold">
                   <input
                     type="checkbox"
-                    checked={selected.length === items.length && items.length > 0}
+                    checked={selectedAll}
                     onChange={toggleAll}
                     className="size-4 accent-primary"
                   />
-                  Chọn tất cả ({items.length} sản phẩm)
+                  Chọn tất cả ({selectableItems.length} sản phẩm)
                 </label>
                 <button
                   type="button"
                   onClick={() => {
-                    setItems((current) => current.filter((item) => !selected.includes(item.id)));
+                    setItems((current) =>
+                      current.filter((item) => !selected.includes(item.id)),
+                    );
                     setSelected([]);
                   }}
                   className="flex items-center gap-2 text-sm font-bold text-danger hover:underline"
@@ -132,7 +148,10 @@ export function CartPage() {
               {items.length ? (
                 <div className="divide-y divide-border">
                   {items.map((item) => (
-                    <article key={item.id} className="grid gap-4 p-5 sm:grid-cols-[auto_8rem_1fr_auto]">
+                    <article
+                      key={item.id}
+                      className="grid gap-4 p-5 sm:grid-cols-[auto_8rem_1fr_auto]"
+                    >
                       <input
                         type="checkbox"
                         checked={selected.includes(item.id)}
@@ -143,7 +162,8 @@ export function CartPage() {
                               : [...current, item.id],
                           )
                         }
-                        className="mt-2 size-4 accent-primary"
+                        disabled={item.outOfStock}
+                        className="mt-2 size-4 accent-primary disabled:opacity-50"
                         aria-label={`Chọn ${item.name}`}
                       />
                       <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-soft">
@@ -151,12 +171,22 @@ export function CartPage() {
                       </div>
                       <div>
                         <h2 className="font-extrabold">{item.name}</h2>
-                        <p className="mt-2 text-sm text-muted">{item.variant}</p>
-                        <div className="mt-4 inline-flex items-center rounded-xl border border-border">
+                        <p className="mt-2 text-sm text-muted">
+                          {item.variant}
+                        </p>
+                        {item.outOfStock && (
+                          <div className="mt-3 inline-block rounded bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-muted">
+                            Sản phẩm tạm ngừng kinh doanh
+                          </div>
+                        )}
+                        <div
+                          className={`mt-4 inline-flex items-center rounded-xl border border-border ${item.outOfStock ? "opacity-50 bg-neutral-50" : ""}`}
+                        >
                           <button
                             type="button"
-                            className="grid size-10 place-items-center text-muted hover:text-primary"
+                            className="grid size-10 place-items-center text-muted hover:text-primary disabled:hover:text-muted"
                             onClick={() => changeQuantity(item.id, -1)}
+                            disabled={item.outOfStock}
                             aria-label={`Giảm số lượng ${item.name}`}
                           >
                             <Minus size={15} />
@@ -166,8 +196,9 @@ export function CartPage() {
                           </span>
                           <button
                             type="button"
-                            className="grid size-10 place-items-center text-muted hover:text-primary"
+                            className="grid size-10 place-items-center text-muted hover:text-primary disabled:hover:text-muted"
                             onClick={() => changeQuantity(item.id, 1)}
+                            disabled={item.outOfStock}
                             aria-label={`Tăng số lượng ${item.name}`}
                           >
                             <Plus size={15} />
@@ -210,7 +241,10 @@ export function CartPage() {
                 <div className="p-10 text-center">
                   <ShoppingCart className="mx-auto text-tertiary" size={40} />
                   <p className="mt-4 font-bold">Bạn đã xóa hết sản phẩm</p>
-                  <Link to="/" className="mt-2 inline-flex text-sm font-bold text-primary hover:underline">
+                  <Link
+                    to="/"
+                    className="mt-2 inline-flex text-sm font-bold text-primary hover:underline"
+                  >
                     Tiếp tục mua sắm
                   </Link>
                 </div>
@@ -219,29 +253,99 @@ export function CartPage() {
 
             <section className="rounded-2xl border border-border bg-white p-5">
               <h2 className="text-xl font-extrabold">Khuyến mãi hấp dẫn</h2>
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {[
-                  [Gift, "Giảm thêm 500.000đ khi thanh toán qua PinkPay"],
-                  [ShieldCheck, "Tặng bảo hành rơi vỡ 12 tháng"],
-                  [Truck, "Miễn phí giao hàng hỏa tốc nội thành"],
+                  [Gift, "Tặng ngay Ốp lưng Clear Case & Sạc nhanh 45W"],
+                  [Tag, "Giảm thêm 500.000đ khi thanh toán qua ví PinkPay"],
+                  [
+                    ShieldCheck,
+                    "Tặng gói bảo hành rơi vỡ 12 tháng tại hệ thống",
+                  ],
                 ].map(([Icon, text]) => {
                   const PromoIcon = Icon as typeof Gift;
                   return (
-                    <div key={String(text)} className="flex gap-3 rounded-xl border border-border bg-surface-soft p-4">
-                      <PromoIcon size={20} className="shrink-0 text-primary" />
-                      <p className="text-sm font-semibold leading-5">{String(text)}</p>
+                    <div
+                      key={String(text)}
+                      className="flex flex-col justify-center min-h-[6rem] gap-3 rounded-xl bg-[#FFF5F7] p-4 text-center items-center border border-[#FFE4EB]"
+                    >
+                      <PromoIcon size={22} className="text-primary" />
+                      <p className="text-xs font-bold leading-5 text-neutral-800 line-clamp-3">
+                        {String(text)}
+                      </p>
                     </div>
                   );
                 })}
               </div>
             </section>
 
-            <Link
-              to="/"
-              className="inline-flex w-fit items-center gap-2 text-sm font-bold text-primary hover:underline"
-            >
-              <ChevronLeft size={18} /> Tiếp tục mua sắm
-            </Link>
+            <section className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-[#FFE4EB] bg-[#FFF5F7] p-5">
+              <div className="flex items-start sm:items-center gap-4">
+                <div className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-neutral-800">
+                    Bảo hành mở rộng PinkCare+
+                  </h3>
+                  <p className="mt-1 text-sm text-neutral-600">
+                    Bảo vệ tối đa cho chiếc PinkPhone của bạn trước mọi sự cố.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-xl border border-primary px-6 py-2.5 text-sm font-bold text-primary bg-white hover:bg-[#FFE4EB] transition-colors self-stretch sm:self-auto"
+              >
+                Chọn gói
+              </button>
+            </section>
+
+            <section className="rounded-2xl border border-border bg-white p-5">
+              <h2 className="text-xl font-extrabold">Mua kèm tiết kiệm hơn</h2>
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  {
+                    name: "Ốp lưng Silicon Pink",
+                    price: 290_000,
+                    oldPrice: 450_000,
+                    imageIndex: 3,
+                  },
+                  {
+                    name: "Sạc nhanh 65W GaN",
+                    price: 650_000,
+                    oldPrice: 890_000,
+                    imageIndex: 1,
+                  },
+                  {
+                    name: "PinkBuds Pro 2",
+                    price: 1_890_000,
+                    oldPrice: 2_490_000,
+                    imageIndex: 2,
+                  },
+                ].map((product) => (
+                  <article
+                    key={product.name}
+                    className="flex flex-col rounded-xl border border-border p-4 text-center h-full"
+                  >
+                    <div className="relative mx-auto w-24 aspect-square flex items-center justify-center overflow-hidden rounded-lg">
+                      <PhoneStripImage index={product.imageIndex} />
+                    </div>
+                    <h3 className="mt-4 text-sm font-bold flex-1 line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <p className="mt-2 font-extrabold text-primary">
+                      {formatCurrency(product.price)}
+                    </p>
+                    <p className="text-xs text-muted line-through h-4">
+                      {product.oldPrice ? formatCurrency(product.oldPrice) : ""}
+                    </p>
+                    <button className="mt-4 w-full rounded-xl bg-[#FFF5F7] py-2 text-sm font-bold text-primary hover:bg-[#FFE4EB] transition-colors">
+                      Chọn
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </section>
           </div>
 
           <aside className="grid gap-5 lg:sticky lg:top-36">
@@ -293,14 +397,23 @@ export function CartPage() {
             <section className="rounded-2xl border border-border bg-white p-5">
               <h2 className="text-xl font-extrabold">Tóm tắt đơn hàng</h2>
               <dl className="mt-5 grid gap-4 text-sm">
-                <SummaryRow label={`Tạm tính (${selected.length} sản phẩm)`} value={formatCurrency(subtotal)} />
-                <SummaryRow label="Phí vận chuyển" value="Miễn phí" highlight />
-                <SummaryRow label="Giảm giá" value={discount ? `-${formatCurrency(discount)}` : "0đ"} highlight={discount > 0} />
+                <SummaryRow
+                  label={`Tạm tính (${selected.length} sản phẩm)`}
+                  value={formatCurrency(subtotal)}
+                />
+                <SummaryRow
+                  label="Giảm giá trực tiếp"
+                  value={`-${formatCurrency(discount)}`}
+                  highlight
+                />
+                <SummaryRow label="Phí bảo hành" value="0đ" />
               </dl>
               <div className="mt-5 flex items-end justify-between border-t border-border pt-5">
                 <p className="font-extrabold">Tổng tiền</p>
                 <div className="text-right">
-                  <p className="text-2xl font-extrabold text-primary">{formatCurrency(total)}</p>
+                  <p className="text-2xl font-extrabold text-primary">
+                    {formatCurrency(total)}
+                  </p>
                   <p className="mt-1 text-xs text-muted">Đã bao gồm VAT</p>
                 </div>
               </div>
@@ -313,9 +426,18 @@ export function CartPage() {
                 />
                 Tôi đồng ý với Điều khoản mua hàng tại PinkPhone.
               </label>
-              <Button className="mt-5 w-full" disabled={!accepted || !selected.length}>
-                Tiến hành thanh toán
+              <Button
+                className="mt-5 w-full"
+                disabled={!accepted || !selected.length}
+              >
+                TIẾN HÀNH THANH TOÁN
               </Button>
+              <Link
+                to="/"
+                className="mt-3 flex min-h-[2.85rem] w-full items-center justify-center rounded-xl border border-primary text-sm font-bold text-primary hover:bg-[#FFF5F7] transition-colors bg-white"
+              >
+                Tiếp tục mua sắm
+              </Link>
             </section>
           </aside>
         </div>
@@ -342,7 +464,9 @@ function ShippingOption({
       type="button"
       onClick={onClick}
       className={`flex items-center gap-3 rounded-xl border p-4 text-left ${
-        active ? "border-primary bg-surface-soft" : "border-border hover:border-primary"
+        active
+          ? "border-primary bg-surface-soft"
+          : "border-border hover:border-primary"
       }`}
     >
       <Icon size={19} className={active ? "text-primary" : "text-muted"} />
@@ -366,7 +490,9 @@ function SummaryRow({
   return (
     <div className="flex justify-between gap-4">
       <dt className="text-muted">{label}</dt>
-      <dd className={`font-semibold ${highlight ? "text-primary" : ""}`}>{value}</dd>
+      <dd className={`font-semibold ${highlight ? "text-primary" : ""}`}>
+        {value}
+      </dd>
     </div>
   );
 }

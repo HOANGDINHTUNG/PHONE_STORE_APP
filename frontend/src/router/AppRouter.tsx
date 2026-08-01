@@ -1,38 +1,69 @@
-import React from 'react';
-import { createBrowserRouter } from 'react-router-dom';
-import AppLayout from '../layouts/AppLayout';
-import Home from '../pages/Home';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
-import ProductDetail from '../pages/ProductDetail';
-import Cart from '../pages/Cart';
+import React from "react";
+import { createBrowserRouter } from "react-router-dom";
+import AppLayout from "../layouts/AppLayout";
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import ProductDetail from "../pages/ProductDetail";
+import Cart from "../pages/Cart";
+import Checkout from "../pages/Checkout";
+import { AccountOverviewPage } from "../features/account/pages/AccountOverviewPage";
+import { OrderHistoryPage } from "../features/account/pages/OrderHistoryPage";
+import {
+  MyReviewsPage,
+  ReturnsPage,
+  NotificationsPage,
+} from "../features/account/pages/AccountActivityPages";
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <AppLayout />,
     children: [
       {
-        path: '/',
-        element: <Home />
+        path: "/",
+        element: <Home />,
       },
       {
-        path: '/product',
-        element: <ProductDetail />
+        path: "/product",
+        element: <ProductDetail />,
       },
       {
-        path: '/cart',
-        element: <Cart />
-      }
-    ]
+        path: "/cart",
+        element: <Cart />,
+      },
+    ],
   },
   {
-    path: '/login',
-    element: <Login />
+    path: "/account",
+    element: <AccountOverviewPage />,
   },
   {
-    path: '/register',
-    element: <Register />
-  }
+    path: "/account/orders",
+    element: <OrderHistoryPage />,
+  },
+  {
+    path: "/account/reviews",
+    element: <MyReviewsPage />,
+  },
+  {
+    path: "/account/returns",
+    element: <ReturnsPage />,
+  },
+  {
+    path: "/account/notifications",
+    element: <NotificationsPage />,
+  },
+  {
+    path: "/checkout",
+    element: <Checkout />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
+  },
 ]);
-

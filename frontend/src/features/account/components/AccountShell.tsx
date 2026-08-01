@@ -1,43 +1,40 @@
 import type { ReactNode } from "react";
 import {
-  BadgeCheck,
+  Bell,
+  FileText,
+  Headphones,
   Heart,
   History,
-  KeyRound,
-  Link2,
+  LayoutGrid,
   LogOut,
   MapPin,
-  MessageCircleQuestion,
-  MessageSquareText,
-  PackageSearch,
+  MessageSquare,
   RefreshCcw,
-  ScrollText,
-  Settings,
+  Shield,
   ShieldCheck,
   Ticket,
-  Bell,
-  UserRound,
+  Truck,
+  User,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { StorePageLayout } from "../../storefront/components/StorePageLayout";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AccountHeader } from "./AccountHeader";
+import { SiteFooter } from "../../home/components/SiteFooter";
 
 const accountNavigation = [
-  [UserRound, "Tổng quan", "/tai-khoan"],
-  [History, "Lịch sử mua hàng", "/tai-khoan/lich-su-mua-hang"],
-  [PackageSearch, "Theo dõi đơn hàng", "/tai-khoan/theo-doi-don-hang"],
-  [MessageSquareText, "Đánh giá của tôi", "/tai-khoan/danh-gia"],
-  [ShieldCheck, "Tra cứu bảo hành", "/tai-khoan/bao-hanh"],
-  [RefreshCcw, "Đổi trả & hoàn tiền", "/tai-khoan/doi-tra"],
-  [Bell, "Thông báo", "/tai-khoan/thong-bao"],
-  [BadgeCheck, "Hạng thành viên", "/tai-khoan/hang-thanh-vien"],
-  [Ticket, "Mã giảm giá của tôi", "/tai-khoan/ma-giam-gia"],
-  [Heart, "Sản phẩm yêu thích", "/tai-khoan/yeu-thich"],
-  [MapPin, "Sổ địa chỉ", "/tai-khoan/so-dia-chi"],
-  [Settings, "Thông tin tài khoản", "/tai-khoan/thong-tin"],
-  [KeyRound, "Đổi mật khẩu", "/tai-khoan/doi-mat-khau"],
-  [Link2, "Liên kết tài khoản", "/tai-khoan/lien-ket"],
-  [MessageCircleQuestion, "Góp ý & Hỗ trợ", "/tai-khoan/ho-tro"],
-  [ScrollText, "Điều khoản sử dụng", "/tai-khoan/dieu-khoan"],
+  [LayoutGrid, "Tổng quan", "/account"],
+  [History, "Lịch sử mua hàng", "/account/orders"],
+  [Truck, "Theo dõi đơn hàng", "/account/tracking"],
+  [MessageSquare, "Đánh giá của tôi", "/account/reviews"],
+  [ShieldCheck, "Bảo hành của tôi", "/account/warranty"],
+  [RefreshCcw, "Đổi trả & hoàn tiền", "/account/returns"],
+  [Bell, "Thông báo", "/account/notifications"],
+  [Ticket, "Ưu đãi & mã giảm giá", "/account/vouchers"],
+  [Heart, "Sản phẩm yêu thích", "/account/wishlist"],
+  [MapPin, "Sổ địa chỉ", "/account/address"],
+  [User, "Thông tin tài khoản", "/account/profile"],
+  [Shield, "Bảo mật & phiên đăng nhập", "/account/security"],
+  [Headphones, "Góp ý - Hỗ trợ", "/account/support"],
+  [FileText, "Điều khoản", "/account/terms"],
 ] as const;
 
 type AccountShellProps = {
@@ -47,45 +44,43 @@ type AccountShellProps = {
   actions?: ReactNode;
 };
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useStore } from "../../../context/StoreContext";
 import { AuthModal } from "../../auth/components/AuthModal";
-import { useNavigate } from "react-router-dom";
 
-export function AccountShell({ title, description, actions, children }: AccountShellProps) {
+export function AccountShell({
+  title,
+  description,
+  actions,
+  children,
+}: AccountShellProps) {
   const { user } = useStore();
   const navigate = useNavigate();
-  const [showAuthModal, setShowAuthModal] = useState(!user);
+
+  useEffect(() => {
+    document.title = `${title} - PinkPhone`;
+  }, [title]);
 
   return (
-    <StorePageLayout title={`${title} - PinkPhone`}>
-      {!user && (
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => {
-            setShowAuthModal(false);
-            navigate("/");
-          }}
-        />
-      )}
+    <div className="min-h-screen bg-[#F4F5F7] text-foreground flex flex-col font-sans">
+      <AccountHeader />
 
-      <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:py-10">
-        <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <AccountSidebar />
+      <main className="flex-1">
+        <div className="mx-auto max-w-[1300px] px-4 py-8 sm:px-6 lg:py-10">
+          <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
+            <AccountSidebar />
 
-          <div className="min-w-0">
-            <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-black tracking-[-0.03em] sm:text-3xl">{title}</h1>
-                {description && <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{description}</p>}
-              </div>
-              {actions}
-            </header>
-            {children}
+            <div className="min-w-0">
+              <header className="hidden">
+                {/* Visual title hidden since we match exactly the mockup structure which has no page title rendering here */}
+              </header>
+              {children}
+            </div>
           </div>
         </div>
-      </div>
-    </StorePageLayout>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }
 
@@ -104,46 +99,60 @@ export function AccountSidebar() {
   };
 
   return (
-    <aside className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-white p-4 lg:sticky lg:top-32 shadow-sm">
-      <div className="flex items-center gap-3 border-b border-border pb-4">
-        <div className="grid size-12 shrink-0 place-items-center rounded-full bg-primary text-lg font-black text-white shadow-sm">
-          {getInitials(user?.name)}
+    <aside className="min-w-0 max-w-full lg:sticky lg:top-28 rounded-2xl bg-[#FBFBFB] py-6 px-4">
+      <div className="flex flex-col items-center gap-3 pb-6 border-b border-border/40 text-center">
+        <div className="grid size-16 shrink-0 place-items-center rounded-full bg-pink-50 p-1">
+          <img
+            src="/images/prod_iphone15.png"
+            alt="Avatar"
+            className="size-full rounded-full object-cover"
+          />
         </div>
         <div className="min-w-0">
-          <p className="truncate font-extrabold text-primary">
+          <p className="font-extrabold text-[#D81B60] text-[15px]">
             {user ? user.name : "Thành viên PinkPhone"}
           </p>
-          <p className="text-xs text-muted">Chào mừng bạn trở lại</p>
+          <p className="text-[11px] font-semibold text-[#888888] mt-1">
+            Chào mừng bạn trở lại
+          </p>
         </div>
       </div>
-      <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:grid" aria-label="Khu vực tài khoản">
+      <nav
+        className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:gap-[6px] pt-4"
+        aria-label="Khu vực tài khoản"
+      >
         {accountNavigation.map(([Icon, label, href]) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
               to={href}
-              className={`flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition ${
+              className={`flex min-h-[44px] shrink-0 items-center gap-4 rounded-lg px-4 text-[13px] transition ${
                 active
-                  ? "bg-primary text-white font-bold"
-                  : "text-muted hover:bg-surface-soft hover:text-primary"
+                  ? "bg-[#D81B60] text-white font-bold shadow-[0_2px_8px_rgba(216,27,96,0.3)]"
+                  : "text-[#555555] hover:bg-neutral-soft/60 hover:text-foreground font-semibold"
               }`}
             >
-              <Icon size={18} />
+              <Icon
+                size={18}
+                className={active ? "opacity-100" : "text-[#777777]"}
+              />
               {label}
             </Link>
           );
         })}
-        <button
-          type="button"
-          onClick={() => {
-            logout();
-            navigate("/");
-          }}
-          className={`flex min-h-11 w-full shrink-0 items-center gap-3 rounded-xl border-t border-border px-3 text-sm font-semibold transition text-danger hover:bg-red-50`}
-        >
-          <LogOut size={18} /> Đăng xuất
-        </button>
+        <div className="pt-2 mt-2">
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              navigate("/");
+            }}
+            className="flex min-h-[44px] w-full shrink-0 items-center gap-4 rounded-lg px-4 text-[13px] font-bold transition text-[#D81B60] hover:bg-red-50"
+          >
+            <LogOut size={18} /> Đăng xuất
+          </button>
+        </div>
       </nav>
     </aside>
   );
@@ -156,5 +165,11 @@ export function Panel({
   children: ReactNode;
   className?: string;
 }) {
-  return <section className={`rounded-2xl border border-border bg-white ${className}`}>{children}</section>;
+  return (
+    <section
+      className={`rounded-2xl border border-border bg-white ${className}`}
+    >
+      {children}
+    </section>
+  );
 }

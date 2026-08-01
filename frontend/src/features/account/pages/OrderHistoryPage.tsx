@@ -1,4 +1,14 @@
-import { CalendarDays, ChevronLeft, ChevronRight, PackageOpen, Search, Truck } from "lucide-react";
+import {
+  Calendar,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  PackageOpen,
+  Search,
+  Truck,
+} from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountShell, Panel } from "../components/AccountShell";
@@ -15,8 +25,16 @@ const orders = [
     statusType: "active",
     image: "/images/prod_iphone15.png",
     actions: [
-      { label: "Theo dõi", primary: true, link: "/tai-khoan/theo-doi-don-hang" },
-      { label: "Xem chi tiết", outline: true, link: "/tai-khoan/don-hang/PP123-001" },
+      {
+        label: "Theo dõi",
+        primary: true,
+        link: "/tai-khoan/theo-doi-don-hang",
+      },
+      {
+        label: "Xem chi tiết",
+        outline: true,
+        link: "/tai-khoan/don-hang/PP123-001",
+      },
     ],
   },
   {
@@ -31,7 +49,11 @@ const orders = [
     actions: [
       { label: "Đánh giá", outline: true, link: "/tai-khoan/danh-gia" },
       { label: "Mua lại", primary: true, link: "/san-pham/pinkphone-ultra-x" },
-      { label: "Xem chi tiết", outline: true, link: "/tai-khoan/don-hang/PP123-001" },
+      {
+        label: "Xem chi tiết",
+        outline: true,
+        link: "/tai-khoan/don-hang/PP123-001",
+      },
     ],
   },
   {
@@ -45,7 +67,11 @@ const orders = [
     image: "/images/prod_realmegt.png",
     actions: [
       { label: "Mua lại", primary: true, link: "/san-pham/pinkphone-ultra-x" },
-      { label: "Xem chi tiết", outline: true, link: "/tai-khoan/don-hang/PP123-001" },
+      {
+        label: "Xem chi tiết",
+        outline: true,
+        link: "/tai-khoan/don-hang/PP123-001",
+      },
     ],
   },
 ];
@@ -77,16 +103,16 @@ function HistoryContent() {
   return (
     <>
       {/* Filter Tabs */}
-      <div className="flex gap-4 overflow-x-auto border-b border-border pb-3">
+      <div className="flex gap-[3.5rem] overflow-x-auto border-b border-border/70 pb-3 scrollbar-hide">
         {tabs.map((tab) => (
           <button
             type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`min-h-10 shrink-0 border-b-2 px-1 text-sm font-bold transition ${
+            className={`min-h-[2.25rem] shrink-0 border-b-[3px] border-transparent font-bold transition -mb-[15px] whitespace-nowrap text-[13px] ${
               activeTab === tab
-                ? "border-primary text-primary"
-                : "border-transparent text-muted hover:text-foreground"
+                ? "!border-primary text-primary"
+                : "text-muted hover:text-foreground"
             }`}
           >
             {tab}
@@ -95,80 +121,112 @@ function HistoryContent() {
       </div>
 
       {/* Search & Date Filter Bar */}
-      <div className="my-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="relative flex-1">
+      <div className="my-[22px] flex flex-col gap-4 sm:flex-row sm:items-center">
+        <label className="relative flex min-h-[2.85rem] flex-1 items-center">
           <span className="sr-only">Tìm kiếm đơn hàng</span>
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+          <Search
+            className="absolute left-4 text-muted pointer-events-none"
+            size={18}
+          />
           <input
             type="search"
-            className="min-h-11 w-full rounded-xl border border-border bg-white pl-11 pr-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className="size-full rounded-[0.75rem] border border-border bg-white pl-[2.85rem] pr-4 text-[13px] outline-none transition focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
             placeholder="Tìm kiếm theo mã đơn hoặc tên điện thoại..."
           />
         </label>
 
-        <select className="min-h-11 rounded-xl border border-border bg-white px-4 text-sm font-semibold text-foreground outline-none transition focus:border-primary">
-          <option value="all">Tất cả thời gian</option>
-          <option value="30">30 ngày qua</option>
-          <option value="90">90 ngày qua</option>
-          <option value="2024">Năm 2024</option>
-        </select>
+        <button
+          type="button"
+          className="flex min-h-[2.85rem] min-w-[15rem] items-center justify-between rounded-[0.75rem] border border-border bg-white px-4 text-[13px] font-semibold text-foreground transition shadow-sm hover:bg-neutral-50"
+        >
+          <span className="flex items-center gap-2">
+            <Calendar size={17} className="opacity-70" /> Tất cả thời gian
+          </span>
+          <ChevronDown size={17} className="opacity-70" />
+        </button>
       </div>
 
       {/* Order Cards */}
-      <div className="space-y-4">
+      <div className="space-y-[22px]">
         {orders.map((order) => (
-          <Panel key={order.code} className="overflow-hidden border border-border/80 shadow-sm">
+          <article
+            key={order.code}
+            className="rounded-[1rem] border border-border/70 bg-white shadow-sm overflow-hidden"
+          >
             {/* Header row */}
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-soft/60 px-5 py-3 text-sm border-b border-border/50">
-              <div className="flex items-center gap-4">
-                <strong className="text-primary font-black">{order.code}</strong>
-                <span className="inline-flex items-center gap-1 text-xs text-muted">
-                  <CalendarDays size={14} /> {order.date}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/40 bg-[#FAFAFA] px-5 py-3">
+              <div className="flex items-center gap-[1.125rem]">
+                <strong className="text-primary font-bold text-sm tracking-wide">
+                  {order.code}
+                </strong>
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted font-medium">
+                  <CalendarDays size={14} className="opacity-80" /> {order.date}
                 </span>
               </div>
               <span
-                className={`rounded-full px-3 py-1 text-xs font-extrabold tracking-wide ${
+                className={`inline-flex min-h-[1.75rem] items-center gap-1.5 rounded-[1rem] px-[12px] text-[10px] font-bold uppercase tracking-widest ${
                   order.statusType === "active"
-                    ? "bg-primary text-white"
-                    : "bg-neutral-soft text-muted"
+                    ? "bg-[#D81B60] text-white"
+                    : "bg-[#EAEAEA] text-[#333333]"
                 }`}
               >
-                {order.statusType === "completed" ? "✓ " : ""}
+                {order.statusType === "active" ? (
+                  <Truck size={12} />
+                ) : (
+                  <CheckCircle2 size={12} />
+                )}{" "}
                 {order.status}
               </span>
             </div>
 
             {/* Content row */}
-            <div className="grid gap-4 p-5 sm:grid-cols-[6.5rem_1fr_auto] sm:items-center">
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-soft p-2 border border-border">
-                <img
-                  src={order.image}
-                  alt={order.name}
-                  className="size-full object-contain"
-                />
-              </div>
+            <div className="p-5 flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-[1.375rem]">
+              <div className="flex flex-1 items-center gap-5">
+                <div className="relative grid size-[5.5rem] shrink-0 place-items-center overflow-hidden rounded-[0.7rem] bg-[#F7F7F7] border border-[#EBEBEB]">
+                  <img
+                    src={order.image}
+                    alt={order.name}
+                    className="size-4/5 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
 
-              <div>
-                <h3 className="text-base font-extrabold text-foreground">{order.name}</h3>
-                <p className="mt-1 text-xs text-muted">{order.specs}</p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-base font-extrabold text-primary">{order.price}</span>
-                  {order.oldPrice && (
-                    <del className="text-xs text-muted">{order.oldPrice}</del>
-                  )}
+                <div className="min-w-0 pb-1">
+                  <h3 className="text-[15px] font-bold text-foreground">
+                    {order.name}
+                  </h3>
+                  <p className="mt-[2px] text-[12px] font-medium text-muted">
+                    {order.specs}
+                  </p>
+                  <div className="mt-2.5 flex items-end gap-2.5">
+                    <span className="text-[15px] font-bold text-[#D81B60] leading-none">
+                      {order.price}
+                    </span>
+                    {order.oldPrice && (
+                      <del className="text-[12px] font-medium text-muted leading-none">
+                        {order.oldPrice}
+                      </del>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end sm:min-w-32">
+              <div className="flex sm:flex-col items-center sm:min-w-[9rem] shrink-0 gap-[10px] sm:pl-3 border-t sm:border-t-0 border-border/40 pt-4 sm:pt-0 sm:justify-center">
                 {order.actions.map((act) => (
                   <Link
                     key={act.label}
                     to={act.link}
-                    className={`inline-flex min-h-9 items-center justify-center rounded-xl px-4 text-xs font-bold transition ${
+                    className={`inline-flex min-h-[2.125rem] w-full items-center justify-center rounded-[0.4rem] px-[18px] text-[12px] font-bold transition ${
                       act.primary
-                        ? "bg-primary text-white hover:bg-primary-strong shadow-sm"
-                        : "border border-primary text-primary hover:bg-primary/10"
+                        ? "bg-[#D81B60] text-white hover:bg-[#C2185B] shadow-sm"
+                        : "border border-[#D81B60]/30 bg-[#FFF0F4] text-[#D81B60] hover:bg-[#FFE5EC]"
+                    } ${
+                      act.label === "Đánh giá"
+                        ? "!border !border-border !bg-white !text-foreground font-semibold shadow-sm hover:!bg-neutral-50"
+                        : ""
                     }`}
                   >
                     {act.label}
@@ -176,49 +234,52 @@ function HistoryContent() {
                 ))}
               </div>
             </div>
-          </Panel>
+          </article>
         ))}
       </div>
 
       {/* Pagination */}
-      <nav className="mt-8 flex items-center justify-center gap-2" aria-label="Phân trang">
+      <nav
+        className="mt-10 flex items-center justify-center gap-[6px]"
+        aria-label="Phân trang"
+      >
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full border border-border text-muted hover:border-primary hover:text-primary transition"
+          className="grid size-[2.125rem] place-items-center rounded-full border border-border text-muted hover:border-primary hover:text-primary transition"
         >
           <ChevronLeft size={16} />
         </button>
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full bg-primary font-bold text-white shadow-sm"
+          className="grid size-[2.125rem] place-items-center rounded-full bg-[#D81B60] text-[13px] font-bold text-white shadow-sm"
         >
           1
         </button>
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full text-sm font-semibold text-muted hover:bg-surface-soft hover:text-foreground"
+          className="grid size-[2.125rem] place-items-center rounded-full text-[13px] font-semibold text-muted hover:bg-[#F3F4F6] hover:text-foreground"
         >
           2
         </button>
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full text-sm font-semibold text-muted hover:bg-surface-soft hover:text-foreground"
+          className="grid size-[2.125rem] place-items-center rounded-full text-[13px] font-semibold text-muted hover:bg-[#F3F4F6] hover:text-foreground"
         >
           3
         </button>
 
-        <span className="px-1 text-xs text-muted">...</span>
+        <span className="px-2 text-[13px] font-semibold text-muted">...</span>
 
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full text-sm font-semibold text-muted hover:bg-surface-soft hover:text-foreground"
+          className="grid size-[2.125rem] place-items-center rounded-full text-[13px] font-semibold text-muted hover:bg-[#F3F4F6] hover:text-foreground"
         >
           10
         </button>
 
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full border border-border text-muted hover:border-primary hover:text-primary transition"
+          className="grid size-[2.125rem] place-items-center rounded-full border border-border text-muted hover:border-primary hover:text-primary transition"
         >
           <ChevronRight size={16} />
         </button>
@@ -233,9 +294,12 @@ function EmptyHistory() {
       <div className="mx-auto grid size-24 place-items-center rounded-full bg-surface-soft text-primary">
         <PackageOpen size={42} />
       </div>
-      <h2 className="mt-6 text-xl font-extrabold">Bạn chưa có đơn hàng nào gần đây</h2>
+      <h2 className="mt-6 text-xl font-extrabold">
+        Bạn chưa có đơn hàng nào gần đây
+      </h2>
       <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
-        Khám phá các mẫu điện thoại mới nhất và ưu đãi dành riêng cho bạn tại PinkPhone.
+        Khám phá các mẫu điện thoại mới nhất và ưu đãi dành riêng cho bạn tại
+        PinkPhone.
       </p>
       <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
         <Link
@@ -252,11 +316,16 @@ function EmptyHistory() {
         </Link>
       </div>
       <div className="mt-10 grid gap-4 border-t border-border pt-7 sm:grid-cols-3">
-        {["Bảo hành 24 tháng", "Giao hỏa tốc 2h", "Thu cũ đổi mới"].map((benefit) => (
-          <div key={benefit} className="flex items-center justify-center gap-2 text-sm font-bold text-muted">
-            <Truck size={18} className="text-primary" /> {benefit}
-          </div>
-        ))}
+        {["Bảo hành 24 tháng", "Giao hỏa tốc 2h", "Thu cũ đổi mới"].map(
+          (benefit) => (
+            <div
+              key={benefit}
+              className="flex items-center justify-center gap-2 text-sm font-bold text-muted"
+            >
+              <Truck size={18} className="text-primary" /> {benefit}
+            </div>
+          ),
+        )}
       </div>
     </Panel>
   );

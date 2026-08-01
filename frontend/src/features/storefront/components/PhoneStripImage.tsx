@@ -17,7 +17,7 @@ export function PhoneStripImage({
     <img
       src={productStrip}
       alt={alt}
-      className={`absolute top-1/2 h-auto max-w-none -translate-y-1/2 ${className}`}
+      className={`absolute top-1/2 !h-full max-w-none -translate-y-1/2 ${className}`}
       style={{
         left: `-${index * 100}%`,
         width: `${total * 100}%`,
