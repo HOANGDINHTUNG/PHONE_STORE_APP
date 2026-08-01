@@ -12,14 +12,77 @@ import styles from "./Register.module.css";
 const Register = () => {
   const { registerUser } = useStore();
   const navigate = useNavigate();
+  const [form] = Form.useForm();
 
-  const onFinish = (values: any) => {
-    const success = registerUser(values);
-    if (success) {
-      message.success("Đăng ký tài khoản thành công!");
-      navigate("/");
-    } else {
-      message.error("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+  const passwordValue = Form.useWatch("password", form);
+
+  const getPasswordStrength = (pass?: string) => {
+    if (!pass) return { text: "Chưa nhập", color: "#999", progress: 0 };
+    let score = 0;
+    if (pass.length >= 6) score += 1;
+    if (pass.length >= 8) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[a-z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+
+    if (score < 3)
+      return {
+        text: "Yếu (Cần thêm ký tự, số)",
+        color: "#ff4d4f",
+        progress: 33,
+      };
+    if (score < 5)
+      return { text: "Trung bình", color: "#faad14", progress: 66 };
+    return { text: "Mạnh", color: "#52c41a", progress: 100 };
+  };
+
+  const strength = getPasswordStrength(passwordValue);
+
+  const onFinish = async (values: any) => {
+    try {
+      const success = await registerUser(values);
+      if (success) {
+        message.success("Đăng ký tài khoản thành công!");
+        navigate("/");
+      } else {
+        message.error("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+      }
+    } catch (error: any) {
+      const data = error.response?.data;
+      const detail = data?.detail || "";
+
+      // Handle structural validation fieldErrors mapped by GlobalExceptionHandler
+      if (data?.errorCode === "VALIDATION_FAILED" && data?.fieldErrors) {
+        const fieldErrors = Object.keys(data.fieldErrors).map((key) => ({
+          name: key,
+          errors: [data.fieldErrors[key]],
+        }));
+        form.setFields(fieldErrors);
+      } else if (detail.includes("Email and Phone")) {
+        form.setFields([
+          { name: "email", errors: ["Email này đã được sử dụng!"] },
+          { name: "phone", errors: ["Số điện thoại này đã được sử dụng!"] },
+        ]);
+      } else if (
+        detail.includes("Email is already registered") ||
+        detail.includes("Email")
+      ) {
+        form.setFields([
+          { name: "email", errors: ["Email này đã được sử dụng!"] },
+        ]);
+      } else if (
+        detail.includes("Phone is already registered") ||
+        detail.includes("Phone")
+      ) {
+        form.setFields([
+          { name: "phone", errors: ["Số điện thoại này đã được sử dụng!"] },
+        ]);
+      } else {
+        message.error(
+          detail || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
+        );
+      }
     }
   };
 
@@ -70,17 +133,24 @@ const Register = () => {
             </p>
 
             <Form
+              form={form}
               name="register_form"
               layout="vertical"
               onFinish={onFinish}
               requiredMark={false}
               className={styles.form}
+              validateTrigger={["onChange", "onBlur"]}
             >
               <Form.Item
                 label="Họ và tên"
                 name="fullName"
                 rules={[
                   { required: true, message: "Vui lòng nhập họ và tên!" },
+                  { min: 2, message: "Họ và tên phải có ít nhất 2 ký tự!" },
+                  {
+                    max: 150,
+                    message: "Họ và tên không được vượt quá 150 ký tự!",
+                  },
                 ]}
               >
                 <Input placeholder="Nguyễn Văn A" className={styles.input} />
@@ -96,6 +166,10 @@ const Register = () => {
                         required: true,
                         message: "Vui lòng nhập số điện thoại!",
                       },
+                      {
+                        pattern: /^[0-9]{10,11}$/,
+                        message: "Số điện thoại không hợp lệ (10-11 số)!",
+                      },
                     ]}
                   >
                     <Input
@@ -106,9 +180,12 @@ const Register = () => {
                 </Col>
                 <Col xs={24} sm={12} style={{ paddingLeft: "8px" }}>
                   <Form.Item
-                    label="Email (Tùy chọn)"
+                    label="Email"
                     name="email"
-                    rules={[{ type: "email", message: "Email không hợp lệ!" }]}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập Email!" },
+                      { type: "email", message: "Email không hợp lệ!" },
+                    ]}
                   >
                     <Input
                       placeholder="example@gmail.com"
@@ -121,15 +198,57 @@ const Register = () => {
               <Form.Item
                 label="Mật khẩu"
                 name="password"
-                rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
+                rules={[
+                  { required: true, message: "Vui lòng nhập mật khẩu!" },
+                  { min: 8, message: "Mật khẩu phải có ít nhất 8 ký tự!" },
+                ]}
               >
                 <Input.Password
                   placeholder="••••••••"
                   className={styles.input}
+                  autoComplete="new-password"
                 />
               </Form.Item>
-              <div className={styles.passwordStrength}>
-                Độ bảo mật: Chưa nhập
+              <div
+                className={styles.passwordStrength}
+                style={{
+                  marginBottom: "16px",
+                  marginTop: "-12px",
+                  fontSize: "12px",
+                  color: "#666",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <span>
+                    Độ bảo mật:{" "}
+                    <strong style={{ color: strength.color }}>
+                      {strength.text}
+                    </strong>
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: "4px",
+                    background: "#f0f0f0",
+                    borderRadius: "2px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${strength.progress}%`,
+                      height: "100%",
+                      background: strength.color,
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                </div>
               </div>
 
               <Form.Item
@@ -144,7 +263,7 @@ const Register = () => {
                         return Promise.resolve();
                       }
                       return Promise.reject(
-                        new Error("Mật khẩu nhập lại không khớp!"),
+                        new Error("Mật khẩu xác nhận không khớp!"),
                       );
                     },
                   }),
@@ -153,6 +272,7 @@ const Register = () => {
                 <Input.Password
                   placeholder="••••••••"
                   className={styles.input}
+                  autoComplete="new-password"
                 />
               </Form.Item>
 

@@ -1,0 +1,3 @@
+@echo off
+echo Starting Spring Boot Backend...
+call gradlew.bat bootRun

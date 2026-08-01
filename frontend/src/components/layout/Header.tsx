@@ -22,6 +22,16 @@ const Header = () => {
           disabled: true,
         },
         {
+          key: "account",
+          label: "Tài khoản của tôi",
+          onClick: () => navigate("/account"),
+        },
+        {
+          key: "orders",
+          label: "Đơn hàng của tôi",
+          onClick: () => navigate("/account/orders"),
+        },
+        {
           type: "divider",
         },
         {
@@ -265,7 +275,11 @@ const Header = () => {
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
-                <span>Đăng nhập</span>
+                <span className="truncate max-w-[80px]">
+                  {user
+                    ? user.name?.split(" ").slice(-1)[0] || "Tài khoản"
+                    : "Đăng nhập"}
+                </span>
               </button>
             </Dropdown>
           </div>

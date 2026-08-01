@@ -44,10 +44,14 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse register(RegisterRequest request) {
         String generatedUsername = generateUniqueUsername(request.email());
 
-        if (userRepository.existsByEmail(request.email())) {
+        boolean emailExists = userRepository.existsByEmail(request.email());
+        boolean phoneExists = request.phone() != null && !request.phone().isBlank() && userRepository.existsByPhone(request.phone());
+        
+        if (emailExists && phoneExists) {
+            throw new IllegalArgumentException("Email and Phone are already registered");
+        } else if (emailExists) {
             throw new IllegalArgumentException("Email is already registered");
-        }
-        if (request.phone() != null && !request.phone().isBlank() && userRepository.existsByPhone(request.phone())) {
+        } else if (phoneExists) {
             throw new IllegalArgumentException("Phone is already registered");
         }
 
@@ -87,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(noRollbackFor = {IllegalArgumentException.class, AccountLockedException.class, UnauthorizedException.class})
     public AuthResponse login(LoginRequest request, String ipAddress, String userAgent) {
-        User user = userRepository.findByUsername(request.username())
+        User user = userRepository.findByLoginIdentifier(request.username())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
         checkAccountStatus(user);

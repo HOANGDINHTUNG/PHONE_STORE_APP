@@ -8,39 +8,51 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { PhoneStripImage } from "../../features/storefront/components/PhoneStripImage";
+import { useStore } from "../../context/StoreContext";
+import { checkoutApi } from "../../api/orderService";
+import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 
 type ConfirmationStepProps = {
   onBack: () => void;
 };
 
-const mockItems = [
-  {
-    id: 1,
-    name: "PinkPhone Pro Max 256GB",
-    variant: "Màu sắc: Rose Gold | SKU: PP-PM256-RG",
-    warranty: "Bảo hành 24 tháng",
-    price: 25_990_000,
-    qty: 1,
-    imageIndex: 4,
-  },
-  {
-    id: 2,
-    name: "PinkPods Pro Gen 2",
-    variant: "Màu sắc: Trắng ngọc | SKU: PPD-G2-W",
-    warranty: "Bảo hành 12 tháng",
-    price: 4_990_000,
-    qty: 1,
-    imageIndex: 2,
-  },
-];
-
 const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
-  const subtotal = 30_980_000;
-  const discount = 1_000_000;
-  const total = 29_980_000;
+  const { cart, clearCart } = useStore();
+  const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(false);
+
+  const subtotal = cart.reduce((sum, item) => {
+    // try use newPrice if it's string or number, parse if necessary. Assuming price is a string like "25.000.0s000đ" in mock, wait, earlier productService returns `newPrice` as string "28.490.000đ". Let's clean it up for math.
+    const priceNum =
+      typeof item.newPrice === "string"
+        ? parseInt(item.newPrice.replace(/\D/g, "")) || 0
+        : item.price || 0; // fallback
+    return sum + priceNum * item.quantity;
+  }, 0);
+
+  const discount = subtotal > 20000000 ? 500000 : 0;
+  const total = subtotal - discount;
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat("vi-VN").format(val) + " đ";
+
+  const handlePlaceOrder = async () => {
+    setLoading(true);
+    const success = await checkoutApi({
+      items: cart.map((c) => ({ productId: c.id, quantity: c.quantity })),
+      totalAmount: total,
+    });
+    setLoading(false);
+
+    if (success) {
+      clearCart();
+      message.success("Đặt hàng thành công!");
+      navigate("/");
+    } else {
+      message.error("Lỗi đặt hàng, vui lòng thử lại.");
+    }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -149,13 +161,21 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
             </div>
 
             <div className="space-y-0 divide-y divide-gray-100 border-t border-gray-100 pt-2">
-              {mockItems.map((item) => (
+              {cart.map((item, idx) => (
                 <div
                   key={item.id}
                   className="py-6 first:pt-4 last:pb-2 flex gap-4"
                 >
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden relative">
-                    <PhoneStripImage index={item.imageIndex} />
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <PhoneStripImage index={idx % 5} />
+                    )}
                   </div>
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
@@ -163,19 +183,20 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
                         {item.name}
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
-                        {item.variant}
+                        Màu sắc: {item.selectedColor || "Mặc định"} | Lưu trữ:{" "}
+                        {item.selectedStorage || "Mặc định"}
                       </p>
                       <p className="text-xs text-[#E91E63] mt-1.5 flex items-center gap-1 font-medium">
-                        <ShieldCheck size={14} /> {item.warranty}
+                        <ShieldCheck size={14} /> Bảo hành chính hãng
                       </p>
                     </div>
 
                     <div className="flex items-end justify-between mt-3 text-sm">
                       <span className="text-gray-600 font-semibold">
-                        SL: {item.qty}
+                        SL: {item.quantity}
                       </span>
                       <span className="font-extrabold text-gray-900">
-                        {formatCurrency(item.price)}
+                        {item.newPrice || formatCurrency(item.price as number)}
                       </span>
                     </div>
                   </div>
@@ -233,8 +254,12 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
             </div>
           </div>
 
-          <button className="w-full bg-[#C2185B] text-white py-3.5 rounded-xl font-bold text-[15px] hover:bg-[#AD1457] transition-colors shadow-sm">
-            Đặt hàng
+          <button
+            onClick={handlePlaceOrder}
+            disabled={loading}
+            className="w-full bg-[#C2185B] text-white py-3.5 rounded-xl font-bold text-[15px] hover:bg-[#AD1457] disabled:opacity-50 transition-colors shadow-sm"
+          >
+            {loading ? "Đang xử lý..." : "Đặt hàng"}
           </button>
 
           <p className="text-xs text-center text-gray-500 mt-4 px-2 leading-relaxed font-medium">

@@ -9,9 +9,9 @@ const Login = () => {
   const { login } = useStore();
   const navigate = useNavigate();
 
-  const onFinish = (values: any) => {
-    const { emailOrPhone, password } = values;
-    const success = login(emailOrPhone, password);
+  const onFinish = async (values: any) => {
+    const { emailOrPhone, password, remember } = values;
+    const success = await login(emailOrPhone, password, remember);
     if (success) {
       message.success("Đăng nhập thành công!");
       navigate("/");
@@ -90,9 +90,9 @@ const Login = () => {
                     Ghi nhớ đăng nhập
                   </Checkbox>
                 </Form.Item>
-                <a href="#forgot" className={styles.forgotLink}>
+                <Link to="/forgot-password" className={styles.forgotLink}>
                   Quên mật khẩu?
-                </a>
+                </Link>
               </div>
 
               <Form.Item>

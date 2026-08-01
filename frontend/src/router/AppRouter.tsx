@@ -14,6 +14,9 @@ import {
   ReturnsPage,
   NotificationsPage,
 } from "../features/account/pages/AccountActivityPages";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+import EmailVerification from "../pages/EmailVerification";
 
 export const router = createBrowserRouter([
   {
@@ -25,7 +28,7 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "/product",
+        path: "/product/:slug",
         element: <ProductDetail />,
       },
       {
@@ -65,5 +68,17 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
+  },
+  {
+    path: "/verify-email",
+    element: <EmailVerification />,
   },
 ]);

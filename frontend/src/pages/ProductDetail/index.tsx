@@ -1,4 +1,5 @@
-﻿import React, { useState } from "react";
+﻿import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Star,
   Heart,
@@ -11,25 +12,43 @@ import {
 } from "lucide-react";
 import { Button, ProductCard } from "../../components/cart_and_pdp/Shared";
 import { useStore } from "../../context/StoreContext";
+import { fetchProductBySlug } from "../../api/productService";
+import { Product } from "../../types";
 
 const ProductDetail = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { addToCart } = useStore();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [selectedStorage, setSelectedStorage] = useState("128GB");
   const [selectedColor, setSelectedColor] = useState("Hồng");
   const [mainImage, setMainImage] = useState("/images/banner1.png");
   const [quantity, setQuantity] = useState(1);
 
-  const product = {
-    id: 101,
-    name: "PinkPhone Ultra X 2024",
-    price: "28.490.000đ",
-    oldPrice: "32.990.000đ",
-    rating: 4.8,
-    reviews: 124,
-    image: "/images/banner1.png",
-    highlight:
-      "Chiếc điện thoại thời thượng dành cho người trẻ năng động, tối ưu mọi trải nghiệm chụp hình, giải trí và công việc.",
-  };
+  useEffect(() => {
+    let active = true;
+    const loadData = async () => {
+      if (!slug) return;
+      setLoading(true);
+      const data = await fetchProductBySlug(slug);
+      if (active) {
+        if (data) {
+          setProduct(data);
+          setMainImage(data.image);
+        } else {
+          // If no product found, redirect or show error
+          navigate("/");
+        }
+        setLoading(false);
+      }
+    };
+    loadData();
+    return () => {
+      active = false;
+    };
+  }, [slug, navigate]);
 
   const images = [
     "/images/banner1.png",
@@ -86,6 +105,16 @@ const ProductDetail = () => {
     { name: "Bộ nhớ trong", value: "128 GB / 256 GB / 512 GB" },
     { name: "Pin", value: "4380 mAh, Sạc nhanh 45W" },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex text-lg text-gray-500 font-bold items-center justify-center">
+        Đang tải sản phẩm...
+      </div>
+    );
+  }
+
+  if (!product) return null;
 
   return (
     <div className="w-full min-h-screen bg-[#F5F5F5] py-6 sm:py-8 lg:py-10">
@@ -155,7 +184,8 @@ const ProductDetail = () => {
                 {product.name}
               </h1>
               <p className="text-sm text-gray-600 max-w-2xl">
-                {product.highlight}
+                {product.description ||
+                  "Sản phẩm chính hãng với công nghệ hiện đại mang lại trải nghiệm hoàn hảo."}
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                 <div className="flex items-center gap-1 text-yellow-400">
@@ -164,7 +194,7 @@ const ProductDetail = () => {
                   ))}
                 </div>
                 <span>
-                  {product.rating} ({product.reviews} đánh giá)
+                  {product.rating || 5} ({product.reviewsCount || 100} đánh giá)
                 </span>
               </div>
             </div>
@@ -176,15 +206,17 @@ const ProductDetail = () => {
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <p className="text-4xl font-bold text-[#E91E63]">
-                    {product.price}
+                    {product.newPrice}
                   </p>
                   <div className="text-right">
                     <p className="text-sm text-gray-400 line-through">
-                      {product.oldPrice}
+                      {product.oldPrice || ""}
                     </p>
-                    <span className="inline-flex rounded-full bg-[#E91E63] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-                      TIẾT KIỆM 15%
-                    </span>
+                    {product.oldPrice && (
+                      <span className="inline-flex rounded-full bg-[#E91E63] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+                        GIẢM GIÁ
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

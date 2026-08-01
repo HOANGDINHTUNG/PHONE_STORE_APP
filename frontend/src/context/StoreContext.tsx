@@ -7,13 +7,18 @@ import React, {
 } from "react";
 import { User, Product, CartItem } from "../types";
 
-import { loginApi, registerApi } from "../api/authService";
+import { loginApi, registerApi, logoutApi } from "../api/authService";
+import { fetchProfile } from "../api/profileService";
 
 interface StoreContextType {
   user: User | null;
   cart: CartItem[];
   wishlist: Product[];
-  login: (emailOrPhone: string, password?: string) => Promise<boolean> | boolean;
+  login: (
+    emailOrPhone: string,
+    password?: string,
+    remember?: boolean,
+  ) => Promise<boolean> | boolean;
   logout: () => void;
   registerUser: (details: {
     fullName: string;
@@ -24,6 +29,7 @@ interface StoreContextType {
   addToCart: (product: Product | CartItem) => void;
   removeFromCart: (productId: number | string) => void;
   updateCartQuantity: (productId: number | string, quantity: number) => void;
+  clearCart: () => void;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number | string) => boolean;
 }
@@ -44,7 +50,9 @@ interface StoreProviderProps {
 
 export const StoreProvider = ({ children }: StoreProviderProps) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem("pinkphone_user");
+    const saved =
+      localStorage.getItem("pinkphone_user") ||
+      sessionStorage.getItem("pinkphone_user");
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -63,6 +71,21 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   }, [user]);
 
   useEffect(() => {
+    const loadProfile = async () => {
+      const token =
+        localStorage.getItem("pinkphone_token") ||
+        sessionStorage.getItem("pinkphone_token");
+      if (token) {
+        const profile = await fetchProfile();
+        if (profile) {
+          setUser(profile);
+        }
+      }
+    };
+    loadProfile();
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("pinkphone_cart", JSON.stringify(cart));
   }, [cart]);
 
@@ -71,17 +94,34 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   }, [wishlist]);
 
   // Auth actions
-  const login = async (emailOrPhone: string, password?: string) => {
-    const loggedUser = await loginApi(emailOrPhone, password);
-    if (loggedUser) {
-      setUser(loggedUser);
-      return true;
+  const login = async (
+    emailOrPhone: string,
+    password?: string,
+    remember: boolean = true,
+  ) => {
+    try {
+      const loggedUser = await loginApi(emailOrPhone, password, remember);
+      if (loggedUser) {
+        setUser(loggedUser);
+        return true;
+      }
+    } catch (error) {
+      console.error(error);
     }
     return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (
+      localStorage.getItem("pinkphone_token") ||
+      sessionStorage.getItem("pinkphone_token")
+    ) {
+      await logoutApi();
+    }
     localStorage.removeItem("pinkphone_token");
+    localStorage.removeItem("pinkphone_user");
+    sessionStorage.removeItem("pinkphone_token");
+    sessionStorage.removeItem("pinkphone_user");
     setUser(null);
   };
 
@@ -130,6 +170,10 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     );
   };
 
+  const clearCart = () => {
+    setCart([]);
+  };
+
   // Wishlist actions
   const toggleWishlist = (product: Product) => {
     setWishlist((prevWishlist) => {
@@ -157,6 +201,7 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
         addToCart,
         removeFromCart,
         updateCartQuantity,
+        clearCart,
         toggleWishlist,
         isInWishlist,
       }}

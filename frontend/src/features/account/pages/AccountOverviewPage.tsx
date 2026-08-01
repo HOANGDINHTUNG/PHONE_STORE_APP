@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../../../context/StoreContext";
 import { AccountShell } from "../components/AccountShell";
+import { fetchMyOrders } from "../../../api/profileService";
 
 const favoriteProducts = [
   {
@@ -36,14 +37,24 @@ const favoriteProducts = [
 export function AccountOverviewPage() {
   const { user } = useStore();
   const [progress, setProgress] = useState(0);
+  const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => setProgress(70), 150);
-    return () => clearTimeout(timer);
+
+    let active = true;
+    fetchMyOrders().then((data) => {
+      if (active && data) setOrders(data);
+    });
+
+    return () => {
+      clearTimeout(timer);
+      active = false;
+    };
   }, []);
 
-  const displayName = user?.name || "Nguyễn Minh Anh";
-  const displayPhone = user?.phone || "098***4567";
+  const displayName = user?.name || "Khách Hàng PinkPhone";
+  const displayPhone = user?.phone || "09xxxxxx";
 
   return (
     <AccountShell title="Tổng quan tài khoản">
@@ -139,20 +150,26 @@ export function AccountOverviewPage() {
                 </Link>
               </div>
 
-              <RecentOrderItem
-                name="iPhone 15 Pro Max 256GB - Pink"
-                code="#ORD-7721"
-                date="12/03/2024"
-                price="32.990.000đ"
-                image="/images/prod_iphone15.png"
-              />
-              <RecentOrderItem
-                name="Samsung Galaxy Z Flip5"
-                code="#ORD-6612"
-                date="05/02/2024"
-                price="19.450.000đ"
-                image="/images/prod_s24.png"
-              />
+              {orders.length > 0 ? (
+                orders
+                  .slice(0, 3)
+                  .map((o, idx) => (
+                    <RecentOrderItem
+                      key={idx}
+                      name={o.items?.[0]?.productName || "Đơn hàng PinkPhone"}
+                      code={o.orderCode || `#ORD-${idx}`}
+                      date={new Date(
+                        o.orderDate || Date.now(),
+                      ).toLocaleDateString("vi-VN")}
+                      price={`${(o.totalAmount || 0).toLocaleString("vi-VN")}đ`}
+                      image="/images/prod_s24.png"
+                    />
+                  ))
+              ) : (
+                <div className="p-5 text-center text-sm text-gray-500">
+                  Bạn chưa có đơn hàng nào
+                </div>
+              )}
             </section>
 
             {/* Favorite Products */}
