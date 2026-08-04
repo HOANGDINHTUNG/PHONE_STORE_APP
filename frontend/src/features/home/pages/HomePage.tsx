@@ -1,21 +1,17 @@
 import { useState, useEffect } from "react";
 import {
+  ChevronLeft,
   ChevronRight,
   ChevronDown,
   ListFilter,
   Circle,
   Star,
   Gift,
+  Image as ImageIcon,
   MapPin,
   Share2,
-  ThumbsUp,
   Smartphone,
-  Tablet,
-  MonitorSmartphone,
-  Watch,
-  Headset,
-  Grip,
-  Image as ImageIcon,
+  ThumbsUp,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { SiteFooter } from "../components/SiteFooter";
@@ -24,35 +20,19 @@ import { fetchProducts } from "../../../api/productService";
 import { fetchNews, type NewsItem } from "../../../api/newsService";
 import { fetchBanners, type Banner } from "../../../api/bannerService";
 import { fetchBrands } from "../../../api/brandService";
-import { fetchCategories } from "../../../api/categoryService";
-import type { Product, Brand, Category } from "../../../types";
+import type { Product, Brand } from "../../../types";
 
-const getLucideIcon = (iconName: string) => {
-  switch (iconName) {
-    case "AppleOutlined":
-      return Smartphone;
-    case "AndroidOutlined":
-      return Tablet;
-    case "LaptopOutlined":
-      return MonitorSmartphone;
-    case "ClockCircleOutlined":
-      return Watch;
-    case "CustomerServiceOutlined":
-      return Headset;
-    default:
-      return Grip;
-  }
-};
+const ITEMS_PER_PAGE = 30;
 
 export function HomePage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [brand, setBrand] = useState("Tất cả");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
   useEffect(() => {
@@ -63,8 +43,8 @@ export function HomePage() {
         // Using "Tất cả" as standard reset word
         const brandQuery = brand !== "Tất cả" ? brand : undefined;
         const data = await fetchProducts(keyword, undefined, brandQuery);
-        // Take top 5 for the grid
-        setProducts(data.slice(0, 5));
+        setAllProducts(data);
+        setCurrentPage(1);
       } catch (error) {
         console.error("Failed to load products:", error);
       }
@@ -72,20 +52,24 @@ export function HomePage() {
     loadProducts();
   }, [search, brand]);
 
+  const totalPages = Math.ceil(allProducts.length / ITEMS_PER_PAGE) || 1;
+  const products = allProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   useEffect(() => {
-    // Fetch Secondary Data (News, Banners, Brands, Categories)
+    // Fetch secondary homepage data.
     const loadSecondaryData = async () => {
       try {
-        const [newsData, bannerData, brandData, catData] = await Promise.all([
+        const [newsData, bannerData, brandData] = await Promise.all([
           fetchNews(),
           fetchBanners(),
           fetchBrands(),
-          fetchCategories(),
         ]);
         setNews(newsData.slice(0, 3));
         setBanners(bannerData);
         setBrands(brandData.slice(0, 4));
-        setCategories(catData.slice(0, 6)); // Display max 6 categories on grid
       } catch (error) {
         console.error("Failed to load secondary data:", error);
       }
@@ -177,11 +161,11 @@ export function HomePage() {
                     onClick={() => setBrand(b.name)}
                     className="h-20 bg-white rounded-lg flex items-center justify-center p-gutter shadow-sm border border-outline-variant/30 cursor-pointer hover:border-primary transition-all"
                   >
-                    <div
-                      className="w-32 h-8 bg-center bg-no-repeat bg-contain"
-                      style={{ backgroundImage: `url('${b.logo}')` }}
-                      title={b.name}
-                    ></div>
+                    <img
+                      src={b.logo}
+                      alt={`${b.name} logo`}
+                      className="max-h-10 max-w-32 object-contain"
+                    />
                   </div>
                 ))
               : [1, 2, 3, 4].map((i) => (
@@ -191,37 +175,6 @@ export function HomePage() {
                   ></div>
                 ))}
           </div>
-        </section>
-
-        {/* Categories Bento-style Grid */}
-        <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-md">
-          {categories.length > 0
-            ? categories.map((cat) => {
-                const Icon = getLucideIcon(cat.iconName || "");
-                return (
-                  <div
-                    key={cat.id}
-                    onClick={() => navigate(`/category/${cat.slug}`)}
-                    className="bg-white p-lg rounded-xl flex flex-col items-center justify-center text-center group cursor-pointer border border-outline-variant/10 hover:border-primary/50 hover:bg-primary-fixed transition-all shadow-sm hover:shadow-md"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center mb-md group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
-                      <Icon size={26} className="text-primary" />
-                    </div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant group-hover:text-primary transition-colors">
-                      {cat.name}
-                    </span>
-                  </div>
-                );
-              })
-            : [1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="bg-surface-container-low p-lg rounded-xl h-36 flex flex-col items-center justify-center border border-outline-variant/10 animate-pulse"
-                >
-                  <div className="w-14 h-14 rounded-full bg-surface-container-highest/20 mb-md"></div>
-                  <div className="w-16 h-3 bg-surface-container-highest/30 rounded"></div>
-                </div>
-              ))}
         </section>
 
         {/* Fast Filter Chips */}
@@ -343,6 +296,63 @@ export function HomePage() {
               </div>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {allProducts.length > 0 && (
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-outline-variant/20 shadow-sm">
+              <span className="text-sm text-on-surface-variant font-medium">
+                Hiển thị{" "}
+                <b className="text-primary">
+                  {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+                </b>{" "}
+                -{" "}
+                <b className="text-primary">
+                  {Math.min(currentPage * ITEMS_PER_PAGE, allProducts.length)}
+                </b>{" "}
+                trong tổng số <b className="text-primary">{allProducts.length}</b> sản phẩm
+              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.max(p - 1, 1));
+                    window.scrollTo({ top: 600, behavior: "smooth" });
+                  }}
+                  className="px-3 py-2 rounded-lg border border-outline-variant text-sm font-semibold text-on-surface hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed flex items-center transition-all"
+                >
+                  <ChevronLeft size={16} className="mr-1" /> Trước
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => {
+                        setCurrentPage(pageNum);
+                        window.scrollTo({ top: 600, behavior: "smooth" });
+                      }}
+                      className={`w-9 h-9 rounded-lg font-bold text-sm transition-all ${
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md scale-105"
+                          : "bg-surface-container-low text-on-surface hover:bg-surface-container border border-outline-variant/30"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                )}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.min(p + 1, totalPages));
+                    window.scrollTo({ top: 600, behavior: "smooth" });
+                  }}
+                  className="px-3 py-2 rounded-lg border border-outline-variant text-sm font-semibold text-on-surface hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed flex items-center transition-all"
+                >
+                  Sau <ChevronRight size={16} className="ml-1" />
+                </button>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Tech News */}

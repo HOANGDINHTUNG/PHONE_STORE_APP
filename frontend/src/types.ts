@@ -6,6 +6,19 @@ export interface User {
   token?: string;
 }
 
+export interface ProductVariantUI {
+  id: string;
+  sku: string;
+  name: string;
+  color?: string;
+  storageGb?: number;
+  ramGb?: number;
+  price?: string;
+  newPrice?: string;
+  oldPrice?: string;
+  image: string;
+}
+
 export interface Product {
   id: number | string;
   name: string;
@@ -25,6 +38,8 @@ export interface Product {
   outOfStock?: boolean;
   slug?: string;
   description?: string;
+  stock?: number;
+  variants?: ProductVariantUI[];
 }
 
 export interface Category {

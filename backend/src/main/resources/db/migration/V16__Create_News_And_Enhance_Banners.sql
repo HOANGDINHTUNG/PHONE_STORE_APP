@@ -3,6 +3,7 @@
 -- ============================================================================
 
 -- 1. ENHANCE BANNERS
+ALTER TABLE banners DROP FOREIGN KEY fk_banners_creator;
 ALTER TABLE banners MODIFY COLUMN created_by VARCHAR(255) NULL;
 
 ALTER TABLE banners 

@@ -26,30 +26,13 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
 
   // Variations state
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [selectedStorage, setSelectedStorage] = useState("256GB");
-  const [selectedColor, setSelectedColor] = useState("Hồng");
+  const [selectedColor, setSelectedColor] = useState("Mặc định");
   const [mainImage, setMainImage] = useState("");
   const [showStickyBar, setShowStickyBar] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
-
-  const storages = ["128GB", "256GB", "512GB"];
-  const colors = [
-    { name: "Hồng", hex: "#f4c2c2", tailwindBg: "bg-primary-container" },
-    {
-      name: "Trắng",
-      hex: "#e5e4e2",
-      tailwindBg: "bg-white border border-outline-variant",
-    },
-    { name: "Đen", hex: "#333333", tailwindBg: "bg-black" },
-  ];
-
-  const thumbnails = [
-    "https://lh3.googleusercontent.com/aida/AP1WRLvnk0hzaNiJ82Y1f6MDD9ANlfFar8ALZTv8QGZaJZrrwXkQMyW8YmIFGOiKk-kBZ3rY4g7EUIIoqQiXbk0VXGOPozI-4_89Tx5wVulVeNyKzYgv9U67UzkMrl10fBwpWYWGc4e48IEQYIISx2E_GEMI1NI1BSZWbj9Gycwgm9Y34CejB6Z-rwxZ2cMbJK-4r1FwTLSc9i3-HQcIO7g2kJbuqDEmFYzOSpHHJn5zTMKZXtrnDZC6l67dOyA",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCSCAzIILWUrVr3KHy_bZgM0bdBkTlRfsoMb2PW3xh__pHNGFeBOvy2wvi32n3gaELjXQIrGB-j1gmZ9e1HuEUSpThHodOAt6eCi9U4mw1BymUGFI3IeYBHrepkk76XSfVAL00mzwiS225tZFXtbFGyX4J1tt2VZr3CVO8YGs6skql-Pl73A7JwKPNgmoJLMiRsJDuKE93uoGFoY6-WsHOGvOm8ls7mpRDcfi8bqsJO4SX9Q5hvbWl5",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuASECBUewGIY-BWg5BI5u6U7lH52iW7cJeBcQpyXEIOoHz6AA9FMa2cYPKl4PHChjscrvAVVjkMDUB1aY8yyczZ_oMrCJwABCOF1DVcKtLJeN5elLzauPuuJR6KpZ9oFPh2hL43FYE-u25xlDo7eTRYdCEULyZvGI0N0EQ9dm1ZJ1sGbx2vUyUPyGgkZYdJI0RUZyd2QvqC9343QvasnrRBKJxbAQNbZpOm6pdl__sQQOXPVqZYaZxT",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuC7Dle4nejdc-BJwBRh5Jc7rmRrGCSmBK_R90ZvC3xH0w3fd52-citsV8pEwnTG5t2pgO6POfU1HJN40-mJleAEa0d5DoXQHUsoTlbPZ8kEHFPepZHh1ummYI_Kyd-kfxdMZyN19Rv6qMtAL3anl9B97ZgV1OaNXNplsTpxceELUGJT70lxTbIsBPZUhIz1oVEKXTGdNMtXSF4KE0Idn_htt67KIUo2-G9VRjPTiGFUihGuxhjRrZok",
-  ];
 
   useEffect(() => {
     let active = true;
@@ -60,7 +43,16 @@ const ProductDetail = () => {
       if (active) {
         if (data) {
           setProduct(data);
-          setMainImage(data.image);
+          if (data.variants && data.variants.length > 0) {
+            setSelectedVariantIndex(0);
+            setMainImage(data.variants[0].image || data.image);
+            setSelectedColor(data.variants[0].color || data.variants[0].name);
+            if (data.variants[0].storageGb) {
+              setSelectedStorage(`${data.variants[0].storageGb}GB`);
+            }
+          } else {
+            setMainImage(data.image);
+          }
         } else {
           navigate("/");
         }
@@ -72,6 +64,17 @@ const ProductDetail = () => {
       active = false;
     };
   }, [slug, navigate]);
+
+  const handleSelectVariant = (index: number) => {
+    if (!product || !product.variants || !product.variants[index]) return;
+    const variant = product.variants[index];
+    setSelectedVariantIndex(index);
+    if (variant.image) {
+      setMainImage(variant.image);
+    }
+    if (variant.color) setSelectedColor(variant.color);
+    if (variant.storageGb) setSelectedStorage(`${variant.storageGb}GB`);
+  };
 
   // Desktop Sticky Bar logic
   useEffect(() => {
@@ -91,8 +94,13 @@ const ProductDetail = () => {
 
   const handleBuyNow = () => {
     if (product) {
+      const variant = product.variants?.[selectedVariantIndex];
       addToCart({
         ...product,
+        image: variant?.image || product.image,
+        price: variant?.newPrice || variant?.price || product.price,
+        newPrice: variant?.newPrice || variant?.price || product.newPrice,
+        oldPrice: variant?.oldPrice || product.oldPrice,
         displayOptions: `${selectedStorage}, ${selectedColor}`,
         quantity: 1,
       });
@@ -102,8 +110,13 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (product) {
+      const variant = product.variants?.[selectedVariantIndex];
       addToCart({
         ...product,
+        image: variant?.image || product.image,
+        price: variant?.newPrice || variant?.price || product.price,
+        newPrice: variant?.newPrice || variant?.price || product.newPrice,
+        oldPrice: variant?.oldPrice || product.oldPrice,
         displayOptions: `${selectedStorage}, ${selectedColor}`,
         quantity: 1,
       });
@@ -120,6 +133,11 @@ const ProductDetail = () => {
   }
 
   if (!product) return null;
+
+  const selectedVariant = product.variants?.[selectedVariantIndex];
+  const displayedPrice =
+    selectedVariant?.newPrice || selectedVariant?.price || product.newPrice || product.price;
+  const displayedOldPrice = selectedVariant?.oldPrice || product.oldPrice;
 
   // Determine Out Of Stock state (Hardcoded demo logic or rely on `stock === 0`)
   // You can set isOutOfStock = true for testing UI changes locally.
@@ -156,29 +174,41 @@ const ProductDetail = () => {
                 src={mainImage}
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden scrollbar-hide">
-              <div
-                onClick={() => setMainImage(product.image)}
-                className={`w-20 h-20 bg-white rounded-lg p-2 cursor-pointer shrink-0 transition-colors ${mainImage === product.image ? "border-2 border-primary" : "border border-outline-variant hover:border-primary"}`}
-              >
-                <img
-                  className="w-full h-full object-contain"
-                  src={product.image}
-                  alt="Thumbnail 1"
-                />
-              </div>
-              {thumbnails.map((thumb, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setMainImage(thumb)}
-                  className={`w-20 h-20 bg-white rounded-lg p-2 cursor-pointer shrink-0 transition-colors ${mainImage === thumb ? "border-2 border-primary" : "border border-outline-variant hover:border-primary"}`}
-                >
+            {/* Variant Thumbnails */}
+            <div className="flex gap-3 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden scrollbar-hide">
+              {product.variants && product.variants.length > 0 ? (
+                product.variants.map((v, idx) => (
                   <div
-                    className="w-full h-full bg-surface-container-low rounded-md bg-cover bg-center"
-                    style={{ backgroundImage: `url('${thumb}')` }}
-                  ></div>
+                    key={v.id || idx}
+                    onClick={() => handleSelectVariant(idx)}
+                    className={`w-20 h-20 bg-white rounded-lg p-2 cursor-pointer shrink-0 border-2 transition-all flex flex-col items-center justify-between ${
+                      selectedVariantIndex === idx
+                        ? "border-primary ring-2 ring-primary/20 shadow-md"
+                        : "border-outline-variant hover:border-primary/50"
+                    }`}
+                  >
+                    <img
+                      className="w-full h-12 object-contain"
+                      src={v.image || product.image}
+                      alt={v.name}
+                    />
+                    <span className="text-[10px] font-bold text-center truncate w-full">
+                      {v.color || v.name}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div
+                  onClick={() => setMainImage(product.image)}
+                  className={`w-20 h-20 bg-white rounded-lg p-2 cursor-pointer shrink-0 border-2 border-primary`}
+                >
+                  <img
+                    className="w-full h-full object-contain"
+                    src={product.image}
+                    alt={product.name}
+                  />
                 </div>
-              ))}
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
@@ -198,7 +228,7 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* In-Stock Alert Form Layout mapped into left col on mobile/desktop naturally */}
+            {/* In-Stock Alert Form Layout */}
             {isOutOfStock && (
               <div className="mt-6 p-4 bg-surface-container rounded-xl border border-outline-variant">
                 <p className="text-sm font-bold mb-3 flex items-center gap-2">
@@ -253,63 +283,59 @@ const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Price Box Dynamic by Selected Variant */}
             <div className="p-4 bg-surface-container-low rounded-xl">
               <div className="flex items-baseline gap-4 mb-1">
                 <span className="text-3xl font-extrabold text-primary">
-                  {product.newPrice || product.price}
+                  {displayedPrice}
                 </span>
-                {product.oldPrice && (
+                {displayedOldPrice ? (
                   <>
                     <span className="text-lg text-on-surface-variant line-through">
-                      {product.oldPrice}
+                      {displayedOldPrice}
                     </span>
                     <span className="bg-secondary text-white text-[12px] px-2 py-0.5 rounded-md font-bold">
-                      -14%
+                      GIẢM GIÁ
                     </span>
                   </>
-                )}
+                ) : null}
               </div>
               <p className="text-sm text-on-surface-variant">
                 Giá đã bao gồm VAT và miễn phí giao hàng toàn quốc.
               </p>
             </div>
 
-            {/* Variations */}
+            {/* Variations Selector */}
             <div className="space-y-4">
-              <div>
-                <p className="text-sm font-bold mb-2">Chọn bộ nhớ:</p>
-                <div className="flex gap-2">
-                  {storages.map((storage) => (
+              <p className="text-sm font-bold mb-2">Chọn phiên bản biến thể (Màu sắc & Bộ nhớ):</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {product.variants && product.variants.length > 0 ? (
+                  product.variants.map((v, idx) => (
                     <button
-                      key={storage}
-                      onClick={() => setSelectedStorage(storage)}
-                      className={`px-4 py-2 rounded-lg text-sm transition-colors ${selectedStorage === storage ? "border-2 border-primary bg-primary-fixed-dim font-bold text-primary-fixed-variant" : "border border-outline-variant hover:border-primary font-medium"}`}
+                      key={v.id || idx}
+                      onClick={() => handleSelectVariant(idx)}
+                      className={`flex flex-col items-start p-3 rounded-xl border transition-all text-left ${
+                        selectedVariantIndex === idx
+                          ? "border-2 border-primary bg-primary-fixed-dim/30 shadow-md ring-2 ring-primary/20"
+                          : "border-outline-variant hover:border-primary/50 bg-white"
+                      }`}
                     >
-                      {storage}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-bold mb-2">Chọn màu sắc:</p>
-                <div className="flex gap-3">
-                  {colors.map((color) => (
-                    <button
-                      key={color.name}
-                      onClick={() => setSelectedColor(color.name)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${selectedColor === color.name ? "border-2 border-primary shadow-sm outline-[2px] outline-[#b41254] outline outline-offset-2" : "border border-outline-variant hover:border-primary/50"}`}
-                    >
-                      <span
-                        className={`w-4 h-4 rounded-full ${color.tailwindBg}`}
-                      ></span>
-                      <span
-                        className={`text-xs ${selectedColor === color.name ? "font-bold" : "font-medium"}`}
-                      >
-                        {color.name}
+                      <span className="text-xs font-extrabold text-primary mb-1">
+                        {v.color || v.name}
+                      </span>
+                      <span className="text-xs font-semibold text-on-surface-variant">
+                        {v.storageGb ? `${v.storageGb}GB` : ""} {v.ramGb ? `· ${v.ramGb}GB RAM` : ""}
+                      </span>
+                      <span className="text-sm font-bold text-primary mt-2">
+                        {v.newPrice || v.price}
                       </span>
                     </button>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <div className="p-3 border border-primary rounded-xl text-xs font-bold text-primary">
+                    256GB - Mặc định
+                  </div>
+                )}
               </div>
             </div>
 
@@ -536,7 +562,7 @@ const ProductDetail = () => {
                 </p>
                 <div className="w-full aspect-video bg-surface-container-low rounded-2xl overflow-hidden mb-4 shadow-sm border border-outline-variant/30">
                   <img
-                    src={thumbnails[1]}
+                    src={selectedVariant?.image || product.image}
                     className="w-full h-full object-cover"
                     alt="Detail"
                   />
@@ -609,7 +635,7 @@ const ProductDetail = () => {
           <div className="flex items-center gap-4">
             <img
               className="w-14 h-14 object-contain bg-surface-container-low rounded-lg p-1.5 shadow-inner"
-              src={product.image}
+              src={selectedVariant?.image || product.image}
               alt={product.name}
             />
             <div>
@@ -617,7 +643,7 @@ const ProductDetail = () => {
                 {product.name}
               </p>
               <p className="text-primary font-extrabold text-xl leading-tight">
-                {product.newPrice || product.price}
+                {displayedPrice}
               </p>
             </div>
           </div>

@@ -4,7 +4,6 @@ import { Pagination, Button } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import HeroBanner from "../../components/home/HeroBanner";
 import BrandGrid from "../../components/home/BrandGrid";
-import CategoryList from "../../components/home/CategoryList";
 import ProductCard from "../../components/common/ProductCard";
 import NewsSection from "../../components/home/NewsSection";
 import AboutSection from "../../components/home/AboutSection";
@@ -20,12 +19,12 @@ const Home = () => {
   const searchQuery = searchParams.get("search") || "";
 
   const [productList, setProductList] = useState<Product[]>([]);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const activeCategory = "all";
   const [prodFilter, setProdFilter] = useState("all");
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = 30;
 
   useEffect(() => {
     let isMounted = true;
@@ -39,10 +38,10 @@ const Home = () => {
     };
   }, []);
 
-  // Reset pagination to page 1 whenever search, category, or brand filters change
+  // Reset pagination to page 1 whenever search or brand filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, activeCategory, prodFilter]);
+  }, [searchQuery, prodFilter]);
 
   // Filter products by search query, brand, or category
   const getFilteredProducts = () => {
@@ -121,7 +120,7 @@ const Home = () => {
 
   const getTitleText = () => {
     if (searchQuery) return `Kết quả tìm kiếm (${filteredProducts.length})`;
-    if (activeCategory !== "all" || prodFilter !== "all") {
+    if (prodFilter !== "all") {
       return `Sản phẩm lọc (${filteredProducts.length})`;
     }
     return "Điện thoại bán chạy";
@@ -141,15 +140,6 @@ const Home = () => {
           if (el) {
             el.scrollIntoView({ behavior: "smooth" });
           }
-        }}
-      />
-
-      {/* Categories & Filter Bar */}
-      <CategoryList
-        activeCategory={activeCategory}
-        onCategoryChange={(cat) => {
-          setActiveCategory(cat);
-          setProdFilter("all"); // Reset brand filter when changing category
         }}
       />
 

@@ -12,7 +12,8 @@ export interface BackendProductImage {
 export interface BackendProductVariant {
   id: string;
   sku: string;
-  price: number;
+  price?: number;
+  listPrice?: number;
   salePrice?: number;
   colorName?: string;
   color?: string;
@@ -97,6 +98,31 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
     mainImage = getDefaultProductImage(bp.brandName, bp.slug);
   }
 
+  const mappedVariants = (bp.variants || []).map((v) => {
+    let img = v.mainImageUrl;
+    if (!img && v.images && v.images.length > 0) {
+      const primaryImg = v.images.find((i) => i.isPrimary);
+      img = primaryImg ? primaryImg.imageUrl : v.images[0].imageUrl;
+    }
+    if (!img) img = mainImage;
+
+    const listP = v.listPrice ?? v.price ?? 0;
+    const saleP = v.salePrice && v.salePrice > 0 ? v.salePrice : listP;
+
+    return {
+      id: v.id,
+      sku: v.sku,
+      name: v.colorName || v.color || bp.name,
+      color: v.colorName || v.color,
+      storageGb: v.storageGb,
+      ramGb: v.ramGb,
+      price: formatCurrency(saleP),
+      newPrice: formatCurrency(saleP),
+      oldPrice: listP > saleP ? formatCurrency(listP) : undefined,
+      image: img,
+    };
+  });
+
   return {
     id: bp.id,
     name: bp.name,
@@ -112,6 +138,7 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
     reviewsCount: 12,
     slug: bp.slug,
     description: bp.description,
+    variants: mappedVariants,
   };
 };
 

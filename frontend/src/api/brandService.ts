@@ -20,6 +20,12 @@ const BRAND_SVGS: Record<string, string> = {
   oppo: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="130" height="40"><text x="50%25" y="65%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="48" fill="%23056839" letter-spacing="6">OPPO</text></svg>`,
 };
 
+const createWordmarkLogo = (brandName: string): string => {
+  const safeName = brandName.toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100"><rect width="320" height="100" rx="16" fill="%23ffffff"/><text x="160" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="800" fill="%23c2185b" letter-spacing="1">${safeName}</text></svg>`;
+  return `data:image/svg+xml;utf8,${svg}`;
+};
+
 export const fetchBrands = async (): Promise<Brand[]> => {
   if (USE_MOCK) {
     return mockBrands as Brand[];
@@ -29,7 +35,8 @@ export const fetchBrands = async (): Promise<Brand[]> => {
     if (Array.isArray(response.data)) {
       return response.data.map((b) => {
         const slug = b.slug.toLowerCase();
-        const logo = BRAND_SVGS[slug] || b.logoUrl || `/images/brand_${slug}.png`;
+        // Avoid blank cards when remote image hosts reject hotlinked logo requests.
+        const logo = BRAND_SVGS[slug] || createWordmarkLogo(b.name);
         return {
           id: b.id,
           name: b.name,

@@ -42,8 +42,8 @@ export function ProductDetailPage({
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const [productData, setProductData] = useState<Product | null>(null);
-  const [storage, setStorage] = useState("128GB");
-  const [color, setColor] = useState("Hồng");
+  const [mainImage, setMainImage] = useState<string>("");
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [favorite, setFavorite] = useState(false);
   const [notified, setNotified] = useState(false);
   const outOfStock = availability === "out-of-stock";
@@ -51,10 +51,27 @@ export function ProductDetailPage({
   useEffect(() => {
     if (slug) {
       fetchProductBySlug(slug).then((prod) => {
-        if (prod) setProductData(prod);
+        if (prod) {
+          setProductData(prod);
+          if (prod.variants && prod.variants.length > 0) {
+            setSelectedVariantIndex(0);
+            setMainImage(prod.variants[0].image || prod.image);
+          } else {
+            setMainImage(prod.image);
+          }
+        }
       });
     }
   }, [slug]);
+
+  const handleSelectVariant = (index: number) => {
+    if (!productData || !productData.variants || !productData.variants[index]) return;
+    const variant = productData.variants[index];
+    setSelectedVariantIndex(index);
+    if (variant.image) {
+      setMainImage(variant.image);
+    }
+  };
 
   return (
     <StorePageLayout
@@ -71,7 +88,7 @@ export function ProductDetailPage({
           <div>
             <div className="relative grid aspect-[5/4] place-items-center overflow-hidden rounded-card border border-border bg-surface-soft p-5">
               <img
-                src={productData?.image || heroImage}
+                src={mainImage || productData?.image || heroImage}
                 alt={productData?.name || "PinkPhone Ultra X 2024"}
                 className="size-full rounded-2xl object-cover"
               />
