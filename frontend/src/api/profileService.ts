@@ -16,12 +16,8 @@ export const fetchProfile = async (): Promise<User | null> => {
     console.warn("Backend profile error, fallback to mock:", error);
   }
 
-  // Fallback mock
-  return {
-    name: "Nguyễn Văn Client",
-    email: "client@example.com",
-    phone: "0919999999",
-  };
+  // Fallback
+  return null;
 };
 
 export const fetchMyOrders = async (): Promise<any[]> => {

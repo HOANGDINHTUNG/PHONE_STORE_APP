@@ -333,4 +333,14 @@ public class AuthServiceImpl implements AuthService {
         
         return username;
     }
+
+    @Override
+    public boolean checkEmailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean checkPhoneExists(String phone) {
+        return userRepository.existsByPhone(phone);
+    }
 }

@@ -7,6 +7,7 @@ import {
   SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { useStore } from "../../context/StoreContext";
+import { checkExistsApi } from "../../api/authService";
 import styles from "./Register.module.css";
 
 const Register = () => {
@@ -170,6 +171,19 @@ const Register = () => {
                         pattern: /^[0-9]{10,11}$/,
                         message: "Số điện thoại không hợp lệ (10-11 số)!",
                       },
+                      {
+                        validator: async (_, value) => {
+                          if (!value || !/^[0-9]{10,11}$/.test(value))
+                            return Promise.resolve();
+                          const result = await checkExistsApi(undefined, value);
+                          if (result.phoneExists) {
+                            return Promise.reject(
+                              new Error("Số điện thoại này đã được sử dụng!"),
+                            );
+                          }
+                          return Promise.resolve();
+                        },
+                      },
                     ]}
                   >
                     <Input
@@ -185,6 +199,22 @@ const Register = () => {
                     rules={[
                       { required: true, message: "Vui lòng nhập Email!" },
                       { type: "email", message: "Email không hợp lệ!" },
+                      {
+                        validator: async (_, value) => {
+                          if (
+                            !value ||
+                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+                          )
+                            return Promise.resolve();
+                          const result = await checkExistsApi(value, undefined);
+                          if (result.emailExists) {
+                            return Promise.reject(
+                              new Error("Email này đã được sử dụng!"),
+                            );
+                          }
+                          return Promise.resolve();
+                        },
+                      },
                     ]}
                   >
                     <Input

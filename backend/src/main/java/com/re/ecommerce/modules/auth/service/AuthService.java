@@ -12,4 +12,8 @@ public interface AuthService {
     void resendVerificationEmail(EmailVerificationRequest request);
     void requestPasswordReset(PasswordResetRequest request, String ipAddress);
     void confirmPasswordReset(PasswordResetConfirmRequest request);
+
+    boolean checkEmailExists(String email);
+    
+    boolean checkPhoneExists(String phone);
 }

@@ -1,18 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
-  Gift,
+  Tag,
   Headphones,
-  HelpCircle,
-  LogIn,
-  MapPin,
-  PackageSearch,
   Search,
   ShoppingCart,
-  UserPlus,
-  UserRound,
+  Store,
+  PackageSearch,
+  Truck,
+  RefreshCw,
+  ShieldCheck,
+  Zap,
+  User,
 } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { BrandLogo } from "../../../shared/components/BrandLogo";
+import { Link } from "react-router-dom";
 import { useStore } from "../../../context/StoreContext";
 
 type SiteHeaderProps = {
@@ -20,196 +20,265 @@ type SiteHeaderProps = {
   onSearch: (value: string) => void;
 };
 
-const tickerMessages = [
-  "Miễn phí vận chuyển đơn từ 300k",
-  "Thu cũ đổi mới trợ giá cao",
-  "Sản phẩm chính hãng · Xuất VAT đầy đủ",
-  "Giao hàng hỏa tốc 2h",
-];
-
 export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
-  const [accountOpen, setAccountOpen] = useState(false);
-  const { user } = useStore();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { user, logout, cart } = useStore();
+  const cartCount = cart.reduce(
+    (acc: number, item: any) => acc + item.quantity,
+    0,
+  );
+  const [scrolled, setScrolled] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(event.target as Node)
+      ) {
+        setIsAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      {accountOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 cursor-default bg-foreground/10 backdrop-blur-[2px]"
-          onClick={() => setAccountOpen(false)}
-          aria-label="Đóng bảng tài khoản"
-        />
-      )}
-      <header className={`sticky top-0 border-b border-border/80 bg-white/95 backdrop-blur-xl ${accountOpen ? "z-50" : "z-40"}`}>
-      <div className="bg-primary text-white">
-        <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-3 px-4 text-[11px] font-semibold sm:px-6">
-          <div
-            className="ticker-window min-w-0 flex-1 overflow-hidden"
-            aria-label={`Thông tin ưu đãi: ${tickerMessages.join(". ")}`}
-          >
-            <div className="ticker-track">
-              {[false, true].map((duplicate) => (
-                <div
-                  key={duplicate ? "ticker-copy" : "ticker-source"}
-                  className="ticker-group"
-                  aria-hidden={duplicate || undefined}
-                >
-                  {tickerMessages.map((message) => (
-                    <span key={message} className="inline-flex items-center gap-3 whitespace-nowrap">
-                      <span className="size-1 rounded-full bg-white/65" aria-hidden="true" />
-                      {message}
-                    </span>
-                  ))}
-                </div>
-              ))}
+      <header className="w-full z-50 sticky top-0 relative">
+        {/* Tier 1: Notification & Utility Bar */}
+        <div className="bg-secondary-container h-10 flex items-center overflow-hidden hidden md:flex">
+          <div className="max-w-[1200px] mx-auto w-full px-gutter flex items-center justify-between">
+            {/* Left & Middle: Marquee */}
+            <div className="flex-1 overflow-hidden relative mr-lg">
+              <div className="animate-[marquee_50s_linear_infinite] flex w-max hover:[animation-play-state:paused]">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center text-white text-[13px] font-medium space-x-xl shrink-0 pr-xl"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Truck size={18} />
+                      <span>Đơn hàng từ 300.000đ</span>
+                    </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+                    <div className="flex items-center space-x-2">
+                      <RefreshCw size={18} />
+                      <span>Thu cũ giá tốt – Lên đời tiết kiệm</span>
+                    </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+                    <div className="flex items-center space-x-2">
+                      <ShieldCheck size={18} />
+                      <span>Sản phẩm chính hãng – Xuất VAT đầy đủ</span>
+                    </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+                    <div className="flex items-center space-x-2">
+                      <Zap size={18} />
+                      <span>
+                        Giao nhanh – Miễn phí vận chuyển cho đơn từ 300.000đ
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Fixed Links */}
+            <div className="flex items-center space-x-md text-white text-[13px] font-medium shrink-0">
+              <Link
+                to="/cua-hang"
+                className="flex items-center hover:text-white/80 transition-colors"
+              >
+                <Store size={16} className="mr-1.5" />
+                Cửa hàng gần bạn
+              </Link>
+              <span className="w-[1px] h-3 bg-white/30"></span>
+              <Link
+                to="/tra-cuu"
+                className="flex items-center hover:text-white/80 transition-colors"
+              >
+                <PackageSearch size={16} className="mr-1.5" />
+                Tra cứu đơn hàng
+              </Link>
+              <span className="w-[1px] h-3 bg-white/30"></span>
+              <a className="flex items-center font-bold" href="tel:18006601">
+                <Headphones size={16} className="mr-1.5" />
+                1800 6601
+              </a>
             </div>
           </div>
-
-          <nav
-            className="hidden shrink-0 items-center gap-4 border-l border-white/25 pl-4 lg:flex"
-            aria-label="Tiện ích nhanh"
-          >
-            <a href="#stores" className="inline-flex items-center gap-1.5 text-white/90 hover:text-white">
-              <MapPin size={13} /> Hệ thống cửa hàng
-            </a>
-            <a href="#order-lookup" className="inline-flex items-center gap-1.5 text-white/90 hover:text-white">
-              <PackageSearch size={13} /> Tra cứu đơn hàng
-            </a>
-            <a href="tel:18006601" className="inline-flex items-center gap-1.5 text-white hover:underline">
-              <Headphones size={13} /> 1800 6601
-            </a>
-          </nav>
         </div>
-      </div>
 
-      <div className="mx-auto flex min-h-18 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <BrandLogo />
-
-        <label className="relative ml-auto hidden max-w-xl flex-1 lg:block">
-          <span className="sr-only">Tìm kiếm điện thoại</span>
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => onSearch(event.target.value)}
-            placeholder="Bạn muốn tìm điện thoại nào?"
-            className="min-h-11 w-full rounded-xl border border-border bg-surface-soft pl-11 pr-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-          />
-        </label>
-
-        <nav className="relative ml-auto flex items-center gap-1 sm:gap-2" aria-label="Tài khoản và giỏ hàng">
-          <a
-            href="#promotions"
-            className="hidden min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold hover:bg-surface-soft md:flex"
-          >
-            <Gift size={20} /> Khuyến mãi
-          </a>
-          <Link
-            to="/gio-hang"
-            onClick={() => setAccountOpen(false)}
-            className="relative grid size-11 place-items-center rounded-xl hover:bg-surface-soft"
-            aria-label="Giỏ hàng, 2 sản phẩm"
-          >
-            <ShoppingCart size={21} />
-            <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-primary text-[9px] font-bold text-white">
-              2
-            </span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              if (user) {
-                navigate("/tai-khoan");
-              } else {
-                setAccountOpen((open) => !open);
-              }
-            }}
-            className={`flex min-h-11 items-center gap-2 rounded-xl px-3 transition ${
-              accountOpen || pathname.startsWith("/tai-khoan")
-                ? "bg-primary text-white"
-                : "hover:bg-surface-soft text-foreground"
-            }`}
-            aria-label={user ? `Tài khoản của ${user.name}` : "Mở tài khoản"}
-            aria-expanded={accountOpen}
-            aria-haspopup="dialog"
-          >
-            <UserRound size={21} />
-            <span className="hidden text-sm font-semibold sm:inline">
-              {user ? user.name : "Tài khoản"}
-            </span>
-          </button>
-
-          {accountOpen && !user && (
-            <div
-              role="dialog"
-              aria-label="Tài khoản chưa đăng nhập"
-              className="absolute right-0 top-[calc(100%+0.75rem)] w-[min(21rem,calc(100vw-2rem))] rounded-2xl border border-border bg-white p-6 text-left shadow-2xl animate-fadeIn"
+        {/* Tier 2: Main Navigation Bar */}
+        <div
+          id="main-header"
+          className={`bg-white shadow-sm transition-all duration-300 w-full ${scrolled ? "py-2 h-16" : "h-20"}`}
+        >
+          <div className="max-w-[1200px] mx-auto w-full px-gutter flex items-center h-full gap-xl">
+            {/* Logo */}
+            <Link
+              to="/"
+              className="text-headline-md font-extrabold text-secondary-container shrink-0 tracking-tight"
             >
-              <h2 className="text-xl font-extrabold tracking-[-0.03em] text-foreground">Chào mừng bạn!</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Đăng nhập để theo dõi đơn hàng, lưu sản phẩm yêu thích và nhận ưu đãi thành viên.
-              </p>
-              <div className="mt-5 grid gap-2.5">
-                <Link
-                  to="/dang-nhap"
-                  onClick={() => setAccountOpen(false)}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary-strong shadow-sm active:scale-[0.98]"
+              PinkPhone
+            </Link>
+
+            {/* Main Search Bar */}
+            <div className="flex-1 relative group">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => onSearch(e.target.value)}
+                placeholder="Bạn muốn tìm điện thoại nào?"
+                className="w-full h-11 pl-12 pr-4 rounded-lg border-none bg-surface-container text-body-md focus:ring-2 focus:ring-secondary-container/30 outline-none transition-all placeholder:text-on-surface-variant/60"
+              />
+              <Search
+                size={20}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary-container transition-colors"
+              />
+            </div>
+
+            {/* Utility Actions */}
+            <div className="flex items-center space-x-lg shrink-0">
+              <Link
+                to="/khuyen-mai"
+                className="flex flex-col items-center justify-center text-on-surface-variant hover:text-secondary-container transition-colors group hidden sm:flex"
+              >
+                <Tag size={22} />
+                <span className="text-[11px] font-bold mt-0.5">Khuyến mãi</span>
+              </Link>
+
+              <Link
+                to="/cart"
+                className="flex flex-col items-center justify-center text-on-surface-variant hover:text-secondary-container transition-colors relative group hidden sm:flex"
+              >
+                <ShoppingCart size={22} />
+                <span className="text-[11px] font-bold mt-0.5">Giỏ hàng</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-secondary-container text-[10px] text-white flex items-center justify-center rounded-full font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Popover Tài Khoản */}
+              <div className="relative hidden sm:block" ref={accountRef}>
+                <button
+                  onClick={() => setIsAccountOpen(!isAccountOpen)}
+                  className="active:scale-95 transition-transform flex flex-col items-center justify-center min-w-[64px] h-12 rounded-xl bg-primary-container text-on-primary-container shadow-md"
                 >
-                  <LogIn size={17} /> Đăng nhập
-                </Link>
-                <Link
-                  to="/dang-ky"
-                  onClick={() => setAccountOpen(false)}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-neutral-soft px-4 text-sm font-bold text-foreground transition hover:bg-border active:scale-[0.98]"
+                  <User size={22} />
+                  <span className="text-[10px] font-bold uppercase mt-1">
+                    Tài khoản
+                  </span>
+                </button>
+
+                <div
+                  className={`absolute top-[calc(100%+12px)] right-0 w-[320px] bg-white rounded-2xl shadow-2xl border border-outline-variant/20 p-6 transform origin-top-right transition-all duration-300 z-[60] ${isAccountOpen ? "opacity-100 visible scale-100" : "opacity-0 invisible scale-95"}`}
                 >
-                  <UserPlus size={17} /> Đăng ký tài khoản
-                </Link>
-              </div>
-              <div className="mt-5 grid gap-1.5 border-t border-border pt-4 text-sm">
-                <Link
-                  to="/tai-khoan/theo-doi-don-hang"
-                  onClick={() => setAccountOpen(false)}
-                  className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-muted hover:bg-surface-soft hover:text-primary transition"
-                >
-                  <PackageSearch size={17} className="text-primary" /> Tra cứu đơn hàng
-                </Link>
-                <Link
-                  to="/tai-khoan/ho-tro"
-                  onClick={() => setAccountOpen(false)}
-                  className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-muted hover:bg-surface-soft hover:text-primary transition"
-                >
-                  <HelpCircle size={17} className="text-primary" /> Bạn cần hỗ trợ?
-                </Link>
+                  {/* popover-arrow */}
+                  <div className="absolute top-[-8px] right-[24px] w-4 h-4 bg-white rotate-45 border-t border-l border-outline-variant/20 -z-10"></div>
+
+                  {user ? (
+                    <div>
+                      <h3
+                        className="font-headline-md text-lg font-bold text-on-surface mb-2 truncate"
+                        title={`Chào, ${user.name}`}
+                      >
+                        Chào, {user.name}
+                      </h3>
+                      <span className="text-[10px] font-extrabold text-secondary-container bg-secondary-container/10 px-1.5 py-0.5 rounded uppercase tracking-widest mb-4 inline-block">
+                        Thành viên Vàng
+                      </span>
+                      <div className="flex flex-col gap-3">
+                        <Link
+                          to="/account"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="w-full py-3 bg-primary text-on-primary font-bold rounded-xl active:scale-95 text-center hover:bg-secondary transition-colors block"
+                        >
+                          Quản lý tài khoản
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setIsAccountOpen(false);
+                            logout();
+                          }}
+                          className="w-full py-3 bg-surface-container-high text-on-surface font-bold rounded-xl active:scale-95 hover:bg-surface-container-highest transition-colors flex items-center justify-center"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-headline-md text-lg text-on-surface mb-2 font-bold">
+                        Chào mừng bạn!
+                      </h3>
+                      <p className="text-body-md text-[13px] text-on-surface-variant mb-6 leading-relaxed">
+                        Đăng nhập để theo dõi đơn hàng, lưu sản phẩm yêu thích
+                        và nhận ưu đãi thành viên.
+                      </p>
+                      <div className="flex flex-col gap-3">
+                        <Link
+                          to="/login"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="w-full py-3 bg-primary text-on-primary font-bold rounded-xl active:scale-95 hover:bg-secondary transition-colors text-center block"
+                        >
+                          Đăng nhập
+                        </Link>
+                        <Link
+                          to="/register"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="w-full py-3 bg-surface-container-high text-on-surface font-bold rounded-xl active:scale-95 hover:bg-surface-container-highest transition-colors text-center block"
+                        >
+                          Đăng ký tài khoản
+                        </Link>
+                      </div>
+                      <div className="mt-6 pt-6 border-t border-outline-variant/30 flex flex-col gap-3">
+                        <Link
+                          to="/account/orders"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-primary transition-colors"
+                        >
+                          <Truck size={20} />
+                          Tra cứu đơn hàng
+                        </Link>
+                        <a
+                          href="tel:18006601"
+                          className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-primary transition-colors"
+                        >
+                          <Headphones size={20} />
+                          Bạn cần hỗ trợ?
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          )}
-        </nav>
-      </div>
-
-      <div className="border-t border-border/60 px-4 py-3 lg:hidden">
-        <label className="relative mx-auto block max-w-7xl">
-          <span className="sr-only">Tìm kiếm điện thoại</span>
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
-          />
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => onSearch(event.target.value)}
-            placeholder="Bạn muốn tìm điện thoại nào?"
-            className="min-h-11 w-full rounded-xl border border-border bg-surface-soft pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
-          />
-        </label>
-      </div>
+          </div>
+        </div>
       </header>
+
+      {/* Backdrop Overlay (Hiệu ứng làm mờ trang khi Popover mở) */}
+      <div
+        className={`fixed inset-0 z-40 bg-surface/10 backdrop-blur-[2px] transition-all duration-300 ${
+          isAccountOpen
+            ? "opacity-100 visible"
+            : "opacity-0 invisible pointer-events-none"
+        }`}
+        onClick={() => setIsAccountOpen(false)}
+      />
     </>
   );
 }

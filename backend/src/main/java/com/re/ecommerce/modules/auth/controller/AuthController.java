@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Tag(name = "1. Authentication")
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -81,6 +84,21 @@ public class AuthController {
 
         authService.confirmPasswordReset(request);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/check-exists")
+    public ResponseEntity<Map<String, Boolean>> checkExists(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone) {
+        
+        Map<String, Boolean> response = new HashMap<>();
+        if (email != null && !email.isBlank()) {
+            response.put("emailExists", authService.checkEmailExists(email));
+        }
+        if (phone != null && !phone.isBlank()) {
+            response.put("phoneExists", authService.checkPhoneExists(phone));
+        }
+        return ResponseEntity.ok(response);
     }
 
     private String getClientIp(HttpServletRequest request) {

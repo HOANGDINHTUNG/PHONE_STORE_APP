@@ -2,6 +2,7 @@ package com.re.ecommerce.modules.order.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
+import java.util.List;
 
 @Builder
 public record CheckoutRequest(
@@ -27,6 +28,9 @@ public record CheckoutRequest(
         String guestWardName,
         String guestDetailAddress,
         
-        String note
+        String note,
+        
+        // Direct checkout items (bypasses Cart)
+        List<CheckoutItemRequest> items
 ) {
 }

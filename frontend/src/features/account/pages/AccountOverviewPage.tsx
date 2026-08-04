@@ -20,17 +20,20 @@ const favoriteProducts = [
   {
     name: "iPhone 14 Pro",
     price: "21.990.000đ",
-    image: "/images/prod_iphone15.png",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuB420XbhBlAxmbIfJby2Gb1XM6669nP8NhkvKeV0BXZAnoZPbxoVEXO1TULDiHlLpIBQ1m7fbcs1jpcUgcyT-coLCxLbSJ45xnZE4GXzL_8JQobyk6PkQGBzg6d7emzJgAd2XRi8Od1-w7p5eRkDfBsPWZlnvgIIc-EwMOk4LMdAnV-xOoDcwf-ENU27_WZkvT1XNRsxOXthfrTunECIzMUtX4E5F8XzkrLiiOhQ_uBNRkWkQO0zgmG",
   },
   {
     name: "Google Pixel 8",
     price: "18.200.000đ",
-    image: "/images/prod_s24.png",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuD9lBauPgukMezkK2Ul0sLryulXGxggietH7c-l0yX7PZO7SQZNvayGPo8oInHOc_1fEZ1mEEsz18jvtndyRkb9qaZT9KcZDQA6kDT1xyTG-cqLVxi2FFMv6U6tG-zuw3xyOOKZwr8o-yn1Q1s9FBP3yWeX3bmeb8xKl-KkE1NPzwUhyST2yQrnMjy9GXsZFHixuxcj_w0AnqbNUW3ebxTgD8v-TesOf6c7yBsTqHYuS_wACjcJQpW4",
   },
   {
     name: "Xiaomi 13 Ultra",
     price: "24.500.000đ",
-    image: "/images/prod_xiaomi14.png",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBlGvFxRkJf_VE1JEl4LWyK_U_OF4j2ulo3C4jYVLpyNU_7Q-CgSQLHG2gnAqvZK-9WFsSlk7Udw8eOLkf00GDtCyUnveZeGtzI67OzumZoNjWhI16NYGgjLLU__IBPy7YxfRaOMlRETL516jRR8wxxMOS6JToHucLyoeZEofihc05vwpWale8UJ8Ce6mfj8B6_kMY1RIKCtW3y8NJX7oWihyC3mWFdkHCoDAdsAi6OM-rBNiimeNKu",
   },
 ];
 
@@ -58,261 +61,258 @@ export function AccountOverviewPage() {
 
   return (
     <AccountShell title="Tổng quan tài khoản">
-      <div className="min-w-0 space-y-6">
-        {/* Top Profile Card */}
-        <section className="rounded-[1.25rem] bg-white p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] sm:p-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface-soft border border-border">
+      <div className="flex-1 space-y-gutter">
+        {/* Bento Grid Top: Profile & Stats */}
+        <div className="grid grid-cols-1 gap-gutter lg:grid-cols-1">
+          {/* Personal Info Card */}
+          <div className="bento-card col-span-1 lg:col-span-2 rounded-xl p-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-lg">
+              <span className="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-bold text-xs">
+                Hạng Vàng
+              </span>
+            </div>
+            <div className="flex items-center gap-lg">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-md border-4 border-white">
                 <img
-                  src="/images/prod_iphone15.png"
-                  alt={displayName}
-                  className="size-full object-cover"
-                  onError={(e) => {
-                    // Fallback to initial avatar if image fails
-                    e.currentTarget.style.display = "none";
-                  }}
+                  className="w-full h-full object-cover"
+                  alt="Avatar"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2bZvDn7uo1TgAlkFmJk00vw6AuxmZ40QUMAn_UPm0a1H-Hq_ZYxzNFaG_MjqM7J40FyU8e7DV2UB8Dik856Q4NXcU7iGHZaVCVsIAn3blHCLnBH2woxe_KByenZffilHHn2nBk3bRg90EBDpt6iylqpJjChx9BkvtQiLH-gWByqwfKzlW3GujzVzlrUxOSS7vnCAe_sHIiXGCWO6CjJ37CV55zAS_bDRGVbANNJ66M9ipptYRcmdJ"
                 />
-                <span className="text-xl font-black text-primary">
-                  {displayName.slice(0, 2).toUpperCase()}
-                </span>
               </div>
-
               <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-foreground sm:text-3xl">
-                    {displayName}
-                  </h1>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-                  >
-                    <Pencil size={13} /> Chỉnh sửa
+                <h1 className="font-headline-md text-headline-md text-on-surface">
+                  {displayName}
+                </h1>
+                <p className="font-body-md text-on-surface-variant">
+                  {displayPhone}
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs font-label-sm px-2 py-1 bg-surface-container rounded-md">
+                    ID: PP-992834
+                  </span>
+                  <button className="text-primary text-xs hover:underline flex items-center gap-1">
+                    <Pencil size={12} className="text-sm" /> Chỉnh sửa
                   </button>
                 </div>
-                <p className="mt-1 text-xs font-medium text-muted">
-                  {displayPhone} &nbsp;·&nbsp; ID: PP-992834
-                </p>
               </div>
             </div>
-
-            <span className="w-fit rounded-full bg-primary px-4 py-1.5 text-xs font-extrabold text-white shadow-sm">
-              Hạng Vàng
-            </span>
+            {/* Progress Section */}
+            <div className="mt-8 pt-6 border-t border-outline-variant/30">
+              <div className="flex justify-between items-end mb-2">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">
+                  Tiến trình nâng hạng Kim cương
+                </span>
+                <span className="font-label-sm text-label-sm text-primary">
+                  Còn thiếu: 15,000,000đ
+                </span>
+              </div>
+              <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between mt-2">
+                <span className="text-xs text-on-surface-variant">
+                  Hạng Vàng
+                </span>
+                <span className="text-xs text-on-surface-variant font-bold">
+                  Hạng Kim cương
+                </span>
+              </div>
+            </div>
           </div>
-
-          {/* Tier Progress */}
-          <div className="mt-6 border-t border-border/60 pt-5">
-            <div className="mb-2 flex flex-wrap justify-between gap-2 text-xs font-bold">
-              <span className="text-foreground">
-                Tiến trình nâng hạng Kim cương
-              </span>
-              <span className="text-primary">Còn thiếu: 15.000.000đ</span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-neutral-soft">
-              <div
-                className="h-full rounded-full bg-[#E91E63] transition-all duration-[1200ms] ease-out will-change-[width]"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted">
-              <span>Hạng Vàng</span>
-              <span>Hạng Kim cương</span>
-            </div>
+          {/* Quick Stats Column */}
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <StatCard icon={CheckCircle2} value="12" label="Tổng đơn" />
+            <StatCard icon={CircleDollarSign} value="85M" label="Chi tiêu" />
+            <StatCard icon={Star} value="1,200" label="Điểm tích lũy" />
+            <StatCard icon={Heart} value="8" label="Yêu thích" />
           </div>
-        </section>
+        </div>
 
-        {/* 4 Stat Cards */}
-        <section
-          className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-          aria-label="Thống kê tài khoản"
-        >
-          <StatCard value="12" label="Tổng đơn" />
-          <StatCard value="85M" label="Chi tiêu" badge="đ" />
-          <StatCard icon={Star} value="1.200" label="Điểm tích lũy" />
-          <StatCard icon={Heart} value="8" label="Yêu thích" />
-        </section>
-
-        {/* Main Section Grid & Right Widgets */}
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="space-y-6">
-            {/* Recent Orders */}
-            <section className="overflow-hidden rounded-[1.25rem] bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center justify-between p-5 pt-6 pb-2 sm:px-6">
-                <h2 className="text-xl font-extrabold text-foreground">
+        {/* Main Content Area: Orders & Favorites */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+          {/* Recent Orders (2/3 width) */}
+          <div className="lg:col-span-2 space-y-gutter">
+            <div className="bento-card rounded-xl overflow-hidden">
+              <div className="p-lg flex justify-between items-center border-b border-outline-variant/30">
+                <h3 className="font-headline-md text-headline-md text-on-surface">
                   Đơn hàng gần đây
-                </h2>
+                </h3>
                 <Link
                   to="/account/orders"
-                  className="text-xs font-bold text-primary hover:underline"
+                  className="text-primary font-bold text-sm hover:underline"
                 >
                   Xem tất cả
                 </Link>
               </div>
-
-              {orders.length > 0 ? (
-                orders
-                  .slice(0, 3)
-                  .map((o, idx) => (
+              <div className="divide-y divide-outline-variant/20">
+                {orders.length > 0 ? (
+                  orders
+                    .slice(0, 2)
+                    .map((o, idx) => (
+                      <RecentOrderItem
+                        key={idx}
+                        name={o.items?.[0]?.productName || "Đơn hàng PinkPhone"}
+                        code={o.orderCode || `#ORD-${idx + 1}`}
+                        date={new Date(
+                          o.orderDate || Date.now(),
+                        ).toLocaleDateString("vi-VN")}
+                        price={`${(o.totalAmount || 0).toLocaleString(
+                          "vi-VN",
+                        )}đ`}
+                        image="/images/prod_s24.png"
+                      />
+                    ))
+                ) : (
+                  <>
                     <RecentOrderItem
-                      key={idx}
-                      name={o.items?.[0]?.productName || "Đơn hàng PinkPhone"}
-                      code={o.orderCode || `#ORD-${idx}`}
-                      date={new Date(
-                        o.orderDate || Date.now(),
-                      ).toLocaleDateString("vi-VN")}
-                      price={`${(o.totalAmount || 0).toLocaleString("vi-VN")}đ`}
-                      image="/images/prod_s24.png"
+                      name="iPhone 15 Pro Max 256GB - Pink"
+                      code="#ORD-7721"
+                      date="12/03/2024"
+                      price="32,990,000đ"
+                      image="https://lh3.googleusercontent.com/aida-public/AB6AXuC9ZbmsxE7l8ZZIY4RL03JQa4BgHioS2eyfQ_pwtO4mv22j1BLO7v9PWwW_sUarD_vRrKMixXqDRSBdWineOe3sHmf8F7m_clW6MXzDWgy3RyOf7zx7jsdfZyviocZB5V3GREtTShRPeueMjfMfDOgLKHsZOcNFTccSyxLBbD14PiNfkXKUbeOF6DembL4ncAanzBgQE4xilG6dwKksQ3hgmX5A0pywnwqxEMLMgpEdBugzVhRcJ2zp"
                     />
-                  ))
-              ) : (
-                <div className="p-5 text-center text-sm text-gray-500">
-                  Bạn chưa có đơn hàng nào
-                </div>
-              )}
-            </section>
-
-            {/* Favorite Products */}
-            <section className="overflow-hidden rounded-[1.25rem] bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] pb-6">
-              <div className="flex items-center justify-between p-5 pt-6 pb-4 sm:px-6">
-                <h2 className="text-xl font-extrabold text-foreground">
-                  Sản phẩm yêu thích
-                </h2>
+                    <RecentOrderItem
+                      name="Samsung Galaxy Z Flip5"
+                      code="#ORD-6612"
+                      date="05/02/2024"
+                      price="19,450,000đ"
+                      image="https://lh3.googleusercontent.com/aida-public/AB6AXuAJKvS_xvc-aibIJ6czIqWK2bBJdrfQe6WZf2t_WPJnQMdxPo77E4yAKOxQJglAb-KcSiHDlYyAMombBZKDIBsgnBbHEGOq50XkngqIOJDR-BwxitH6TnNDc50lAPK3GJ-ofQUrmGA7Cg3_BHA7sVglbK8jo2QMhvEcMtnGGAV4qmcsVka0WIMI2Iyio5qxFrMb3iqffimpjoaFrQ1wh5kg44mVulQ6iVPuXb9AipniNlMklcc-rSha"
+                    />
+                  </>
+                )}
               </div>
-              <div className="grid sm:grid-cols-3">
+            </div>
+            {/* Favorite Products */}
+            <div className="bento-card rounded-xl overflow-hidden">
+              <div className="p-lg border-b border-outline-variant/30">
+                <h3 className="font-headline-md text-headline-md text-on-surface">
+                  Sản phẩm yêu thích
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-outline-variant/30">
                 {favoriteProducts.map((p) => (
                   <Link
-                    to="/san-pham/pinkphone-ultra-x"
+                    to="/"
                     key={p.name}
-                    className="p-3 px-5 transition hover:-translate-y-1 block text-center"
+                    className="bg-white p-lg hover:bg-surface-container-low transition-all group block"
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-transparent">
+                    <div className="relative w-full aspect-square mb-4">
                       <img
-                        src={p.image}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform mix-blend-multiply"
                         alt={p.name}
-                        className="size-full object-cover mix-blend-multiply"
+                        src={p.image}
                       />
                     </div>
-                    <h3 className="mt-3 text-sm font-bold text-foreground">
+                    <h4 className="text-sm font-label-sm text-on-surface line-clamp-1">
                       {p.name}
-                    </h3>
-                    <p className="mt-1 font-extrabold text-primary text-sm">
-                      {p.price}
-                    </p>
+                    </h4>
+                    <p className="text-primary font-bold">{p.price}</p>
                   </Link>
                 ))}
               </div>
-            </section>
+            </div>
           </div>
-
-          {/* Right Sidebar Column */}
-          <aside className="space-y-4">
-            {/* Pink Vouchers Widget */}
-            <section className="rounded-2xl bg-[#D81B60] p-5 text-white shadow-sm overflow-hidden relative">
-              {/* Decorative background pattern */}
-              <div className="absolute -right-6 -top-6 size-24 rounded-full bg-white/10 blur-2xl" />
-              <div className="absolute -left-6 -bottom-6 size-24 rounded-full bg-black/10 blur-xl" />
-
-              <div className="relative z-10 flex items-center gap-2">
-                <Ticket size={22} className="opacity-90" />
-                <h2 className="text-lg font-extrabold tracking-tight">
-                  Mã giảm giá của bạn
-                </h2>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <div className="rounded-xl border border-white/20 bg-white/10 p-3.5 backdrop-blur-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold tracking-wide">
-                      PINKSPRING24
-                    </span>
-                    <span className="rounded bg-white/20 px-2 py-0.5 text-[10px] font-bold">
-                      Sắp hết hạn
-                    </span>
+          {/* Right Column: Vouchers & Suggestions */}
+          <div className="space-y-gutter">
+            {/* Vouchers Card */}
+            <div className="bento-card rounded-xl p-lg bg-primary-container relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 text-on-primary-container mb-4">
+                  <Ticket size={24} />
+                  <h3 className="font-headline-md text-headline-md">
+                    Mã giảm giá của bạn
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-white font-bold">PINKSPRING24</span>
+                      <span className="text-[10px] bg-secondary text-white px-1.5 py-0.5 rounded">
+                        Sắp hết hạn
+                      </span>
+                    </div>
+                    <p className="text-white/80 text-xs">
+                      Giảm 500k đơn từ 15M
+                    </p>
+                    <p className="text-white/60 text-[10px] mt-2">
+                      Hết hạn: 3 ngày nữa
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-white/90">
-                    Giảm 500k đơn từ 15M
-                  </p>
-                  <p className="mt-1 text-[10px] text-white/70">
-                    Hết hạn: 3 ngày nữa
-                  </p>
+                  <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-white font-bold">MEMBERGOLD</span>
+                    </div>
+                    <p className="text-white/80 text-xs">Giảm 2% phụ kiện</p>
+                    <p className="text-white/60 text-[10px] mt-2">
+                      Hết hạn: 15/04/2024
+                    </p>
+                  </div>
                 </div>
-
-                <div className="rounded-xl border border-white/20 bg-white/10 p-3.5 backdrop-blur-sm">
-                  <span className="font-extrabold tracking-wide">
-                    MEMBERGOLD
-                  </span>
-                  <p className="mt-1 text-xs text-white/90">Giảm 2% phụ kiện</p>
-                  <p className="mt-1 text-[10px] text-white/70">
-                    Hết hạn: 15/04/2024
-                  </p>
-                </div>
+                <Link
+                  to="/account/vouchers"
+                  className="w-full mt-4 flex items-center justify-center py-2 bg-white text-primary rounded-full font-bold text-sm active:scale-95 transition-all"
+                >
+                  Xem kho voucher
+                </Link>
               </div>
-
-              <Link
-                to="/account/vouchers"
-                className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-white text-xs font-extrabold text-primary hover:bg-white/95 transition shadow-sm"
-              >
-                Xem kho voucher
-              </Link>
-            </section>
-
-            {/* Complete Profile Widget */}
-            <section className="rounded-[1.25rem] border border-dashed border-[#D81B60]/40 bg-white p-5 shadow-sm">
-              <h2 className="font-extrabold text-foreground text-base">
+            </div>
+            {/* Profile Completion Suggestion */}
+            <div className="bento-card rounded-xl p-lg border-2 border-dashed border-primary/30 bg-primary/5">
+              <h3 className="font-label-sm text-on-surface mb-2">
                 Hoàn thiện hồ sơ
-              </h2>
-              <p className="mt-1 text-xs leading-5 text-muted">
+              </h3>
+              <p className="text-xs text-on-surface-variant mb-4">
                 Hoàn thành thông tin để nhận thêm 200 điểm thưởng và ưu đãi cá
                 nhân hóa.
               </p>
-              <ul className="mt-4 space-y-2.5 text-xs">
-                <li className="flex items-center gap-2 font-semibold text-success">
-                  <CheckCircle2 size={16} className="text-success shrink-0" />{" "}
-                  Xác thực số điện thoại
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3 text-xs">
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <span className="text-on-surface-variant">
+                    Xác thực số điện thoại
+                  </span>
                 </li>
-                <li className="flex items-center gap-2 text-muted">
-                  <Circle size={16} className="text-muted/60 shrink-0" /> Thêm
-                  ngày sinh nhật
+                <li className="flex items-center gap-3 text-xs">
+                  <Circle size={16} className="text-outline" />
+                  <span className="text-on-surface font-bold">
+                    Thêm ngày sinh nhật
+                  </span>
                 </li>
-                <li className="flex items-center gap-2 text-muted">
-                  <Circle size={16} className="text-muted/60 shrink-0" /> Liên
-                  kết tài khoản mạng xã hội
+                <li className="flex items-center gap-3 text-xs">
+                  <Circle size={16} className="text-outline" />
+                  <span className="text-on-surface font-bold">
+                    Liên kết tài khoản mạng xã hội
+                  </span>
                 </li>
               </ul>
-              <button
-                type="button"
-                className="mt-5 min-h-10 w-full rounded-xl bg-primary text-xs font-extrabold text-white hover:bg-primary-strong transition shadow-sm"
-              >
+              <button className="w-full mt-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-secondary transition-colors">
                 Cập nhật ngay
               </button>
-            </section>
-
-            {/* Need Support Widget */}
-            <section className="rounded-[1.25rem] bg-neutral-soft p-5 shadow-sm">
-              <div className="flex items-center gap-2 font-extrabold text-foreground text-sm">
-                <Headphones size={18} className="text-primary" /> Bạn cần hỗ
-                trợ?
+            </div>
+            {/* Help Center */}
+            <div className="bento-card rounded-xl p-lg bg-surface-container-highest">
+              <div className="flex items-center gap-3 mb-3">
+                <Headphones size={24} className="text-primary" />
+                <h3 className="font-label-sm text-on-surface">
+                  Bạn cần hỗ trợ?
+                </h3>
               </div>
-              <p className="mt-1.5 text-xs leading-5 text-muted">
+              <p className="text-xs text-on-surface-variant mb-4">
                 Đội ngũ CSKH PinkPhone luôn sẵn sàng lắng nghe bạn 24/7.
               </p>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  className="inline-flex min-h-9 items-center justify-center rounded-xl bg-white border border-border font-bold hover:bg-surface-soft transition"
-                >
+              <div className="flex gap-2">
+                <button className="flex-1 py-2 bg-white text-on-surface rounded-lg text-xs font-bold border border-outline-variant hover:bg-surface-container transition-all">
                   Chat ngay
                 </button>
-                <a
-                  href="tel:18006601"
-                  className="inline-flex min-h-9 items-center justify-center rounded-xl bg-white border border-border font-bold hover:bg-surface-soft transition"
-                >
+                <button className="flex-1 py-2 bg-white text-on-surface rounded-lg text-xs font-bold border border-outline-variant hover:bg-surface-container transition-all">
                   Gọi hotline
-                </a>
+                </button>
               </div>
-            </section>
-          </aside>
+            </div>
+          </div>
         </div>
       </div>
     </AccountShell>
@@ -323,22 +323,19 @@ function StatCard({
   icon: Icon,
   value,
   label,
-  badge,
 }: {
-  icon?: typeof Heart;
+  icon: any;
   value: string;
   label: string;
-  badge?: string;
 }) {
   return (
-    <article className="rounded-[1.25rem] bg-white p-4 text-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
-      {Icon && <Icon className="mx-auto text-primary" size={20} />}
-      {badge && (
-        <span className="mx-auto text-xs font-black text-primary">{badge}</span>
-      )}
-      <p className="mt-2 text-2xl font-extrabold text-foreground">{value}</p>
-      <p className="mt-1 text-xs text-muted font-medium">{label}</p>
-    </article>
+    <div className="bento-card rounded-xl p-4 flex flex-col justify-center items-center text-center">
+      <Icon className="text-primary mb-2" size={24} />
+      <div className="text-2xl font-black text-on-surface">{value}</div>
+      <div className="text-xs text-on-surface-variant font-label-sm">
+        {label}
+      </div>
+    </div>
   );
 }
 
@@ -356,34 +353,31 @@ function RecentOrderItem({
   image: string;
 }) {
   return (
-    <article className="flex flex-col gap-4 p-5 sm:px-6 sm:py-5 border-b border-border/40 last:border-0 sm:flex-row sm:items-center">
-      <div className="relative aspect-square w-20 shrink-0 overflow-hidden rounded-xl bg-[#F8F9FA] p-2">
-        <img
-          src={image}
-          alt={name}
-          className="size-full object-contain mix-blend-multiply"
-        />
+    <div className="p-lg flex items-center justify-between hover:bg-surface-container-low transition-colors">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 bg-surface-container rounded-lg p-2">
+          <img
+            className="w-full h-full object-contain mix-blend-multiply"
+            alt={name}
+            src={image}
+          />
+        </div>
+        <div>
+          <h4 className="font-label-sm text-on-surface">{name}</h4>
+          <p className="text-xs text-on-surface-variant">
+            Đơn hàng: {code} | {date}
+          </p>
+          <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase">
+            Thành công
+          </span>
+        </div>
       </div>
-
-      <div className="min-w-0 flex-1">
-        <h3 className="font-extrabold text-sm text-foreground">{name}</h3>
-        <p className="mt-1 text-xs text-muted">
-          Đơn hàng: {code} &nbsp;|&nbsp; {date}
-        </p>
-        <span className="mt-2 inline-block rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-600 border border-emerald-200">
-          THÀNH CÔNG
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
-        <p className="font-extrabold text-foreground text-sm">{price}</p>
-        <Link
-          to="/san-pham/pinkphone-ultra-x"
-          className="inline-flex min-h-8 items-center justify-center rounded-full border border-primary px-4 text-xs font-bold text-primary hover:bg-primary/10 transition"
-        >
+      <div className="text-right">
+        <div className="font-bold text-on-surface">{price}</div>
+        <button className="mt-1 text-xs text-primary font-bold border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-all">
           Mua lại
-        </Link>
+        </button>
       </div>
-    </article>
+    </div>
   );
 }

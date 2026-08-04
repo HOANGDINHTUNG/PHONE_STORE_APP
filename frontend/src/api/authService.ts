@@ -175,3 +175,21 @@ export const confirmEmailVerificationApi = async (
     return true;
   }
 };
+
+export const checkExistsApi = async (
+  email?: string,
+  phone?: string,
+): Promise<{ emailExists?: boolean; phoneExists?: boolean }> => {
+  try {
+    const params = new URLSearchParams();
+    if (email) params.append("email", email);
+    if (phone) params.append("phone", phone);
+    const response = await apiClient.get(
+      `/auth/check-exists?${params.toString()}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.warn("Error checking existing user:", error);
+    return {};
+  }
+};

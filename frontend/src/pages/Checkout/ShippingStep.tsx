@@ -1,12 +1,23 @@
 import React from "react";
 import { OrderSummarySidebar } from "./components/OrderSummarySidebar";
 import { Checkbox } from "antd";
+import { CheckoutData } from "./index";
 
 type ShippingStepProps = {
   onNext: () => void;
+  checkoutData: CheckoutData;
+  setCheckoutData: React.Dispatch<React.SetStateAction<CheckoutData>>;
 };
 
-const ShippingStep = ({ onNext }: ShippingStepProps) => {
+const ShippingStep = ({
+  onNext,
+  checkoutData,
+  setCheckoutData,
+}: ShippingStepProps) => {
+  const handleChange = (field: keyof CheckoutData, value: string) => {
+    setCheckoutData((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start">
       <div className="flex-1 w-full max-w-3xl">
@@ -27,7 +38,9 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Nguyễn Văn A"
+                  value={checkoutData.guestName}
+                  onChange={(e) => handleChange("guestName", e.target.value)}
+                  placeholder="Nguyễn Văn A"
                   className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors"
                 />
               </div>
@@ -37,7 +50,9 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
                 </label>
                 <input
                   type="text"
-                  defaultValue="0901234567"
+                  value={checkoutData.guestPhone}
+                  onChange={(e) => handleChange("guestPhone", e.target.value)}
+                  placeholder="0901234567"
                   className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors"
                 />
               </div>
@@ -47,8 +62,10 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
                 </label>
                 <input
                   type="email"
-                  defaultValue="nguyenvana@example.com"
-                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors text-gray-500"
+                  value={checkoutData.guestEmail}
+                  onChange={(e) => handleChange("guestEmail", e.target.value)}
+                  placeholder="nguyenvana@example.com"
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors text-gray-900"
                 />
               </div>
             </div>
@@ -73,9 +90,6 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
               <h2 className="text-xl font-bold text-gray-900">
                 Địa chỉ giao hàng
               </h2>
-              <button className="text-[#E91E63] text-sm font-bold border-b border-[#E91E63] pb-0.5 hover:text-[#C2185B] hover:border-[#C2185B]">
-                Sổ địa chỉ
-              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
@@ -84,8 +98,15 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
                   Tỉnh/Thành phố *
                 </label>
                 <div className="relative">
-                  <select className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm appearance-none focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors">
-                    <option>Hồ Chí Minh</option>
+                  <select
+                    value={checkoutData.guestProvinceCode}
+                    onChange={(e) =>
+                      handleChange("guestProvinceCode", e.target.value)
+                    }
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm appearance-none focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors"
+                  >
+                    <option value="HCM">Hồ Chí Minh</option>
+                    <option value="HN">Hà Nội</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                     <svg
@@ -109,8 +130,15 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
                   Quận/Huyện *
                 </label>
                 <div className="relative">
-                  <select className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm appearance-none focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors">
-                    <option>Quận 1</option>
+                  <select
+                    value={checkoutData.guestDistrictCode}
+                    onChange={(e) =>
+                      handleChange("guestDistrictCode", e.target.value)
+                    }
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm appearance-none focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors"
+                  >
+                    <option value="Q1">Quận 1</option>
+                    <option value="Q2">Quận 2</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                     <svg
@@ -134,8 +162,14 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
                   Phường/Xã *
                 </label>
                 <div className="relative">
-                  <select className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm appearance-none focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors">
-                    <option>Phường Bến Nghé</option>
+                  <select
+                    value={checkoutData.guestWardCode}
+                    onChange={(e) =>
+                      handleChange("guestWardCode", e.target.value)
+                    }
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm appearance-none focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors"
+                  >
+                    <option value="BN">Phường Bến Nghé</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                     <svg
@@ -162,22 +196,13 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
               </label>
               <input
                 type="text"
+                value={checkoutData.guestDetailAddress}
+                onChange={(e) =>
+                  handleChange("guestDetailAddress", e.target.value)
+                }
                 placeholder="Ví dụ: 123 Lê Lợi"
-                className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors text-gray-50"
-                defaultValue=""
+                className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors text-gray-900"
               />
-            </div>
-
-            <div className="space-y-3">
-              <Checkbox
-                checked
-                className="text-gray-700 text-sm font-semibold flex items-center gap-2 custom-pink-checkbox"
-              >
-                Lưu địa chỉ này cho lần sau
-              </Checkbox>
-              <Checkbox className="text-gray-700 text-sm font-semibold flex items-center gap-2 custom-pink-checkbox">
-                Đặt làm địa chỉ mặc định
-              </Checkbox>
             </div>
           </section>
 
@@ -187,6 +212,8 @@ const ShippingStep = ({ onNext }: ShippingStepProps) => {
               Ghi chú đơn hàng
             </h2>
             <textarea
+              value={checkoutData.note}
+              onChange={(e) => handleChange("note", e.target.value)}
               placeholder="Ghi chú về thời gian giao hàng, hướng dẫn tìm nhà... (Tuỳ chọn)"
               className="w-full h-24 p-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors resize-none placeholder-gray-400"
             ></textarea>

@@ -53,7 +53,22 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     const saved =
       localStorage.getItem("pinkphone_user") ||
       sessionStorage.getItem("pinkphone_user");
-    return saved ? JSON.parse(saved) : null;
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Tự động clear mock user Nguyễn Văn Client bị kẹt trong Cache
+        if (parsed?.name === "Nguyễn Văn Client") {
+          localStorage.removeItem("pinkphone_user");
+          sessionStorage.removeItem("pinkphone_user");
+          return null;
+        }
+        return parsed;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   });
 
   const [cart, setCart] = useState<CartItem[]>(() => {

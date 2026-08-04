@@ -3,13 +3,42 @@ import { ShoppingBag, HelpCircle, CheckCircle2 } from "lucide-react";
 import ShippingStep from "./ShippingStep";
 import PaymentStep from "./PaymentStep";
 import ConfirmationStep from "./ConfirmationStep";
-import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
 
 export type CheckoutStep = "shipping" | "payment" | "confirmation";
 
+export type CheckoutData = {
+  guestName: string;
+  guestPhone: string;
+  guestEmail: string;
+  guestProvinceCode: string;
+  guestProvinceName?: string;
+  guestDistrictCode: string;
+  guestDistrictName?: string;
+  guestWardCode: string;
+  guestWardName?: string;
+  guestDetailAddress: string;
+  note: string;
+  paymentMethod: "COD" | "BANK_TRANSFER" | "MOMO" | "VNPAY";
+};
+
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
+  const [checkoutData, setCheckoutData] = useState<CheckoutData>({
+    guestName: "Nguyễn Văn A",
+    guestPhone: "0901234567",
+    guestEmail: "nguyenvana@example.com",
+    guestProvinceCode: "HCM",
+    guestProvinceName: "Hồ Chí Minh",
+    guestDistrictCode: "Q1",
+    guestDistrictName: "Quận 1",
+    guestWardCode: "BN",
+    guestWardName: "Phường Bến Nghé",
+    guestDetailAddress: "123 Lê Lợi",
+    note: "",
+    paymentMethod: "COD",
+  });
+
   const navigate = useNavigate();
 
   const handleNext = (nextStep: CheckoutStep) => {
@@ -18,7 +47,6 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 lg:px-8 h-[72px] flex items-center justify-between">
           <div className="flex-1">
@@ -29,7 +57,6 @@ const Checkout = () => {
               PinkPhone
             </div>
           </div>
-
           <div className="flex-1 flex justify-center items-center gap-4 text-[13px]">
             {/* SHIPPING STEP */}
             <div
@@ -48,9 +75,7 @@ const Checkout = () => {
               )}
               <span>Shipping</span>
             </div>
-
             <div className="w-6 border-b border-gray-300"></div>
-
             {/* PAYMENT STEP */}
             <div
               className={`flex items-center gap-1.5 ${currentStep === "payment" ? "text-[#C2185B] font-bold" : "text-gray-600 font-semibold"}`}
@@ -70,9 +95,7 @@ const Checkout = () => {
               )}
               <span>Payment</span>
             </div>
-
             <div className="w-6 border-b border-gray-300"></div>
-
             {/* CONFIRMATION STEP */}
             <div
               className={`flex items-center gap-1.5 ${currentStep === "confirmation" ? "text-[#C2185B] font-bold" : "text-gray-600 font-semibold"}`}
@@ -87,7 +110,6 @@ const Checkout = () => {
               <span>Confirmation</span>
             </div>
           </div>
-
           <div className="flex-1 flex justify-end items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-50 cursor-pointer transition-colors">
               <HelpCircle
@@ -110,37 +132,34 @@ const Checkout = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-10">
         {currentStep === "shipping" && (
-          <ShippingStep onNext={() => handleNext("payment")} />
+          <ShippingStep
+            onNext={() => handleNext("payment")}
+            checkoutData={checkoutData}
+            setCheckoutData={setCheckoutData}
+          />
         )}
         {currentStep === "payment" && (
           <PaymentStep
             onNext={() => handleNext("confirmation")}
             onBack={() => handleNext("shipping")}
+            checkoutData={checkoutData}
+            setCheckoutData={setCheckoutData}
+            isSubmitting={false}
           />
         )}
         {currentStep === "confirmation" && (
-          <ConfirmationStep onBack={() => handleNext("payment")} />
+          <ConfirmationStep
+            onBack={() => handleNext("payment")}
+            checkoutData={checkoutData}
+          />
         )}
       </main>
 
-      {/* Footer */}
       <footer className="mt-16 bg-[#FAFAFA] border-t border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <p>&copy; 2024 PinkPhone. All rights reserved.</p>
-          <div className="flex gap-6 mt-4 md:mt-0 font-medium">
-            <a href="#" className="hover:text-gray-900 transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-gray-900 transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-gray-900 transition-colors">
-              Contact Support
-            </a>
-          </div>
         </div>
       </footer>
     </div>

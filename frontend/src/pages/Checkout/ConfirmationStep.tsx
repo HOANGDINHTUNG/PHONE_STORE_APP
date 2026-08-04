@@ -9,25 +9,31 @@ import {
 } from "lucide-react";
 import { PhoneStripImage } from "../../features/storefront/components/PhoneStripImage";
 import { useStore } from "../../context/StoreContext";
-import { checkoutApi } from "../../api/orderService";
+import { checkoutApi, createPaymentAttemptApi } from "../../api/orderService";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
+import { CheckoutData } from "./index";
 
 type ConfirmationStepProps = {
   onBack: () => void;
+  checkoutData: CheckoutData;
 };
 
-const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
+const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
   const { cart, clearCart } = useStore();
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(false);
 
+  const getPriceNum = (val?: string | number): number => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string") return parseInt(val.replace(/\D/g, "")) || 0;
+    return 0;
+  };
+
   const subtotal = cart.reduce((sum, item) => {
-    // try use newPrice if it's string or number, parse if necessary. Assuming price is a string like "25.000.0s000đ" in mock, wait, earlier productService returns `newPrice` as string "28.490.000đ". Let's clean it up for math.
-    const priceNum =
-      typeof item.newPrice === "string"
-        ? parseInt(item.newPrice.replace(/\D/g, "")) || 0
-        : item.price || 0; // fallback
+    const priceNum = item.newPrice
+      ? getPriceNum(item.newPrice)
+      : getPriceNum(item.price);
     return sum + priceNum * item.quantity;
   }, 0);
 
@@ -39,18 +45,68 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
 
   const handlePlaceOrder = async () => {
     setLoading(true);
-    const success = await checkoutApi({
-      items: cart.map((c) => ({ productId: c.id, quantity: c.quantity })),
-      totalAmount: total,
-    });
-    setLoading(false);
+    try {
+      const orderIdempotencyKey = crypto.randomUUID();
 
-    if (success) {
-      clearCart();
-      message.success("Đặt hàng thành công!");
-      navigate("/");
-    } else {
-      message.error("Lỗi đặt hàng, vui lòng thử lại.");
+      const orderResponse = await checkoutApi({
+        idempotencyKey: orderIdempotencyKey,
+        guestName: checkoutData.guestName,
+        guestPhone: checkoutData.guestPhone,
+        guestEmail: checkoutData.guestEmail,
+        guestProvinceCode: checkoutData.guestProvinceCode,
+        guestProvinceName:
+          checkoutData.guestProvinceName || checkoutData.guestProvinceCode,
+        guestDistrictCode: checkoutData.guestDistrictCode,
+        guestDistrictName:
+          checkoutData.guestDistrictName || checkoutData.guestDistrictCode,
+        guestWardCode: checkoutData.guestWardCode,
+        guestWardName: checkoutData.guestWardName || checkoutData.guestWardCode,
+        guestDetailAddress: checkoutData.guestDetailAddress,
+        note: checkoutData.note,
+        items: cart.map((item) => ({
+          productVariantId: item.id.toString(),
+          quantity: item.quantity,
+        })),
+      });
+
+      if (!orderResponse || !orderResponse.orderCode) {
+        throw new Error("Tạo đơn hàng thất bại, thiếu mã đơn hàng.");
+      }
+
+      const paymentIdempotencyKey = crypto.randomUUID();
+      const paymentAttempt = await createPaymentAttemptApi(
+        orderResponse.orderCode,
+        paymentIdempotencyKey,
+        {
+          method: checkoutData.paymentMethod,
+        },
+      );
+
+      if (!paymentAttempt) {
+        message.warning(
+          "Tạo đơn hàng thành công nhưng khởi tạo thanh toán thất bại.",
+        );
+      } else {
+        clearCart();
+        if (
+          checkoutData.paymentMethod === "VNPAY" &&
+          paymentAttempt.redirectUrl
+        ) {
+          window.location.href = paymentAttempt.redirectUrl;
+          return;
+        } else {
+          message.success("Đặt hàng thành công!");
+          navigate("/");
+        }
+      }
+    } catch (err: any) {
+      if (err.response && err.response.data && err.response.data.message) {
+        message.error(err.response.data.message);
+      } else {
+        message.error("Lỗi đặt hàng, vui lòng thử lại.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,9 +121,8 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
           {/* Contact Info Card */}
           <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-gray-900 border-b-2 border-transparent hover:border-gray-200 cursor-default flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <User size={18} className="text-[#E91E63]" /> Thông tin liên hệ
-                & Nhận hàng
               </h2>
               <button
                 onClick={onBack}
@@ -80,18 +135,19 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500 font-semibold mb-1">
-                  Người gửi
-                </p>
-                <p className="text-sm text-gray-900">Nguyễn Văn A</p>
-                <p className="text-sm text-gray-900">0901234567</p>
-                <p className="text-sm text-gray-900">nguyenvana@email.com</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-semibold mb-1">
                   Người nhận
                 </p>
-                <p className="text-sm text-gray-900">Trần Thị B</p>
-                <p className="text-sm text-gray-900">0987654321</p>
+                <p className="text-sm text-gray-900">
+                  {checkoutData.guestName}
+                </p>
+                <p className="text-sm text-gray-900">
+                  {checkoutData.guestPhone}
+                </p>
+                {checkoutData.guestEmail && (
+                  <p className="text-sm text-gray-900">
+                    {checkoutData.guestEmail}
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -111,21 +167,24 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
               </button>
             </div>
             <p className="text-sm text-gray-900">
-              123 Đường Nguyễn Trãi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh
+              {checkoutData.guestDetailAddress}, {checkoutData.guestWardCode},{" "}
+              {checkoutData.guestDistrictCode}, {checkoutData.guestProvinceCode}
             </p>
           </section>
 
           {/* Note Card */}
-          <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <AlignLeft size={18} className="text-[#E91E63]" /> Ghi chú
-              </h2>
-            </div>
-            <p className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3">
-              "Giao hàng giờ hành chính. Xin vui lòng gọi trước 30 phút."
-            </p>
-          </section>
+          {checkoutData.note && (
+            <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <AlignLeft size={18} className="text-[#E91E63]" /> Ghi chú
+                </h2>
+              </div>
+              <p className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3">
+                "{checkoutData.note}"
+              </p>
+            </section>
+          )}
 
           {/* Payment Method Card */}
           <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
@@ -142,11 +201,8 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
               </button>
             </div>
             <div className="flex items-center gap-3 mt-2">
-              <div className="w-8 flex justify-center font-bold bg-blue-50 text-blue-600 rounded text-[10px] h-6 items-center px-1 border border-blue-100">
-                VN
-              </div>
-              <span className="text-sm text-gray-800">
-                Thanh toán qua VNPAY
+              <span className="text-sm font-bold text-gray-800">
+                {checkoutData.paymentMethod}
               </span>
             </div>
           </section>
@@ -159,7 +215,6 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
                 sản phẩm
               </h2>
             </div>
-
             <div className="space-y-0 divide-y divide-gray-100 border-t border-gray-100 pt-2">
               {cart.map((item, idx) => (
                 <div
@@ -186,9 +241,6 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
                         Màu sắc: {item.selectedColor || "Mặc định"} | Lưu trữ:{" "}
                         {item.selectedStorage || "Mặc định"}
                       </p>
-                      <p className="text-xs text-[#E91E63] mt-1.5 flex items-center gap-1 font-medium">
-                        <ShieldCheck size={14} /> Bảo hành chính hãng
-                      </p>
                     </div>
 
                     <div className="flex items-end justify-between mt-3 text-sm">
@@ -196,7 +248,8 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
                         SL: {item.quantity}
                       </span>
                       <span className="font-extrabold text-gray-900">
-                        {item.newPrice || formatCurrency(item.price as number)}
+                        {item.newPrice ||
+                          formatCurrency(getPriceNum(item.price))}
                       </span>
                     </div>
                   </div>
@@ -217,20 +270,20 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
           <div className="space-y-4 text-sm mb-6 border-b border-gray-100 pb-6">
             <div className="flex justify-between">
               <span className="text-gray-500 font-medium">
-                Tạm tính (2 sản phẩm)
+                Tạm tính ({cart.length} sản phẩm)
               </span>
               <span className="text-gray-900 font-medium">
                 {formatCurrency(subtotal)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-[#E91E63] font-medium">
-                Giảm giá (Mã: PINKNEW)
-              </span>
-              <span className="text-[#E91E63] font-semibold">
-                -{formatCurrency(discount)}
-              </span>
-            </div>
+            {discount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-[#E91E63] font-medium">Giảm giá</span>
+                <span className="text-[#E91E63] font-semibold">
+                  -{formatCurrency(discount)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-500 font-medium">Phí giao hàng</span>
               <span className="text-gray-900 font-medium">Miễn phí</span>
@@ -248,9 +301,6 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
               <span className="text-2xl font-bold text-[#E91E63] border-b-2 border-[#E91E63] ml-1 pb-0.5">
                 đ
               </span>
-              <p className="text-[11px] text-gray-500 font-medium mt-1 uppercase tracking-wider">
-                (Đã bao gồm VAT)
-              </p>
             </div>
           </div>
 
@@ -261,17 +311,6 @@ const ConfirmationStep = ({ onBack }: ConfirmationStepProps) => {
           >
             {loading ? "Đang xử lý..." : "Đặt hàng"}
           </button>
-
-          <p className="text-xs text-center text-gray-500 mt-4 px-2 leading-relaxed font-medium">
-            Bằng cách nhấn Đặt hàng, bạn đồng ý với các{" "}
-            <a
-              href="#"
-              className="text-[#E91E63] hover:underline cursor-pointer decoration-[#E91E63]"
-            >
-              điều khoản của PinkPhone
-            </a>
-            .
-          </p>
         </div>
       </aside>
     </div>

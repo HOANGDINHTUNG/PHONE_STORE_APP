@@ -1,14 +1,18 @@
 import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
-import Home from "../pages/Home";
+import { HomePage } from "../features/home/pages/HomePage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
+import VnpayReturn from "../pages/Checkout/VnpayReturn";
 import { AccountOverviewPage } from "../features/account/pages/AccountOverviewPage";
 import { OrderHistoryPage } from "../features/account/pages/OrderHistoryPage";
+import { OrderTrackingPage } from "../features/account/pages/OrderTrackingPage";
+import { WarrantyPage } from "../features/account/pages/WarrantyPage";
+import { MembershipTierPage } from "../features/account/pages/MembershipTierPage";
 import {
   MyReviewsPage,
   ReturnsPage,
@@ -21,12 +25,11 @@ import EmailVerification from "../pages/EmailVerification";
 export const router = createBrowserRouter([
   {
     path: "/",
+    element: <HomePage />,
+  },
+  {
     element: <AppLayout />,
     children: [
-      {
-        path: "/",
-        element: <Home />,
-      },
       {
         path: "/product/:slug",
         element: <ProductDetail />,
@@ -46,6 +49,18 @@ export const router = createBrowserRouter([
     element: <OrderHistoryPage />,
   },
   {
+    path: "/account/tracking",
+    element: <OrderTrackingPage />,
+  },
+  {
+    path: "/account/warranty",
+    element: <WarrantyPage />,
+  },
+  {
+    path: "/account/tier",
+    element: <MembershipTierPage />,
+  },
+  {
     path: "/account/reviews",
     element: <MyReviewsPage />,
   },
@@ -60,6 +75,10 @@ export const router = createBrowserRouter([
   {
     path: "/checkout",
     element: <Checkout />,
+  },
+  {
+    path: "/payment/vnpay-return",
+    element: <VnpayReturn />,
   },
   {
     path: "/login",

@@ -15,6 +15,7 @@ import {
   Ticket,
   Truck,
   User,
+  Award,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AccountHeader } from "./AccountHeader";
@@ -26,6 +27,7 @@ const accountNavigation = [
   [Truck, "Theo dõi đơn hàng", "/account/tracking"],
   [MessageSquare, "Đánh giá của tôi", "/account/reviews"],
   [ShieldCheck, "Bảo hành của tôi", "/account/warranty"],
+  [Award, "Hạng thành viên", "/account/tier"],
   [RefreshCcw, "Đổi trả & hoàn tiền", "/account/returns"],
   [Bell, "Thông báo", "/account/notifications"],
   [Ticket, "Ưu đãi & mã giảm giá", "/account/vouchers"],
@@ -65,19 +67,9 @@ export function AccountShell({
     <div className="min-h-screen bg-[#F4F5F7] text-foreground flex flex-col font-sans">
       <AccountHeader />
 
-      <main className="flex-1">
-        <div className="mx-auto max-w-[1300px] px-4 py-8 sm:px-6 lg:py-10">
-          <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
-            <AccountSidebar />
-
-            <div className="min-w-0">
-              <header className="hidden">
-                {/* Visual title hidden since we match exactly the mockup structure which has no page title rendering here */}
-              </header>
-              {children}
-            </div>
-          </div>
-        </div>
+      <main className="max-w-[1200px] mx-auto w-full px-4 md:px-margin-desktop py-lg flex flex-col md:flex-row gap-gutter">
+        <AccountSidebar />
+        <div className="flex-1 min-w-0">{children}</div>
       </main>
       <SiteFooter />
     </div>
@@ -99,61 +91,59 @@ export function AccountSidebar() {
   };
 
   return (
-    <aside className="min-w-0 max-w-full lg:sticky lg:top-28 rounded-2xl bg-[#FBFBFB] py-6 px-4">
-      <div className="flex flex-col items-center gap-3 pb-6 border-b border-border/40 text-center">
-        <div className="grid size-16 shrink-0 place-items-center rounded-full bg-pink-50 p-1">
-          <img
-            src="/images/prod_iphone15.png"
-            alt="Avatar"
-            className="size-full rounded-full object-cover"
-          />
-        </div>
-        <div className="min-w-0">
-          <p className="font-extrabold text-[#D81B60] text-[15px]">
-            {user ? user.name : "Thành viên PinkPhone"}
-          </p>
-          <p className="text-[11px] font-semibold text-[#888888] mt-1">
-            Chào mừng bạn trở lại
-          </p>
-        </div>
-      </div>
-      <nav
-        className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:gap-[6px] pt-4"
-        aria-label="Khu vực tài khoản"
-      >
-        {accountNavigation.map(([Icon, label, href]) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              to={href}
-              className={`flex min-h-[44px] shrink-0 items-center gap-4 rounded-lg px-4 text-[13px] transition ${
-                active
-                  ? "bg-[#D81B60] text-white font-bold shadow-[0_2px_8px_rgba(216,27,96,0.3)]"
-                  : "text-[#555555] hover:bg-neutral-soft/60 hover:text-foreground font-semibold"
-              }`}
+    <aside className="w-full md:w-64 shrink-0">
+      <div className="bg-surface-container-low dark:bg-surface-container-highest rounded-xl shadow-sm p-4 flex flex-col gap-2">
+        <div className="flex items-center gap-3 mb-6 px-2">
+          <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-primary">
+            <img
+              className="w-full h-full object-cover"
+              alt="Avatar"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuALxoNNgeP5lrulOxltVYMatoHQe3VbIeo6N55Q73hxAF2r3rcEFWeDxTG6x9wrTmOJ7ra_WD6H-7SXSQq1vhgx9TfA6I79PIXZqji9LtXpkkdPzwSv_dtJOqLvSqHxCcAsf3zSk-oMWCo1JKx4U2FNxS35hXLXT6aEELno_nhRtJyE_fpRJZ6-DZDpgGRdGH6nLrnECvHFm_hVbqHBwIlWYSWZ8Rz-yk-ezvpdoTH5fYi23tHoE4kh"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2
+              className="font-headline-md text-label-sm text-primary truncate"
+              title={user ? user.name : "Thành viên PinkPhone"}
             >
-              <Icon
-                size={18}
-                className={active ? "opacity-100" : "text-[#777777]"}
-              />
-              {label}
-            </Link>
-          );
-        })}
-        <div className="pt-2 mt-2">
+              {user ? user.name : "Thành viên PinkPhone"}
+            </h2>
+            <p className="font-body-md text-xs text-on-surface-variant truncate">
+              Chào mừng bạn trở lại
+            </p>
+          </div>
+        </div>
+        <nav className="flex flex-col gap-1">
+          {accountNavigation.map(([Icon, label, href]) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                to={href}
+                className={`flex items-center gap-3 rounded-lg px-4 py-2 transition-all ${
+                  active
+                    ? "bg-primary-container text-on-primary-container font-bold scale-98"
+                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary font-medium"
+                }`}
+              >
+                <Icon size={20} className={active ? "" : "opacity-80"} />
+                <span className="font-label-sm text-label-sm">{label}</span>
+              </Link>
+            );
+          })}
           <button
             type="button"
             onClick={() => {
               logout();
               navigate("/");
             }}
-            className="flex min-h-[44px] w-full shrink-0 items-center gap-4 rounded-lg px-4 text-[13px] font-bold transition text-[#D81B60] hover:bg-red-50"
+            className="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg px-4 py-2 transition-all mt-4 text-error"
           >
-            <LogOut size={18} /> Đăng xuất
+            <LogOut size={20} />
+            <span className="font-label-sm text-label-sm">Đăng xuất</span>
           </button>
-        </div>
-      </nav>
+        </nav>
+      </div>
     </aside>
   );
 }

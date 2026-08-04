@@ -20,6 +20,7 @@ import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
 import com.re.ecommerce.modules.auth.entity.CustomerProfile;
 
 import com.re.ecommerce.modules.order.dto.request.CheckoutRequest;
+import com.re.ecommerce.modules.order.dto.request.CheckoutItemRequest;
 import com.re.ecommerce.modules.order.dto.response.OrderItemResponse;
 import com.re.ecommerce.modules.order.dto.response.OrderResponse;
 import com.re.ecommerce.modules.order.entity.CouponUsage;
@@ -87,9 +88,13 @@ public class OrderServiceImpl implements OrderService {
             guestTokenHash = hashIdempotency(guestToken);
         }
         
-        Cart cart = getCart(currentUser, guestTokenHash);
-        if (cart.getItems() == null || cart.getItems().isEmpty()) {
-            throw new BusinessConflictException("CART_EMPTY", "Cart is empty");
+        Cart cart = null;
+        boolean hasDirectItems = request.items() != null && !request.items().isEmpty();
+        if (!hasDirectItems) {
+            cart = getCart(currentUser, guestTokenHash);
+            if (cart.getItems() == null || cart.getItems().isEmpty()) {
+                throw new BusinessConflictException("CART_EMPTY", "Cart is empty");
+            }
         }
         
         Order order = buildOrderSnapshot(currentUser, request);
@@ -99,14 +104,23 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal subtotal = BigDecimal.ZERO;
         
         // Prepare items array
-        List<UUID> variantIds = cart.getItems().stream()
-                .map(item -> item.getProductVariant().getId())
-                .toList();
+        List<UUID> variantIds = new ArrayList<>();
+        if (hasDirectItems) {
+            variantIds = request.items().stream().map(CheckoutItemRequest::productVariantId).toList();
+        } else {
+            variantIds = cart.getItems().stream().map(item -> item.getProductVariant().getId()).toList();
+        }
+        
         java.util.Map<UUID, ProductVariant> variantMap = productVariantRepository.findAllById(variantIds).stream()
                 .collect(Collectors.toMap(ProductVariant::getId, v -> v));
                 
-        for (CartItem cartItem : cart.getItems()) {
-            ProductVariant variant = Optional.ofNullable(variantMap.get(cartItem.getProductVariant().getId()))
+        int itemCount = hasDirectItems ? request.items().size() : cart.getItems().size();
+        
+        for (int i = 0; i < itemCount; i++) {
+            UUID variantId = hasDirectItems ? request.items().get(i).productVariantId() : cart.getItems().get(i).getProductVariant().getId();
+            int demand = hasDirectItems ? request.items().get(i).quantity() : cart.getItems().get(i).getQuantity();
+            
+            ProductVariant variant = Optional.ofNullable(variantMap.get(variantId))
                     .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND", "Variant not found"));
             
             if (variant.getProduct().getPublicationStatus() != com.re.ecommerce.modules.catalog.entity.PublicationStatus.ACTIVE || 
@@ -116,7 +130,6 @@ public class OrderServiceImpl implements OrderService {
             }
 
             BigDecimal price = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getListPrice();
-            int demand = cartItem.getQuantity();
             
             BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(demand));
             subtotal = subtotal.add(lineTotal);
@@ -208,9 +221,11 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         orderStatusHistoryRepository.save(history);
         
-        // Clear cart
-        cart.getItems().clear();
-        cartRepository.save(cart);
+        // Clear cart if we used it
+        if (!hasDirectItems && cart != null) {
+            cart.getItems().clear();
+            cartRepository.save(cart);
+        }
         
         log.info("Checkout successful. Order ID: {}", order.getId());
         return toResponse(order, orderItems);

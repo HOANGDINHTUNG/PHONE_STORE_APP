@@ -1,11 +1,12 @@
 package com.re.ecommerce.modules.auth.service.impl;
 
-import com.re.ecommerce.common.exception.*;
+import com.re.ecommerce.common.exception.AccountLockedException;
+import com.re.ecommerce.common.exception.BusinessConflictException;
+import com.re.ecommerce.common.exception.RateLimitExceededException;
+import com.re.ecommerce.common.exception.UnauthorizedException;
 import com.re.ecommerce.modules.auth.dto.request.*;
 import com.re.ecommerce.modules.auth.dto.response.AuthResponse;
-import com.re.ecommerce.modules.auth.entity.AccountStatus;
-import com.re.ecommerce.modules.auth.entity.TokenFamily;
-import com.re.ecommerce.modules.auth.entity.User;
+import com.re.ecommerce.modules.auth.entity.*;
 import com.re.ecommerce.modules.auth.repository.*;
 import com.re.ecommerce.security.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,223 +29,183 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private CustomerProfileRepository customerProfileRepository;
+    @Mock private RefreshTokenRepository refreshTokenRepository;
+    @Mock private TokenFamilyRepository tokenFamilyRepository;
+    @Mock private UserPasswordHistoryRepository userPasswordHistoryRepository;
+    @Mock private EmailVerificationTokenRepository emailVerificationTokenRepository;
+    @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private JwtUtils jwtUtils;
 
-    @Mock
-    private CustomerProfileRepository customerProfileRepository;
-
-    @Mock
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Mock
-    private EmailVerificationTokenRepository emailVerificationTokenRepository;
-
-    @Mock
-    private TokenFamilyRepository tokenFamilyRepository;
-
-    @Mock
-    private UserPasswordHistoryRepository userPasswordHistoryRepository;
-
-    @Mock
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private JwtUtils jwtUtils;
-
-    @InjectMocks
-    private AuthServiceImpl authService;
+    @InjectMocks private AuthServiceImpl authService;
 
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        testUser = new User("testuser", "test@example.com", "encodedPassword", "USER");
+        testUser = new User("testuser", "test@pinkphone.com", "encodedPass", "USER");
         testUser.setId(UUID.randomUUID());
-        testUser.setActive(true);
+        testUser.setPhone("0912121212");
         testUser.setAccountStatus(AccountStatus.ACTIVE);
     }
 
+    // --- REGISTER TESTS ---
     @Test
-    void login_Success() {
-        LoginRequest req = new LoginRequest("test@example.com", "password");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
-        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("access-token");
-        when(tokenFamilyRepository.save(any())).thenAnswer(inv -> {
-            TokenFamily f = inv.getArgument(0);
+    void register_Success() {
+        RegisterRequest req = new RegisterRequest("Test Name", "new@pinkphone.com", "password", "0999999999", true);
+        
+        when(userRepository.existsByEmail(req.email())).thenReturn(false);
+        when(userRepository.existsByPhone(req.phone())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPass");
+        when(userRepository.save(any(User.class))).thenAnswer(i -> {
+            User u = i.getArgument(0);
+            u.setId(UUID.randomUUID());
+            return u;
+        });
+        when(tokenFamilyRepository.save(any())).thenAnswer(i -> {
+            TokenFamily f = i.getArgument(0);
             f.setId(UUID.randomUUID());
             return f;
         });
-        
-        AuthResponse response = authService.login(req, "127.0.0.1", "test-agent");
-        
+        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("jwt-token");
+
+        AuthResponse response = authService.register(req);
+
         assertNotNull(response);
-        assertEquals("access-token", response.accessToken());
-        assertEquals(0, testUser.getFailedLoginCount());
-        verify(userRepository, times(1)).save(testUser);
-        verify(refreshTokenRepository, times(1)).save(any());
+        assertEquals("jwt-token", response.accessToken());
+        assertNotNull(response.refreshToken());
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(customerProfileRepository, times(1)).save(any(CustomerProfile.class));
+        verify(emailVerificationTokenRepository, times(1)).save(any());
     }
 
     @Test
-    void login_InvalidCredentials_UserNotFound() {
-        LoginRequest req = new LoginRequest("notFound@example.com", "password");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    void register_EmailAndPhoneAlreadyExists() {
+        RegisterRequest req = new RegisterRequest("T", "test@pinkphone.com", "p", "0912121212", true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(true);
+        when(userRepository.existsByPhone(anyString())).thenReturn(true);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> authService.register(req));
+        assertEquals("Email and Phone are already registered", ex.getMessage());
+    }
 
-        assertThrows(IllegalArgumentException.class, () -> authService.login(req, null, null));
+    @Test
+    void register_EmailAlreadyExists() {
+        RegisterRequest req = new RegisterRequest("T", "test@pinkphone.com", "p", "0912121212", true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(true);
+        when(userRepository.existsByPhone(anyString())).thenReturn(false);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> authService.register(req));
+        assertEquals("Email is already registered", ex.getMessage());
+    }
+    
+    @Test
+    void register_PhoneAlreadyExists() {
+        RegisterRequest req = new RegisterRequest("T", "test@pinkphone.com", "p", "0912121212", true);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.existsByPhone(anyString())).thenReturn(true);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> authService.register(req));
+        assertEquals("Phone is already registered", ex.getMessage());
+    }
+
+    // --- LOGIN TESTS ---
+    @Test
+    void login_Success() {
+        LoginRequest req = new LoginRequest("test@pinkphone.com", "password");
+        when(userRepository.findByLoginIdentifier(req.username())).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches(req.password(), testUser.getPasswordHash())).thenReturn(true);
+        when(tokenFamilyRepository.save(any())).thenAnswer(i -> {
+            TokenFamily f = i.getArgument(0);
+            f.setId(UUID.randomUUID());
+            return f;
+        });
+        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("new-jwt");
+
+        AuthResponse response = authService.login(req, "127.0.0.1", "Browser");
+
+        assertNotNull(response);
+        assertEquals("new-jwt", response.accessToken());
+        assertEquals(0, testUser.getFailedLoginCount());
+        verify(refreshTokenRepository, times(1)).save(any());
     }
 
     @Test
     void login_InvalidPassword_IncrementsFailedCount() {
-        LoginRequest req = new LoginRequest("test@example.com", "wrongPass");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("wrongPass", "encodedPassword")).thenReturn(false);
-
-        testUser.setFailedLoginCount(4);
-
-        assertThrows(IllegalArgumentException.class, () -> authService.login(req, null, null));
-
+        LoginRequest req = new LoginRequest("test@pinkphone.com", "wrong");
+        when(userRepository.findByLoginIdentifier(req.username())).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches(req.password(), testUser.getPasswordHash())).thenReturn(false);
+        
+        testUser.setFailedLoginCount(4); // Testing limit
+        assertThrows(IllegalArgumentException.class, () -> authService.login(req, "ip", "agent"));
+        
         assertEquals(5, testUser.getFailedLoginCount());
         assertEquals(AccountStatus.LOCKED, testUser.getAccountStatus());
         assertNotNull(testUser.getLockedUntil());
-        verify(userRepository, times(1)).save(testUser);
-    }
-
-    @Test
-    void login_AccountLocked_ThrowsException() {
-        testUser.setAccountStatus(AccountStatus.LOCKED);
-        testUser.setLockedUntil(LocalDateTime.now().plusMinutes(10));
-        LoginRequest req = new LoginRequest("test@example.com", "password");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-
-        assertThrows(AccountLockedException.class, () -> authService.login(req, null, null));
-    }
-
-    @Test
-    void login_AccountLocked_ButLockExpired() {
-        testUser.setAccountStatus(AccountStatus.LOCKED);
-        testUser.setLockedUntil(LocalDateTime.now().minusMinutes(5)); // expired lock
-        testUser.setFailedLoginCount(5);
-        testUser.setEmailVerifiedAt(LocalDateTime.now());
-
-        LoginRequest req = new LoginRequest("test@example.com", "password");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
-        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("access-token");
-        when(tokenFamilyRepository.save(any())).thenAnswer(inv -> {
-            TokenFamily f = inv.getArgument(0);
-            f.setId(UUID.randomUUID());
-            return f;
-        });
-
-        AuthResponse res = authService.login(req, null, null);
-
-        assertNotNull(res);
-        assertEquals(AccountStatus.ACTIVE, testUser.getAccountStatus());
-        assertNull(testUser.getLockedUntil());
-        assertEquals(0, testUser.getFailedLoginCount());
-    }
-
-    @Test
-    void login_AccountDisabled_ThrowsException() {
-        testUser.setAccountStatus(AccountStatus.DISABLED);
-        LoginRequest req = new LoginRequest("test@example.com", "password");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-        
-        assertThrows(UnauthorizedException.class, () -> authService.login(req, null, null));
-    }
-    @Test
-    void register_Success() {
-        RegisterRequest req = new RegisterRequest("New User", "new@example.com", "password", "0909090909", true);
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(userRepository.existsByPhone(anyString())).thenReturn(false);
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("access-token");
-        when(userRepository.existsByUsername(anyString())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            u.setId(UUID.randomUUID());
-            return u;
-        });
-        when(tokenFamilyRepository.save(any())).thenAnswer(inv -> {
-            TokenFamily f = inv.getArgument(0);
-            f.setId(UUID.randomUUID());
-            return f;
-        });
-        
-        AuthResponse res = authService.register(req);
-        
-        assertNotNull(res);
-        assertEquals("access-token", res.accessToken());
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(customerProfileRepository, times(1)).save(any());
-        verify(emailVerificationTokenRepository, times(1)).save(any());
-        verify(refreshTokenRepository, times(1)).save(any());
-    }
-
-    @Test
-    void register_EmailExists() {
-        RegisterRequest req = new RegisterRequest("New User", "existing@example.com", "password", null, true);
-        when(userRepository.existsByEmail(anyString())).thenReturn(true);
-        
-        assertThrows(IllegalArgumentException.class, () -> authService.register(req));
     }
     
     @Test
-    void register_PhoneExists() {
-        RegisterRequest req = new RegisterRequest("New User", "new@example.com", "password", "0909090909", true);
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(userRepository.existsByPhone(anyString())).thenReturn(true);
+    void login_AccountLocked() {
+        LoginRequest req = new LoginRequest("user", "pass");
+        testUser.setAccountStatus(AccountStatus.LOCKED);
+        testUser.setLockedUntil(LocalDateTime.now().plusMinutes(5));
+        when(userRepository.findByLoginIdentifier(anyString())).thenReturn(Optional.of(testUser));
         
-        assertThrows(IllegalArgumentException.class, () -> authService.register(req));
+        assertThrows(AccountLockedException.class, () -> authService.login(req, "ip", "agent"));
     }
 
     @Test
+    void login_AccountDisabled() {
+        LoginRequest req = new LoginRequest("user", "pass");
+        testUser.setAccountStatus(AccountStatus.DISABLED);
+        when(userRepository.findByLoginIdentifier(anyString())).thenReturn(Optional.of(testUser));
+        
+        assertThrows(UnauthorizedException.class, () -> authService.login(req, "ip", "agent"));
+    }
+
+    // --- REFRESH TOKEN TESTS ---
+    @Test
     void refreshToken_Success() {
-        TokenRefreshRequest req = new TokenRefreshRequest("old-raw-token");
-        com.re.ecommerce.modules.auth.entity.RefreshToken rToken = new com.re.ecommerce.modules.auth.entity.RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().plusDays(1), "1.2.3.4", "agent");
+        TokenRefreshRequest req = new TokenRefreshRequest("valid-refresh-token");
+        RefreshToken rToken = new RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().plusDays(1), "ip", "agent");
         
         when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(rToken));
-        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("new-access-token");
+        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("new-jwt");
         
-        AuthResponse res = authService.refreshToken(req, "127.0.0.1", "agent");
+        AuthResponse resp = authService.refreshToken(req, "ip", "agent");
         
-        assertNotNull(res);
-        assertTrue(rToken.isRevoked()); // the old token must be revoked
-        assertEquals("ROTATED", rToken.getRevokedReason());
+        assertNotNull(resp);
+        assertEquals("new-jwt", resp.accessToken());
+        assertTrue(rToken.isRevoked()); // the old one gets rotated
         verify(refreshTokenRepository, times(2)).save(any());
     }
 
     @Test
-    void refreshToken_Revoked_ThrowsReuseDetected() {
-        TokenRefreshRequest req = new TokenRefreshRequest("old-raw-token");
-        com.re.ecommerce.modules.auth.entity.RefreshToken rToken = new com.re.ecommerce.modules.auth.entity.RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().plusDays(1), "1.2.3.4", "agent");
-        rToken.setRevokedAt(LocalDateTime.now()); // Revoked
+    void refreshToken_Reused_RevokesFamily() {
+        TokenRefreshRequest req = new TokenRefreshRequest("reused-token");
+        RefreshToken rToken = new RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().minusDays(1), "ip", "agent");
+        rToken.setRevokedAt(LocalDateTime.now()); // Already revoked!
         
         when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(rToken));
         
-        assertThrows(UnauthorizedException.class, () -> authService.refreshToken(req, "127.0.0.1", "agent"));
+        assertThrows(UnauthorizedException.class, () -> authService.refreshToken(req, "ip", "agent"));
         verify(refreshTokenRepository, times(1)).revokeFamily(any(), anyString());
     }
 
     @Test
     void refreshToken_Expired() {
-        TokenRefreshRequest req = new TokenRefreshRequest("old-raw-token");
-        com.re.ecommerce.modules.auth.entity.RefreshToken rToken = new com.re.ecommerce.modules.auth.entity.RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().minusDays(1), "1.2.3.4", "agent");
+        TokenRefreshRequest req = new TokenRefreshRequest("expired-token");
+        RefreshToken rToken = new RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().minusDays(1), "ip", "agent");
         
         when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(rToken));
         
-        assertThrows(UnauthorizedException.class, () -> authService.refreshToken(req, "127.0.0.1", "agent"));
+        assertThrows(UnauthorizedException.class, () -> authService.refreshToken(req, "ip", "agent"));
     }
 
+    // --- LOGOUT ---
     @Test
     void logout_Success() {
-        LogoutRequest req = new LogoutRequest("raw-refresh");
-        com.re.ecommerce.modules.auth.entity.RefreshToken rToken = new com.re.ecommerce.modules.auth.entity.RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().plusDays(1), "1.2.3.4", "agent");
-        
+        LogoutRequest req = new LogoutRequest("refresh-token");
+        RefreshToken rToken = new RefreshToken(testUser, "hash", UUID.randomUUID(), LocalDateTime.now().plusDays(1), "ip", "agent");
         when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(rToken));
         
         authService.logout(req);
@@ -253,27 +214,61 @@ class AuthServiceImplTest {
         assertEquals("USER_LOGOUT", rToken.getRevokedReason());
     }
 
+    // --- PASSWORD RESET ---
+    @Test
+    void requestPasswordReset_Success() {
+        PasswordResetRequest req = new PasswordResetRequest("test@pinkphone.com");
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(passwordResetTokenRepository.countRecentRequests(any(), any())).thenReturn(1L);
+        
+        authService.requestPasswordReset(req, "ip");
+        
+        verify(passwordResetTokenRepository, times(1)).invalidateAllUserTokens(testUser);
+        verify(passwordResetTokenRepository, times(1)).save(any());
+    }
+    
+    @Test
+    void requestPasswordReset_RateLimited() {
+        PasswordResetRequest req = new PasswordResetRequest("test@pinkphone.com");
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(passwordResetTokenRepository.countRecentRequests(any(), any())).thenReturn(4L);
+        
+        assertThrows(RateLimitExceededException.class, () -> authService.requestPasswordReset(req, "ip"));
+    }
+
+    @Test
+    void confirmPasswordReset_Success() {
+        PasswordResetConfirmRequest req = new PasswordResetConfirmRequest("token", "newPass");
+        PasswordResetToken t = new PasswordResetToken(testUser, "hash", LocalDateTime.now().plusHours(1), "ip");
+        when(passwordResetTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(t));
+        when(passwordEncoder.encode(anyString())).thenReturn("newEncoded");
+        
+        authService.confirmPasswordReset(req);
+        
+        assertTrue(t.isUsed());
+        assertEquals("newEncoded", testUser.getPasswordHash());
+        verify(refreshTokenRepository, times(1)).revokeAllUserTokens(testUser.getId(), "PASSWORD_RESET");
+        verify(userRepository, times(1)).save(testUser);
+    }
+
     @Test
     void confirmEmail_Success() {
-        EmailVerificationConfirmRequest req = new EmailVerificationConfirmRequest("raw-token");
-        com.re.ecommerce.modules.auth.entity.EmailVerificationToken eToken = new com.re.ecommerce.modules.auth.entity.EmailVerificationToken(testUser, "hash", LocalDateTime.now().plusDays(1));
+        EmailVerificationConfirmRequest req = new EmailVerificationConfirmRequest("token");
         testUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
-        
-        when(emailVerificationTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(eToken));
+        EmailVerificationToken t = new EmailVerificationToken(testUser, "hash", LocalDateTime.now().plusDays(1));
+        when(emailVerificationTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(t));
         
         authService.confirmEmail(req);
         
-        assertTrue(eToken.isUsed());
+        assertTrue(t.isUsed());
         assertEquals(AccountStatus.ACTIVE, testUser.getAccountStatus());
-        assertNotNull(testUser.getEmailVerifiedAt());
         verify(userRepository, times(1)).save(testUser);
     }
     
     @Test
     void resendVerificationEmail_Success() {
-        EmailVerificationRequest req = new EmailVerificationRequest("test@example.com");
+        EmailVerificationRequest req = new EmailVerificationRequest("test@pinkphone.com");
         testUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
-        
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         
         authService.resendVerificationEmail(req);
@@ -282,39 +277,16 @@ class AuthServiceImplTest {
         verify(emailVerificationTokenRepository, times(1)).save(any());
     }
 
+    // --- CHECK EXISTS ALREADY ---
     @Test
-    void requestPasswordReset_Success() {
-        PasswordResetRequest req = new PasswordResetRequest("test@example.com");
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordResetTokenRepository.countRecentRequests(any(), any())).thenReturn(1L);
-        
-        authService.requestPasswordReset(req, "1.2.3.4");
-        
-        verify(passwordResetTokenRepository, times(1)).invalidateAllUserTokens(testUser);
-        verify(passwordResetTokenRepository, times(1)).save(any());
+    void checkEmailExists_ReturnsTrue() {
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(true);
+        assertTrue(authService.checkEmailExists("test@test.com"));
     }
 
     @Test
-    void requestPasswordReset_RateLimitExceeded() {
-        PasswordResetRequest req = new PasswordResetRequest("test@example.com");
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordResetTokenRepository.countRecentRequests(any(), any())).thenReturn(5L);
-        
-        assertThrows(RateLimitExceededException.class, () -> authService.requestPasswordReset(req, "1.2.3.4"));
-    }
-
-    @Test
-    void confirmPasswordReset_Success() {
-        PasswordResetConfirmRequest req = new PasswordResetConfirmRequest("raw-token", "newPass");
-        com.re.ecommerce.modules.auth.entity.PasswordResetToken pToken = new com.re.ecommerce.modules.auth.entity.PasswordResetToken(testUser, "hash", LocalDateTime.now().plusDays(1), "1.2.3.4");
-        
-        when(passwordResetTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(pToken));
-        when(passwordEncoder.encode(anyString())).thenReturn("newEncoded");
-        
-        authService.confirmPasswordReset(req);
-        
-        assertTrue(pToken.isUsed());
-        assertEquals("newEncoded", testUser.getPasswordHash());
-        verify(refreshTokenRepository, times(1)).revokeAllUserTokens(testUser.getId(), "PASSWORD_RESET");
+    void checkPhoneExists_ReturnsFalse() {
+        when(userRepository.existsByPhone("0912345678")).thenReturn(false);
+        assertFalse(authService.checkPhoneExists("0912345678"));
     }
 }

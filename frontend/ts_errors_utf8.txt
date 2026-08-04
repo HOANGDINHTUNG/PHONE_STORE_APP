@@ -1,2 +1,0 @@
-﻿src/pages/ProductDetail/index.tsx(222,56): error TS2353: Object literal may only specify known properties, and 'selectedStorage' does not exist in type 'Product | CartItem'.
-src/pages/ProductDetail/index.tsx(234,58): error TS2353: Object literal may only specify known properties, and 'selectedStorage' does not exist in type 'Product | CartItem'.
