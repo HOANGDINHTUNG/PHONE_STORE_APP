@@ -1,2 +1,5 @@
 backend/logs/
 backend/.jqwik-database
+.xgrok/
+AGENTS.md
+.env
