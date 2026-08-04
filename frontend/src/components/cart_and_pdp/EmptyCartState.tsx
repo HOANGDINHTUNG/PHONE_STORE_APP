@@ -13,7 +13,7 @@ const EmptyCartState = () => {
           animation: float-cart 3s ease-in-out infinite;
         }
       `}</style>
-      <section className="max-w-[1200px] mx-auto px-lg py-xl flex flex-col items-center justify-center text-center mt-8 mb-12">
+      <section className="w-full max-w-[1200px] mx-auto px-lg py-xl flex flex-col items-center justify-center text-center mt-8 mb-12">
         <div className="animate-float-cart mb-lg">
           <svg
             fill="none"
@@ -82,7 +82,7 @@ const EmptyCartState = () => {
         <h1 className="font-headline-md text-headline-md text-on-surface mb-sm font-bold">
           Giỏ hàng của bạn đang trống
         </h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mb-xl">
+        <p className="w-full max-w-[36rem] mx-auto px-4 font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-xl">
           Hãy lựa chọn chiếc điện thoại phù hợp và quay lại đây để hoàn tất đơn
           hàng.
         </p>

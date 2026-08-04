@@ -16,11 +16,12 @@ import {
 import { useStore } from "../../context/StoreContext";
 import { fetchProductBySlug } from "../../api/productService";
 import { Product } from "../../types";
+import { message } from "antd";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useStore();
+  const { addToCart, user } = useStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,15 +94,22 @@ const ProductDetail = () => {
   }, []);
 
   const handleBuyNow = () => {
+    if (!user) {
+      message.warning("Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
+      return;
+    }
+
     if (product) {
       const variant = product.variants?.[selectedVariantIndex];
       addToCart({
         ...product,
+        id: variant?.id || product.id,
         image: variant?.image || product.image,
         price: variant?.newPrice || variant?.price || product.price,
         newPrice: variant?.newPrice || variant?.price || product.newPrice,
         oldPrice: variant?.oldPrice || product.oldPrice,
-        displayOptions: `${selectedStorage}, ${selectedColor}`,
+        selectedStorage,
+        selectedColor,
         quantity: 1,
       });
       navigate("/checkout");
@@ -109,18 +117,25 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      message.warning("Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
+      return;
+    }
+
     if (product) {
       const variant = product.variants?.[selectedVariantIndex];
       addToCart({
         ...product,
+        id: variant?.id || product.id,
         image: variant?.image || product.image,
         price: variant?.newPrice || variant?.price || product.price,
         newPrice: variant?.newPrice || variant?.price || product.newPrice,
         oldPrice: variant?.oldPrice || product.oldPrice,
-        displayOptions: `${selectedStorage}, ${selectedColor}`,
+        selectedStorage,
+        selectedColor,
         quantity: 1,
       });
-      alert("Đã thêm vào giỏ hàng");
+      message.success("Đã thêm sản phẩm vào giỏ hàng.");
     }
   };
 

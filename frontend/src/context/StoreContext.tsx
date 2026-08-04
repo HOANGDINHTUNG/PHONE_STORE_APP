@@ -127,17 +127,25 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   };
 
   const logout = async () => {
-    if (
-      localStorage.getItem("pinkphone_token") ||
-      sessionStorage.getItem("pinkphone_token")
-    ) {
-      await logoutApi();
+    try {
+      if (
+        localStorage.getItem("pinkphone_token") ||
+        sessionStorage.getItem("pinkphone_token")
+      ) {
+        await logoutApi();
+      }
+    } catch (error) {
+      // The local session must still be cleared when the server session has expired.
+      console.warn("Logout API failed; clearing the local session.", error);
+    } finally {
+      localStorage.removeItem("pinkphone_token");
+      localStorage.removeItem("pinkphone_user");
+      localStorage.removeItem("pinkphone_cart");
+      sessionStorage.removeItem("pinkphone_token");
+      sessionStorage.removeItem("pinkphone_user");
+      setCart([]);
+      setUser(null);
     }
-    localStorage.removeItem("pinkphone_token");
-    localStorage.removeItem("pinkphone_user");
-    sessionStorage.removeItem("pinkphone_token");
-    sessionStorage.removeItem("pinkphone_user");
-    setUser(null);
   };
 
   const registerUser = async (details: {

@@ -63,10 +63,22 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
         guestWardName: checkoutData.guestWardName || checkoutData.guestWardCode,
         guestDetailAddress: checkoutData.guestDetailAddress,
         note: checkoutData.note,
-        items: cart.map((item) => ({
-          productVariantId: item.id.toString(),
-          quantity: item.quantity,
-        })),
+        items: cart.map((item) => {
+          const selectedStorageGb = Number(item.selectedStorage?.replace(/[^\d]/g, ""));
+          const selectedVariant = item.variants?.find(
+            (variant) =>
+              (!selectedStorageGb || variant.storageGb === selectedStorageGb) &&
+              (!item.selectedColor || variant.color === item.selectedColor),
+          );
+
+          return {
+            // Older cart entries may still contain a product ID. Prefer the
+            // matching variant ID, because the checkout API accepts variants only.
+            productVariantId:
+              selectedVariant?.id || item.variants?.[0]?.id || item.id.toString(),
+            quantity: item.quantity,
+          };
+        }),
       });
 
       if (!orderResponse || !orderResponse.orderCode) {
