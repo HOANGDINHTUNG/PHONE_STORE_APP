@@ -58,6 +58,18 @@ public class Coupon extends BaseEntity {
     @Column(name = "total_usage_limit")
     private Integer totalUsageLimit;
 
+    @Column(name = "badge_text", length = 50)
+    private String badgeText;
+
+    @Column(name = "min_membership_tier", nullable = false, length = 30)
+    private String minMembershipTier = "ALL";
+
+    @Column(name = "is_stackable", nullable = false)
+    private Boolean isStackable = false;
+
+    @Column(name = "is_featured", nullable = false)
+    private Boolean isFeatured = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private CouponStatus status = CouponStatus.INACTIVE;

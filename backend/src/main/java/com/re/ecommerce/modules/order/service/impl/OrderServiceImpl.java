@@ -74,6 +74,7 @@ public class OrderServiceImpl implements OrderService {
     private final ShippingAddressRepository shippingAddressRepository;
     private final CartService cartService;
     private final PaymentRepository paymentRepository;
+    private final com.re.ecommerce.modules.cart.repository.UserVoucherRepository userVoucherRepository;
     
 
     @Override
@@ -169,35 +170,41 @@ public class OrderServiceImpl implements OrderService {
         
         BigDecimal discount = BigDecimal.ZERO;
         if (request.couponCode() != null && !request.couponCode().isBlank()) {
-             Coupon coupon = couponRepository.findByCode(request.couponCode().toUpperCase())
-                     .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND", "Coupon not found"));
+             Coupon coupon = couponRepository.findByCodeIgnoreCase(request.couponCode().trim())
+                     .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND", "Mã giảm giá không tồn tại"));
              if (coupon.getStatus() != com.re.ecommerce.modules.cart.entity.CouponStatus.ACTIVE
                      || coupon.getStartTime().isAfter(LocalDateTime.now()) || coupon.getEndTime().isBefore(LocalDateTime.now())) {
-                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Coupon is not currently active");
+                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Mã giảm giá đã hết hạn hoặc không khả dụng");
              }
              if (coupon.getTotalUsageLimit() != null && coupon.getUsedCount() >= coupon.getTotalUsageLimit()) {
-                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Coupon usage limit has been reached");
+                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Mã giảm giá đã hết số lần sử dụng");
              }
-             // Reserve logic simplified. 
-            // Calculate discount...
-            if (coupon.getMinimumOrderValue().compareTo(subtotal) > 0) {
-                throw new UnprocessableEntityException("VALIDATION_ERROR", "Minimum order not reached for coupon");
-            }
-            if ("PERCENT".equals(coupon.getType())) {
-                discount = subtotal.multiply(coupon.getDiscountValue().divide(BigDecimal.valueOf(100)));
-                if (coupon.getMaximumDiscountAmount() != null && discount.compareTo(coupon.getMaximumDiscountAmount()) > 0) {
-                    discount = coupon.getMaximumDiscountAmount();
-                }
-            } else {
-                discount = coupon.getDiscountValue();
-            }
-            if (discount.compareTo(subtotal) > 0) {
-                discount = subtotal; // Cannot discount more than subtotal
-            }
-            
-            order.setCoupon(coupon);
-            coupon.setUsedCount(coupon.getUsedCount() + 1);
-            couponRepository.save(coupon);
+             if (coupon.getMinimumOrderValue() != null && coupon.getMinimumOrderValue().compareTo(subtotal) > 0) {
+                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã giảm giá");
+             }
+             if (coupon.getType() == com.re.ecommerce.modules.cart.entity.CouponType.PERCENT) {
+                 discount = subtotal.multiply(coupon.getDiscountValue()).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                 if (coupon.getMaximumDiscountAmount() != null && discount.compareTo(coupon.getMaximumDiscountAmount()) > 0) {
+                     discount = coupon.getMaximumDiscountAmount();
+                 }
+             } else {
+                 discount = coupon.getDiscountValue();
+             }
+             if (discount.compareTo(subtotal) > 0) {
+                 discount = subtotal; // Cannot discount more than subtotal
+             }
+             
+             order.setCoupon(coupon);
+             couponRepository.incrementUsedCountAtomic(coupon.getId());
+
+             if (currentUser != null) {
+                 userVoucherRepository.findByUserIdAndCouponId(currentUser.getId(), coupon.getId())
+                         .ifPresent(uv -> {
+                             uv.setStatus(com.re.ecommerce.modules.cart.entity.UserVoucherStatus.USED);
+                             uv.setUsedAt(LocalDateTime.now());
+                             userVoucherRepository.save(uv);
+                         });
+             }
         }
         
         order.setDiscountAmount(discount);

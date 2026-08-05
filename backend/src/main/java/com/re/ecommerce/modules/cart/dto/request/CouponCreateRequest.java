@@ -18,6 +18,9 @@ public class CouponCreateRequest {
     @Size(max = 255, message = "Coupon name must be at most 255 characters")
     private String name;
 
+    @Size(max = 50, message = "Badge text must be at most 50 characters")
+    private String badgeText;
+
     private String description;
 
     @NotNull(message = "Type is required")
@@ -40,7 +43,6 @@ public class CouponCreateRequest {
     private LocalDateTime startTime;
 
     @NotNull(message = "End time is required")
-    @Future(message = "End time must be in the future")
     private LocalDateTime endTime;
 
     @Min(value = 1, message = "Per customer limit must be at least 1 if provided")
@@ -48,4 +50,8 @@ public class CouponCreateRequest {
 
     @Min(value = 1, message = "Total usage limit must be at least 1 if provided")
     private Integer totalUsageLimit;
+
+    private String minMembershipTier = "ALL";
+    private Boolean isStackable = false;
+    private Boolean isFeatured = false;
 }

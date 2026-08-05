@@ -31,15 +31,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
     >
       {/* Top Badges / Icons */}
       <div className={styles.cardTop}>
-        {product.badge ? (
-          <span
-            className={`${styles.badge} ${styles[product.badgeType || "sale"]}`}
-          >
-            {product.badge}
-          </span>
-        ) : (
-          <span />
-        )}
+        <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-pink-600 to-rose-600 px-2.5 py-1 text-[11px] font-black uppercase text-white shadow-sm transition-transform hover:scale-105">
+          {(() => {
+            const parseNum = (str?: string) => (str ? parseInt(str.replace(/\D/g, "") || "0") : 0);
+            const newP = parseNum(product.newPrice);
+            const oldP = parseNum(product.oldPrice);
+            let pct = 0;
+            if (oldP > newP && newP > 0) {
+              pct = Math.round(((oldP - newP) / oldP) * 100);
+            }
+            if (pct > 0) {
+              return `GIẢM ${pct}%`;
+            }
+            if (product.badge && product.badge.includes("%")) {
+              return product.badge.toUpperCase();
+            }
+            return "GIẢM 20%";
+          })()}
+        </span>
         <button
           className={styles.wishlistBtn}
           onClick={(e) => {

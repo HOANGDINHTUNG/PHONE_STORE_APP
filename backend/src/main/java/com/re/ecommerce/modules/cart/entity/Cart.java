@@ -25,6 +25,10 @@ public class Cart extends BaseEntity {
     @Column(name = "guest_token_hash", columnDefinition = "BINARY(32)", unique = true)
     private byte[] guestTokenHash;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "applied_coupon_id")
+    private Coupon appliedCoupon;
+
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @Setter(AccessLevel.NONE)
     private List<CartItem> items = new ArrayList<>();

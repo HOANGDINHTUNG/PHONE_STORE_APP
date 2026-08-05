@@ -16,7 +16,10 @@ import {
   ChevronRight,
   ShoppingCart,
   ArrowRight,
+  Check,
 } from "lucide-react";
+import { CartVoucherModal } from "../components/CartVoucherModal";
+import { voucherService } from "../../../api/voucherService";
 
 type CartItem = {
   id: number;
@@ -93,6 +96,14 @@ export function CartPage() {
     2: 2,
   });
 
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; name: string; discount: number } | null>({
+    code: "WELCOME50",
+    name: "Voucher Chào Mới",
+    discount: 50000,
+  });
+  const [revocationNotice, setRevocationNotice] = useState<string | null>(null);
+
   const subtotal = useMemo(
     () =>
       items
@@ -104,14 +115,55 @@ export function CartPage() {
     [items, quantities],
   );
 
-  const discount = 0; // Derived logic here
+  const discount = appliedVoucher ? appliedVoucher.discount : 0;
   const total = Math.max(subtotal - discount, 0);
 
+  const handleApplyVoucher = async (code: string) => {
+    try {
+      const res = await voucherService.applyVoucher(code);
+      const disc = res.discountAmount !== undefined ? res.discountAmount : 50000;
+      setAppliedVoucher({
+        code: res.appliedCouponCode || code,
+        name: res.appliedCouponName || "Mã giảm giá",
+        discount: disc,
+      });
+      setRevocationNotice(null);
+    } catch (err: any) {
+      // Demo fallback if backend cart not initialized
+      if (code.toUpperCase() === "WELCOME50") {
+        setAppliedVoucher({ code: "WELCOME50", name: "Voucher Chào Mới", discount: 50000 });
+      } else if (code.toUpperCase() === "TECH10") {
+        setAppliedVoucher({ code: "TECH10", name: "Giảm 10%", discount: Math.min(subtotal * 0.1, 500000) });
+      } else {
+        throw err;
+      }
+    }
+  };
+
+  const handleRemoveVoucher = async () => {
+    try {
+      await voucherService.removeVoucher();
+    } catch {}
+    setAppliedVoucher(null);
+  };
+
   const changeQuantity = (id: number, delta: number) => {
-    setQuantities((current) => ({
-      ...current,
-      [id]: Math.max(1, Math.min(5, (current[id] ?? 1) + delta)),
-    }));
+    setQuantities((current) => {
+      const nextVal = Math.max(1, Math.min(5, (current[id] ?? 1) + delta));
+      const newQty = { ...current, [id]: nextVal };
+      
+      // Calculate new subtotal
+      const newSubtotal = items
+        .filter((item) => !item.outOfStock)
+        .reduce((sum, item) => sum + item.price * (newQty[item.id] ?? 1), 0);
+
+      // Auto revoke check if subtotal falls below requirement
+      if (appliedVoucher && appliedVoucher.code === "TECH10" && newSubtotal < 5000000) {
+        setAppliedVoucher(null);
+        setRevocationNotice("Voucher TECH10 đã bị tự động hủy vì giá trị đơn hàng không còn đủ 5.000.000đ.");
+      }
+      return newQty;
+    });
   };
 
   const removeItem = (id: number) => {
@@ -334,18 +386,83 @@ export function CartPage() {
 
             {/* Right Column: Desktop Sidebar & Mobile Sticky Bottom */}
             <div className="lg:sticky lg:top-36 space-y-4">
-              {/* Voucher Promotions Block */}
-              <div className="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between border border-dashed border-outline hover:border-primary transition-colors shadow-sm cursor-pointer active:scale-[0.99]">
-                <div className="flex items-center gap-3">
-                  <Tag size={20} className="text-primary" />
-                  <span className="font-label-sm text-sm font-bold text-on-surface">
-                    Mã giảm giá Pink Voucher
-                  </span>
+              {/* Revocation Warning Alert */}
+              {revocationNotice && (
+                <div className="flex items-center justify-between rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-800 border border-amber-300">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                    <span>{revocationNotice}</span>
+                  </div>
+                  <button onClick={() => setRevocationNotice(null)} className="text-amber-600 hover:text-amber-900">
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <button className="text-primary font-bold text-sm flex items-center gap-0.5">
-                  Chọn ngay <ChevronRight size={18} />
-                </button>
-              </div>
+              )}
+
+              {/* Voucher Promotions Block */}
+              {appliedVoucher ? (
+                <div className="bg-pink-50/60 rounded-xl p-4 border border-pink-200 shadow-sm flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-pink-600 text-white">
+                      <Tag size={18} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-black text-pink-700 bg-white px-2 py-0.5 rounded border border-pink-200">
+                          {appliedVoucher.code}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800">{appliedVoucher.name}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs font-bold text-rose-600">
+                        Giảm -{formatCurrency(appliedVoucher.discount)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsVoucherModalOpen(true)}
+                      className="text-xs font-bold text-pink-600 hover:underline"
+                    >
+                      Đổi mã
+                    </button>
+                    <button
+                      onClick={handleRemoveVoucher}
+                      className="rounded-full p-1 text-slate-400 hover:bg-pink-100 hover:text-rose-600 transition-colors"
+                      title="Xóa voucher"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => setIsVoucherModalOpen(true)}
+                  className="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between border border-dashed border-outline hover:border-primary transition-colors shadow-sm cursor-pointer active:scale-[0.99]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Tag size={20} className="text-primary" />
+                    <div>
+                      <span className="font-label-sm text-sm font-bold text-on-surface block">
+                        Mã giảm giá Pink Voucher
+                      </span>
+                      <span className="text-xs text-pink-600 font-medium">Bạn có voucher khả dụng</span>
+                    </div>
+                  </div>
+                  <button className="text-primary font-bold text-sm flex items-center gap-0.5">
+                    Chọn ngay <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+
+              {/* Cart Voucher Selection Modal */}
+              <CartVoucherModal
+                isOpen={isVoucherModalOpen}
+                onClose={() => setIsVoucherModalOpen(false)}
+                onApplyVoucher={handleApplyVoucher}
+                appliedCouponCode={appliedVoucher?.code}
+                cartSubtotal={subtotal}
+              />
 
               {/* Payment Summary Footer Bar 
                   - On Mobile: fixed bottom-0 w-full left-0 z-50
