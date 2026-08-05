@@ -18,7 +18,9 @@ public class BannerResponse {
     private String subtitle;
     private String image;
     private String linkUrl;
+    private String position;
     private String bgColor;
     private String textColor;
     private int sortOrder;
+    private String status;
 }

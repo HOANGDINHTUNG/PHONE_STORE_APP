@@ -8,7 +8,7 @@ import com.re.ecommerce.modules.shipment.dto.request.CreateShipmentRequest;
 import com.re.ecommerce.modules.shipment.dto.request.UpdateShipmentTrackingRequest;
 
 public interface ShipmentService {
-    void createShipment(UUID orderId, CreateShipmentRequest request, java.util.UUID staffId);
+    com.re.ecommerce.modules.shipment.entity.Shipment createShipment(UUID orderId, CreateShipmentRequest request, java.util.UUID staffId);
     void assignUnits(Long shipmentId, AssignShipmentUnitsRequest request);
     void updateTracking(Long shipmentId, UpdateShipmentTrackingRequest request);
     void changeStatus(Long shipmentId, ChangeShipmentStatusRequest request);

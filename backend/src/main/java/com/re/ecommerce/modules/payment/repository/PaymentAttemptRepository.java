@@ -9,4 +9,8 @@ import java.util.Optional;
 @Repository
 public interface PaymentAttemptRepository extends JpaRepository<PaymentAttempt, Long> {
     Optional<PaymentAttempt> findByMerchantRequestId(String merchantRequestId);
+
+    java.util.List<PaymentAttempt> findByPaymentIdOrderByAttemptNumberAsc(Long paymentId);
+
+    Optional<PaymentAttempt> findTopByPaymentIdOrderByAttemptNumberDesc(Long paymentId);
 }

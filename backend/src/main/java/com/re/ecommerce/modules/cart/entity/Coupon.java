@@ -24,6 +24,12 @@ public class Coupon extends BaseEntity {
     @Column(name = "code", nullable = false, unique = true, length = 50)
     private String code;
 
+    @Column(length = 255)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private CouponType type;
@@ -48,6 +54,9 @@ public class Coupon extends BaseEntity {
 
     @Column(name = "per_customer_limit")
     private Integer perCustomerLimit;
+
+    @Column(name = "total_usage_limit")
+    private Integer totalUsageLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface NewsRepository extends JpaRepository<News, UUID> {
     List<News> findByStatusOrderByPublishedAtDesc(String status);
+    List<News> findAllByOrderByPublishedAtDesc();
 }

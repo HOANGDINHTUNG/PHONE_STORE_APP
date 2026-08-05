@@ -33,6 +33,11 @@ import { UserStaffPage } from "../features/admin/userStaff/UserStaffPage";
 import { RolesPermissionsPage } from "../features/admin/rolePermissions/RolesPermissionsPage";
 import { NotificationsPage as AdminNotificationsPage } from "../features/admin/notificationAudit/NotificationsPage";
 import { AuditLogsPage } from "../features/admin/notificationAudit/AuditLogsPage";
+import { AdminCatalogPage } from "../features/admin/AdminCatalogPage";
+import { AdminCouponDetailPage, AdminCouponEditorPage, AdminPromotionsPage } from "../features/admin/AdminPromotionPages";
+import { AdminOrderDetailPage, AdminOrdersPage } from "../features/admin/AdminOrderPages";
+import { AdminPaymentDetailPage, AdminPaymentsPage, AdminRefundQueuePage } from "../features/admin/AdminPaymentPages";
+import { AdminShipmentCreatePage, AdminShipmentDetailPage, AdminShipmentsPage } from "../features/admin/AdminShipmentPages";
 
 export const router = createBrowserRouter([
   {
@@ -48,11 +53,24 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <AdminDashboardPage /> },
-      { path: "products", element: <AdminPlaceholderPage title="Sản phẩm & Nội dung" description="Quản lý sản phẩm, biến thể, hình ảnh, danh mục và nội dung bán hàng." /> },
-      { path: "promotions", element: <AdminPlaceholderPage title="Khuyến mãi" description="Thiết lập chương trình khuyến mãi, mã giảm giá và ưu đãi." /> },
-      { path: "orders", element: <AdminPlaceholderPage title="Đơn hàng" description="Theo dõi, xác nhận và xử lý đơn hàng của khách." /> },
-      { path: "payments", element: <AdminPlaceholderPage title="Thanh toán & Hoàn tiền" description="Kiểm soát giao dịch thanh toán, đối soát và yêu cầu hoàn tiền." /> },
-      { path: "shipping", element: <AdminPlaceholderPage title="Giao hàng" description="Theo dõi vận đơn, tiến độ giao hàng và các sự cố vận chuyển." /> },
+      { path: "products", element: <AdminCatalogPage kind="products" /> },
+      { path: "variants", element: <AdminCatalogPage kind="variants" /> },
+      { path: "categories", element: <AdminCatalogPage kind="categories" /> },
+      { path: "brands", element: <AdminCatalogPage kind="brands" /> },
+      { path: "banners", element: <AdminCatalogPage kind="banners" /> },
+      { path: "news", element: <AdminCatalogPage kind="news" /> },
+      { path: "promotions", element: <AdminPromotionsPage /> },
+      { path: "promotions/new", element: <AdminCouponEditorPage /> },
+      { path: "promotions/:couponId", element: <AdminCouponDetailPage /> },
+      { path: "promotions/:couponId/edit", element: <AdminCouponEditorPage /> },
+      { path: "orders", element: <AdminOrdersPage /> },
+      { path: "orders/:orderId", element: <AdminOrderDetailPage /> },
+      { path: "payments", element: <AdminPaymentsPage /> },
+      { path: "payments/:paymentId", element: <AdminPaymentDetailPage /> },
+      { path: "refunds", element: <AdminRefundQueuePage /> },
+      { path: "shipping", element: <AdminShipmentsPage /> },
+      { path: "shipments/new", element: <AdminShipmentCreatePage /> },
+      { path: "shipments/:shipmentId", element: <AdminShipmentDetailPage /> },
       { path: "inventory", element: <AdminPlaceholderPage title="Kho hàng" description="Theo dõi tồn kho và điều chuyển sản phẩm giữa các kho." /> },
       { path: "procurement", element: <ProcurementListPage /> },
       { path: "procurement/:poCode", element: <ProcurementDetailPage /> },

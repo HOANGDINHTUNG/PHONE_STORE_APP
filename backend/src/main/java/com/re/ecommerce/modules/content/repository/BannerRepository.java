@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface BannerRepository extends JpaRepository<Banner, UUID> {
     List<Banner> findByStatusOrderBySortOrderAsc(String status);
+    List<Banner> findAllByOrderBySortOrderAsc();
 }

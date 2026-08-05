@@ -42,9 +42,12 @@ const createWordmarkLogo = (brandName: string): string => {
   return `data:image/svg+xml;utf8,${svg}`;
 };
 
+export const getLocalBrandLogo = (slug: string, brandName: string, fallbackUrl?: string): string =>
+  BRAND_LOGOS[slug.toLowerCase()] || fallbackUrl || createWordmarkLogo(brandName);
+
 const withLocalLogo = (brand: Brand): Brand => ({
   ...brand,
-  logo: BRAND_LOGOS[brand.slug.toLowerCase()] || createWordmarkLogo(brand.name),
+  logo: getLocalBrandLogo(brand.slug, brand.name),
 });
 
 export const fetchBrands = async (): Promise<Brand[]> => {

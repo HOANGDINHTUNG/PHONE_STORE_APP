@@ -47,7 +47,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     @Transactional
-    public void createShipment(UUID orderId, CreateShipmentRequest request, java.util.UUID staffId) {
+    public Shipment createShipment(UUID orderId, CreateShipmentRequest request, java.util.UUID staffId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found with id: " + orderId));
 
@@ -61,8 +61,11 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .order(order)
                 .warehouse(warehouse) // The import is com.re.ecommerce.modules.catalog.entity.Warehouse but we need inventory.entity.Warehouse. I will fix this! Wait I already fixed it! Actually I need to make sure WarehouseRepository is in inventory!
                 .shippingProvider(request.getShippingProvider())
-                .trackingCode(request.getTrackingCode())
-                .shippingFee(request.getShippingFee())
+                .trackingCode(request.getTrackingCode() == null || request.getTrackingCode().isBlank()
+                        ? "TRK-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase()
+                        : request.getTrackingCode().trim())
+                .shippingFee(request.getShippingFee() == null ? java.math.BigDecimal.ZERO : request.getShippingFee())
+                .estimatedDeliveryAt(request.getEstimatedDeliveryAt())
                 .createdBy(staff)
                 .status(ShipmentStatus.PENDING)
                 .build();
@@ -75,8 +78,14 @@ public class ShipmentServiceImpl implements ShipmentService {
             OrderItem orderItem = orderItemRepository.findById(itemReq.getOrderItemId())
                     .orElseThrow(() -> new ResourceNotFoundException("ORDER_ITEM_NOT_FOUND", "OrderItem not found with id: " + itemReq.getOrderItemId()));
 
-            if (itemReq.getQuantity() > orderItem.getQuantity()) {
-                throw new BusinessConflictException("SHIPMENT_QUANTITY_EXCEEDED", "Cannot ship more than ordered.");
+            if (!order.getId().equals(orderItem.getOrder().getId())) {
+                throw new BusinessConflictException("SHIPMENT_ITEM_ORDER_MISMATCH", "The selected item does not belong to this order.");
+            }
+            long alreadyShipped = java.util.Optional.ofNullable(
+                    shipmentItemRepository.totalShippedQuantityByOrderItemId(orderItem.getId())).orElse(0L);
+            long remaining = orderItem.getQuantity() - alreadyShipped;
+            if (itemReq.getQuantity() <= 0 || itemReq.getQuantity() > remaining) {
+                throw new BusinessConflictException("SHIPMENT_QUANTITY_EXCEEDED", "Quantity to ship exceeds the remaining quantity.");
             }
 
             ShipmentItem shipmentItem = ShipmentItem.builder()
@@ -86,6 +95,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                     .build();
             shipmentItemRepository.save(shipmentItem);
         }
+        return shipment;
     }
 
     @Override

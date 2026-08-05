@@ -20,4 +20,5 @@ public class NewsResponse {
     private String date;
     private String image;
     private int viewsCount;
+    private String status;
 }

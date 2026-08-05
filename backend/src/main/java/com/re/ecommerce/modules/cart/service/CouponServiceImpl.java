@@ -4,13 +4,16 @@ import com.re.ecommerce.common.exception.BusinessConflictException;
 import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.cart.dto.request.CouponCreateRequest;
 import com.re.ecommerce.modules.cart.dto.request.CouponTargetsRequest;
+import com.re.ecommerce.modules.cart.dto.request.CouponUpdateRequest;
 import com.re.ecommerce.modules.cart.dto.response.CouponResponse;
+import com.re.ecommerce.modules.cart.dto.response.CouponUsageResponse;
 import com.re.ecommerce.modules.cart.entity.Coupon;
 import com.re.ecommerce.modules.cart.entity.CouponStatus;
 import com.re.ecommerce.modules.cart.repository.CouponRepository;
 import com.re.ecommerce.modules.catalog.repository.BrandRepository;
 import com.re.ecommerce.modules.catalog.repository.CategoryRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductRepository;
+import com.re.ecommerce.modules.order.repository.CouponUsageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,7 @@ public class CouponServiceImpl implements CouponService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final CouponUsageRepository couponUsageRepository;
 
     @Override
     @Transactional
@@ -37,7 +41,9 @@ public class CouponServiceImpl implements CouponService {
         }
 
         Coupon coupon = new Coupon();
-        coupon.setCode(request.getCode());
+        coupon.setCode(request.getCode().trim().toUpperCase());
+        coupon.setName(request.getName().trim());
+        coupon.setDescription(request.getDescription());
         coupon.setType(request.getType());
         coupon.setDiscountValue(request.getDiscountValue());
         coupon.setAppliesToAll(request.getAppliesToAll());
@@ -46,6 +52,7 @@ public class CouponServiceImpl implements CouponService {
         coupon.setStartTime(request.getStartTime());
         coupon.setEndTime(request.getEndTime());
         coupon.setPerCustomerLimit(request.getPerCustomerLimit());
+        coupon.setTotalUsageLimit(request.getTotalUsageLimit());
         coupon.setStatus(CouponStatus.INACTIVE); // Created as inactive initially
         coupon.setUsedCount(0);
 
@@ -59,6 +66,29 @@ public class CouponServiceImpl implements CouponService {
         return couponRepository.findById(id)
                 .map(this::mapToResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("COUPON_NOT_FOUND", "Coupon not found"));
+    }
+
+    @Override
+    @Transactional
+    public CouponResponse updateCoupon(UUID id, CouponUpdateRequest request) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("COUPON_NOT_FOUND", "Coupon not found"));
+        couponRepository.findByCode(request.getCode())
+                .filter(existing -> !existing.getId().equals(id))
+                .ifPresent(existing -> { throw new BusinessConflictException("COUPON_EXISTS", "Coupon with this code already exists"); });
+        coupon.setCode(request.getCode().trim().toUpperCase());
+        coupon.setName(request.getName().trim());
+        coupon.setDescription(request.getDescription());
+        coupon.setType(request.getType());
+        coupon.setDiscountValue(request.getDiscountValue());
+        coupon.setAppliesToAll(request.getAppliesToAll());
+        coupon.setMinimumOrderValue(request.getMinimumOrderValue());
+        coupon.setMaximumDiscountAmount(request.getMaximumDiscountAmount());
+        coupon.setStartTime(request.getStartTime());
+        coupon.setEndTime(request.getEndTime());
+        coupon.setPerCustomerLimit(request.getPerCustomerLimit());
+        coupon.setTotalUsageLimit(request.getTotalUsageLimit());
+        return mapToResponse(couponRepository.save(coupon));
     }
 
     @Override
@@ -96,10 +126,26 @@ public class CouponServiceImpl implements CouponService {
         return mapToResponse(coupon);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CouponUsageResponse> getCouponUsages(UUID id, Pageable pageable) {
+        if (!couponRepository.existsById(id)) {
+            throw new ResourceNotFoundException("COUPON_NOT_FOUND", "Coupon not found");
+        }
+        return couponUsageRepository.findByCouponIdOrderByCreatedAtDesc(id, pageable)
+                .map(usage -> new CouponUsageResponse(
+                        usage.getId(), usage.getOrder().getOrderCode(),
+                        usage.getCustomer() == null ? "Khách vãng lai" : usage.getCustomer().getUsername(),
+                        usage.getDiscountAmount(), usage.getUsageStatus(),
+                        usage.getConsumedAt() != null ? usage.getConsumedAt() : usage.getReservedAt() != null ? usage.getReservedAt() : usage.getCreatedAt()));
+    }
+
     private CouponResponse mapToResponse(Coupon coupon) {
         return CouponResponse.builder()
                 .id(coupon.getId())
                 .code(coupon.getCode())
+                .name(coupon.getName())
+                .description(coupon.getDescription())
                 .type(coupon.getType())
                 .discountValue(coupon.getDiscountValue())
                 .appliesToAll(coupon.getAppliesToAll())
@@ -108,6 +154,7 @@ public class CouponServiceImpl implements CouponService {
                 .startTime(coupon.getStartTime())
                 .endTime(coupon.getEndTime())
                 .perCustomerLimit(coupon.getPerCustomerLimit())
+                .totalUsageLimit(coupon.getTotalUsageLimit())
                 .status(coupon.getStatus())
                 .usedCount(coupon.getUsedCount())
                 .createdAt(coupon.getCreatedAt())

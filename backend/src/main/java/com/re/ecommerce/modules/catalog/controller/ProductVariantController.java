@@ -25,6 +25,12 @@ public class ProductVariantController {
 
     private final ProductVariantService variantService;
 
+    @GetMapping("/products/{productId}/variants")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasRole('ADMIN')")
+    public ResponseEntity<java.util.List<VariantResponse>> listVariantsByProduct(@PathVariable UUID productId) {
+        return ResponseEntity.ok(variantService.listVariantsByProduct(productId));
+    }
+
     @PostMapping("/products/{productId}/variants")
     @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasRole('ADMIN')")
     public ResponseEntity<VariantResponse> createVariant(

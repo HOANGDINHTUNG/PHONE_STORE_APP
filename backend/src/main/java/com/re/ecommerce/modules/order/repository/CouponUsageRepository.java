@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface CouponUsageRepository extends JpaRepository<CouponUsage, UUID> {
     Optional<CouponUsage> findByOrderId(UUID orderId);
+    org.springframework.data.domain.Page<CouponUsage> findByCouponIdOrderByCreatedAtDesc(UUID couponId, org.springframework.data.domain.Pageable pageable);
 }

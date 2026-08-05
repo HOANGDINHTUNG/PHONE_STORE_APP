@@ -14,6 +14,12 @@ public class CouponCreateRequest {
     @Size(max = 50, message = "Code must be at most 50 characters")
     private String code;
 
+    @NotBlank(message = "Coupon name is required")
+    @Size(max = 255, message = "Coupon name must be at most 255 characters")
+    private String name;
+
+    private String description;
+
     @NotNull(message = "Type is required")
     private CouponType type;
 
@@ -31,7 +37,6 @@ public class CouponCreateRequest {
     private BigDecimal maximumDiscountAmount;
 
     @NotNull(message = "Start time is required")
-    @FutureOrPresent(message = "Start time must be in the future or present")
     private LocalDateTime startTime;
 
     @NotNull(message = "End time is required")
@@ -40,4 +45,7 @@ public class CouponCreateRequest {
 
     @Min(value = 1, message = "Per customer limit must be at least 1 if provided")
     private Integer perCustomerLimit;
+
+    @Min(value = 1, message = "Total usage limit must be at least 1 if provided")
+    private Integer totalUsageLimit;
 }

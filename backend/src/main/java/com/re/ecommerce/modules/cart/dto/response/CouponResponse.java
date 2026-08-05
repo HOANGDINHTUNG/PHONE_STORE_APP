@@ -14,6 +14,8 @@ import java.util.UUID;
 public class CouponResponse {
     private UUID id;
     private String code;
+    private String name;
+    private String description;
     private CouponType type;
     private BigDecimal discountValue;
     private Boolean appliesToAll;
@@ -22,6 +24,7 @@ public class CouponResponse {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer perCustomerLimit;
+    private Integer totalUsageLimit;
     private CouponStatus status;
     private Integer usedCount;
     private LocalDateTime createdAt;

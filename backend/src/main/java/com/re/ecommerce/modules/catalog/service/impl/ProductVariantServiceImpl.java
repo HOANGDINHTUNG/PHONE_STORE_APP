@@ -31,6 +31,15 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     private final AuditLogger auditLogger;
 
     @Override
+    @Transactional(readOnly = true)
+    public List<VariantResponse> listVariantsByProduct(UUID productId) {
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found");
+        }
+        return variantRepository.findByProductId(productId).stream().map(this::mapToResponse).toList();
+    }
+
+    @Override
     @Transactional
     public VariantResponse createVariant(UUID productId, VariantCreateRequest request) {
         Product product = productRepository.findById(productId)

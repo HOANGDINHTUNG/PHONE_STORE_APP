@@ -49,8 +49,13 @@ public class PaymentServiceImpl implements PaymentService {
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found with orderCode: " + orderCode));
 
+        // Older orders may have been created before the checkout flow started
+        // initializing payments. Create the aggregate on demand so they remain payable.
         Payment payment = paymentRepository.findByOrder_Id(order.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("PAYMENT_NOT_FOUND", "Payment not found for order code: " + orderCode));
+                .orElseGet(() -> paymentRepository.save(Payment.builder()
+                        .order(order)
+                        .expectedAmount(order.getGrandTotalAmount())
+                        .build()));
 
         if (payment.getStatus() == PaymentStatus.PAID || payment.getStatus() == PaymentStatus.REFUNDED) {
             throw new BusinessConflictException("PAYMENT_ALREADY_SETTLED", "This order is already fully paid or refunded.");

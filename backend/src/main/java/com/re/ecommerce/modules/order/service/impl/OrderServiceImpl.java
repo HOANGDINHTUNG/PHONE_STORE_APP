@@ -12,6 +12,8 @@ import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.cart.repository.CartRepository;
 import com.re.ecommerce.modules.cart.repository.CouponRepository;
 import com.re.ecommerce.modules.catalog.entity.ProductVariant;
+import com.re.ecommerce.modules.catalog.entity.ProductImage;
+import com.re.ecommerce.modules.catalog.repository.ProductImageRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductVariantRepository;
 import com.re.ecommerce.modules.customer.entity.ShippingAddress;
 import com.re.ecommerce.modules.customer.repository.ShippingAddressRepository;
@@ -36,6 +38,8 @@ import com.re.ecommerce.modules.order.repository.OrderRepository;
 import com.re.ecommerce.modules.order.repository.OrderStatusHistoryRepository;
 import com.re.ecommerce.modules.order.service.OrderService;
 import com.re.ecommerce.modules.cart.service.CartService;
+import com.re.ecommerce.modules.payment.entity.Payment;
+import com.re.ecommerce.modules.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,9 +69,11 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final CouponRepository couponRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final ProductImageRepository productImageRepository;
     
     private final ShippingAddressRepository shippingAddressRepository;
     private final CartService cartService;
+    private final PaymentRepository paymentRepository;
     
 
     @Override
@@ -129,6 +135,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             BigDecimal price = variant.getSalePrice() != null ? variant.getSalePrice() : variant.getListPrice();
+            String imageUrl = resolveVariantImageUrl(variant);
             
             BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(demand));
             subtotal = subtotal.add(lineTotal);
@@ -148,7 +155,7 @@ public class OrderServiceImpl implements OrderService {
                     .color(variant.getColor())
                     .ram(variant.getRamGb() != null ? String.valueOf(variant.getRamGb()) : null)
                     .storage(variant.getStorageGb() != null ? String.valueOf(variant.getStorageGb()) : null)
-                    .imageUrl(null) // simplified
+                    .imageUrl(imageUrl)
                     .warrantyMonths(variant.getWarrantyMonths() != null ? variant.getWarrantyMonths() : 0)
                     .unitPrice(price)
                     .quantity(demand)
@@ -162,9 +169,16 @@ public class OrderServiceImpl implements OrderService {
         
         BigDecimal discount = BigDecimal.ZERO;
         if (request.couponCode() != null && !request.couponCode().isBlank()) {
-            Coupon coupon = couponRepository.findByCode(request.couponCode().toUpperCase())
-                    .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND", "Coupon not found"));
-            // Reserve logic simplified. 
+             Coupon coupon = couponRepository.findByCode(request.couponCode().toUpperCase())
+                     .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND", "Coupon not found"));
+             if (coupon.getStatus() != com.re.ecommerce.modules.cart.entity.CouponStatus.ACTIVE
+                     || coupon.getStartTime().isAfter(LocalDateTime.now()) || coupon.getEndTime().isBefore(LocalDateTime.now())) {
+                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Coupon is not currently active");
+             }
+             if (coupon.getTotalUsageLimit() != null && coupon.getUsedCount() >= coupon.getTotalUsageLimit()) {
+                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Coupon usage limit has been reached");
+             }
+             // Reserve logic simplified. 
             // Calculate discount...
             if (coupon.getMinimumOrderValue().compareTo(subtotal) > 0) {
                 throw new UnprocessableEntityException("VALIDATION_ERROR", "Minimum order not reached for coupon");
@@ -196,6 +210,10 @@ public class OrderServiceImpl implements OrderService {
         // Save Order hierarchy
         orderRepository.save(order);
         orderItemRepository.saveAll(orderItems);
+        paymentRepository.save(Payment.builder()
+                .order(order)
+                .expectedAmount(order.getGrandTotalAmount())
+                .build());
         
         // If Coupon Used
         if (order.getCoupon() != null) {
@@ -369,7 +387,9 @@ public class OrderServiceImpl implements OrderService {
                 .color(i.getColor())
                 .ram(i.getRam())
                 .storage(i.getStorage())
-                .imageUrl(i.getImageUrl())
+                .imageUrl(i.getImageUrl() != null && !i.getImageUrl().isBlank()
+                        ? i.getImageUrl()
+                        : resolveVariantImageUrl(i.getProductVariant()))
                 .warrantyMonths(i.getWarrantyMonths())
                 .unitPrice(i.getUnitPrice())
                 .quantity(i.getQuantity())
@@ -405,6 +425,24 @@ public class OrderServiceImpl implements OrderService {
                 .cancelledAt(order.getCancelledAt())
                 .items(itemDtos)
                 .build();
+    }
+
+    private String resolveVariantImageUrl(ProductVariant variant) {
+        if (variant == null || variant.getId() == null) {
+            return null;
+        }
+
+        Optional<ProductImage> primaryImage = productImageRepository
+                .findByVariantIdAndIsPrimary(variant.getId(), true);
+        if (primaryImage.isPresent()) {
+            return primaryImage.get().getImageUrl();
+        }
+
+        return productImageRepository.findByVariantIdOrderBySortOrderAsc(variant.getId())
+                .stream()
+                .findFirst()
+                .map(ProductImage::getImageUrl)
+                .orElse(null);
     }
 
     @Override
