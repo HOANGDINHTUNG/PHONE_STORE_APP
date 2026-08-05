@@ -26,6 +26,13 @@ import { AdminRouteGuard } from "../features/admin/AdminRouteGuard";
 import { AdminLayout } from "../features/admin/AdminLayout";
 import { AdminDashboardPage } from "../features/admin/AdminDashboardPage";
 import { AdminPlaceholderPage } from "../features/admin/AdminPlaceholderPage";
+import { ProcurementListPage } from "../features/admin/procurement/ProcurementListPage";
+import { ProcurementDetailPage } from "../features/admin/procurement/ProcurementDetailPage";
+import { AfterSalesPage } from "../features/admin/afterSales/AfterSalesPage";
+import { UserStaffPage } from "../features/admin/userStaff/UserStaffPage";
+import { RolesPermissionsPage } from "../features/admin/rolePermissions/RolesPermissionsPage";
+import { NotificationsPage as AdminNotificationsPage } from "../features/admin/notificationAudit/NotificationsPage";
+import { AuditLogsPage } from "../features/admin/notificationAudit/AuditLogsPage";
 
 export const router = createBrowserRouter([
   {
@@ -47,12 +54,13 @@ export const router = createBrowserRouter([
       { path: "payments", element: <AdminPlaceholderPage title="Thanh toán & Hoàn tiền" description="Kiểm soát giao dịch thanh toán, đối soát và yêu cầu hoàn tiền." /> },
       { path: "shipping", element: <AdminPlaceholderPage title="Giao hàng" description="Theo dõi vận đơn, tiến độ giao hàng và các sự cố vận chuyển." /> },
       { path: "inventory", element: <AdminPlaceholderPage title="Kho hàng" description="Theo dõi tồn kho và điều chuyển sản phẩm giữa các kho." /> },
-      { path: "procurement", element: <AdminPlaceholderPage title="Nhập hàng" description="Quản lý yêu cầu mua hàng, phiếu nhập và nhà cung cấp." /> },
-      { path: "after-sales", element: <AdminPlaceholderPage title="Hậu mãi" description="Xử lý bảo hành, đổi trả và chăm sóc khách hàng sau mua." /> },
-      { path: "users", element: <AdminPlaceholderPage title="Người dùng & Nhân sự" description="Quản lý khách hàng, nhân sự và trạng thái tài khoản." /> },
-      { path: "roles", element: <AdminPlaceholderPage title="Vai trò & Quyền" description="Thiết lập vai trò và phạm vi quyền truy cập của nhân sự." /> },
-      { path: "notifications", element: <AdminPlaceholderPage title="Thông báo" description="Quản lý thông báo vận hành gửi đến nhân sự và khách hàng." /> },
-      { path: "audit-logs", element: <AdminPlaceholderPage title="Nhật ký kiểm toán" description="Theo dõi lịch sử thay đổi quan trọng trong hệ thống." /> },
+      { path: "procurement", element: <ProcurementListPage /> },
+      { path: "procurement/:poCode", element: <ProcurementDetailPage /> },
+      { path: "after-sales", element: <AfterSalesPage /> },
+      { path: "users", element: <UserStaffPage /> },
+      { path: "roles", element: <RolesPermissionsPage /> },
+      { path: "notifications", element: <AdminNotificationsPage /> },
+      { path: "audit-logs", element: <AuditLogsPage /> },
       { path: "settings", element: <AdminPlaceholderPage title="Settings" description="Cấu hình vận hành cho hệ thống quản trị PinkPhone." /> },
       { path: "support", element: <AdminPlaceholderPage title="Support" description="Kênh hỗ trợ dành cho nhân sự quản trị." /> },
     ],
