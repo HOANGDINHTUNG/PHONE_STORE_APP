@@ -95,13 +95,6 @@ const ProductDetail = () => {
   }, []);
 
   const handleBuyNow = () => {
-    if (!user) {
-      message.warning(
-        "Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.",
-      );
-      return;
-    }
-
     if (product) {
       const variant = product.variants?.[selectedVariantIndex];
       addToCart({
@@ -120,13 +113,6 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (!user) {
-      message.warning(
-        "Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.",
-      );
-      return;
-    }
-
     if (product) {
       const variant = product.variants?.[selectedVariantIndex];
       addToCart({

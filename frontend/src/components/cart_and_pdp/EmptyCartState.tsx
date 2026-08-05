@@ -112,7 +112,7 @@ const EmptyCartState = () => {
         <h1 className="font-headline-md text-headline-md text-on-surface mb-sm font-bold">
           Giỏ hàng của bạn đang trống
         </h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mx-auto mb-xl leading-relaxed">
+        <p className="font-body-lg text-body-lg text-on-surface-variant max-w-[450px] px-md mx-auto mb-xl leading-relaxed">
           Hãy lựa chọn chiếc điện thoại phù hợp và quay lại đây để hoàn tất đơn
           hàng.
         </p>

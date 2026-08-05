@@ -107,7 +107,13 @@ const Cart = () => {
   const formatPrice = (num: number) => num.toLocaleString("vi-VN") + " ₫";
 
   const handleCheckout = () => {
-    if (activeItems.length > 0) navigate("/checkout");
+    if (activeItems.length > 0) {
+      if (!user) {
+        navigate("/login?redirect=/checkout");
+        return;
+      }
+      navigate("/checkout");
+    }
   };
 
   if (localCart.length === 0) {

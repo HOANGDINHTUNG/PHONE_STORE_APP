@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Form, Input, Button, Checkbox, message } from "antd";
 import { GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
 import { useStore } from "../../context/StoreContext";
@@ -8,19 +8,21 @@ import styles from "./Login.module.css";
 const Login = () => {
   const { login, user } = useStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
 
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate(redirect);
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirect]);
 
   const onFinish = async (values: any) => {
     const { emailOrPhone, password, remember } = values;
     const success = await login(emailOrPhone, password, remember);
     if (success) {
       message.success("Đăng nhập thành công!");
-      navigate("/");
+      navigate(redirect);
     } else {
       message.error("Sai thông tin đăng nhập.");
     }

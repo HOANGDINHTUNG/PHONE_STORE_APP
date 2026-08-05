@@ -60,14 +60,15 @@ const ForgotPassword = () => {
 
     setLoading(true);
     setErrorMsg("");
-    const success = await requestPasswordResetApi(email);
+    const response = await requestPasswordResetApi(email);
     setLoading(false);
 
-    if (success) {
+    if (response.success) {
       setStep(2);
     } else {
       setErrorMsg(
-        "Không thể gửi OTP. Vui lòng kiểm tra lại email hoặc thử lại sau.",
+        response.message ||
+          "Không thể gửi OTP. Vui lòng kiểm tra lại email hoặc thử lại sau.",
       );
     }
   };

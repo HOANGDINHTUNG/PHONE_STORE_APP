@@ -142,13 +142,19 @@ export const logoutApi = async (): Promise<void> => {
 
 export const requestPasswordResetApi = async (
   email: string,
-): Promise<boolean> => {
+): Promise<{ success: boolean; message?: string }> => {
   try {
     await apiClient.post("/auth/password-reset-requests", { email });
-    return true;
-  } catch (error) {
+    return { success: true };
+  } catch (error: any) {
+    if (error.response?.data?.code === "EMAIL_NOT_FOUND") {
+      return {
+        success: false,
+        message: "Email này chưa được đăng ký trong hệ thống.",
+      };
+    }
     console.error("Backend auth password reset request error:", error);
-    return false;
+    return { success: false };
   }
 };
 

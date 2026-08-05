@@ -18,6 +18,12 @@ import {
   ReturnsPage,
   NotificationsPage,
 } from "../features/account/pages/AccountActivityPages";
+import { VouchersPage } from "../features/account/pages/VouchersPage";
+import { WishlistPage } from "../features/account/pages/WishlistPage";
+import { AccountProfilePage } from "../features/account/pages/AccountProfilePage";
+import { AccountAddressPage } from "../features/account/pages/AccountAddressPage";
+import { WarrantyDetailPage } from "../features/account/pages/WarrantyDetailPage";
+import { AccountSupportPage } from "../features/account/pages/AccountSupportPage";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import EmailVerification from "../pages/EmailVerification";
@@ -34,10 +40,25 @@ import { RolesPermissionsPage } from "../features/admin/rolePermissions/RolesPer
 import { NotificationsPage as AdminNotificationsPage } from "../features/admin/notificationAudit/NotificationsPage";
 import { AuditLogsPage } from "../features/admin/notificationAudit/AuditLogsPage";
 import { AdminCatalogPage } from "../features/admin/AdminCatalogPage";
-import { AdminCouponDetailPage, AdminCouponEditorPage, AdminPromotionsPage } from "../features/admin/AdminPromotionPages";
-import { AdminOrderDetailPage, AdminOrdersPage } from "../features/admin/AdminOrderPages";
-import { AdminPaymentDetailPage, AdminPaymentsPage, AdminRefundQueuePage } from "../features/admin/AdminPaymentPages";
-import { AdminShipmentCreatePage, AdminShipmentDetailPage, AdminShipmentsPage } from "../features/admin/AdminShipmentPages";
+import {
+  AdminCouponDetailPage,
+  AdminCouponEditorPage,
+  AdminPromotionsPage,
+} from "../features/admin/AdminPromotionPages";
+import {
+  AdminOrderDetailPage,
+  AdminOrdersPage,
+} from "../features/admin/AdminOrderPages";
+import {
+  AdminPaymentDetailPage,
+  AdminPaymentsPage,
+  AdminRefundQueuePage,
+} from "../features/admin/AdminPaymentPages";
+import {
+  AdminShipmentCreatePage,
+  AdminShipmentDetailPage,
+  AdminShipmentsPage,
+} from "../features/admin/AdminShipmentPages";
 
 export const router = createBrowserRouter([
   {
@@ -71,7 +92,15 @@ export const router = createBrowserRouter([
       { path: "shipping", element: <AdminShipmentsPage /> },
       { path: "shipments/new", element: <AdminShipmentCreatePage /> },
       { path: "shipments/:shipmentId", element: <AdminShipmentDetailPage /> },
-      { path: "inventory", element: <AdminPlaceholderPage title="Kho hàng" description="Theo dõi tồn kho và điều chuyển sản phẩm giữa các kho." /> },
+      {
+        path: "inventory",
+        element: (
+          <AdminPlaceholderPage
+            title="Kho hàng"
+            description="Theo dõi tồn kho và điều chuyển sản phẩm giữa các kho."
+          />
+        ),
+      },
       { path: "procurement", element: <ProcurementListPage /> },
       { path: "procurement/:poCode", element: <ProcurementDetailPage /> },
       { path: "after-sales", element: <AfterSalesPage /> },
@@ -79,8 +108,24 @@ export const router = createBrowserRouter([
       { path: "roles", element: <RolesPermissionsPage /> },
       { path: "notifications", element: <AdminNotificationsPage /> },
       { path: "audit-logs", element: <AuditLogsPage /> },
-      { path: "settings", element: <AdminPlaceholderPage title="Settings" description="Cấu hình vận hành cho hệ thống quản trị PinkPhone." /> },
-      { path: "support", element: <AdminPlaceholderPage title="Support" description="Kênh hỗ trợ dành cho nhân sự quản trị." /> },
+      {
+        path: "settings",
+        element: (
+          <AdminPlaceholderPage
+            title="Settings"
+            description="Cấu hình vận hành cho hệ thống quản trị PinkPhone."
+          />
+        ),
+      },
+      {
+        path: "support",
+        element: (
+          <AdminPlaceholderPage
+            title="Support"
+            description="Kênh hỗ trợ dành cho nhân sự quản trị."
+          />
+        ),
+      },
     ],
   },
   {
@@ -129,8 +174,32 @@ export const router = createBrowserRouter([
     element: <ReturnsPage />,
   },
   {
+    path: "/account/returns/:id",
+    element: <WarrantyDetailPage />,
+  },
+  {
     path: "/account/notifications",
     element: <NotificationsPage />,
+  },
+  {
+    path: "/account/vouchers",
+    element: <VouchersPage />,
+  },
+  {
+    path: "/account/wishlist",
+    element: <WishlistPage />,
+  },
+  {
+    path: "/account/address",
+    element: <AccountAddressPage />,
+  },
+  {
+    path: "/account/profile",
+    element: <AccountProfilePage />,
+  },
+  {
+    path: "/account/support",
+    element: <AccountSupportPage />,
   },
   {
     path: "/checkout",

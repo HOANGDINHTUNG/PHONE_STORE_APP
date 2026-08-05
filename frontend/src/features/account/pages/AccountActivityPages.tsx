@@ -1,12 +1,17 @@
+import { useState } from "react";
 import {
   Bell,
   Check,
   ChevronRight,
   Clock3,
+  CreditCard,
   PackageCheck,
   RefreshCcw,
+  ShoppingBag,
   Star,
   Truck,
+  BellOff,
+  Search,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AccountShell, Panel } from "../components/AccountShell";
@@ -82,164 +87,390 @@ export function MyReviewsPage() {
 export function ReturnsPage() {
   return (
     <AccountShell
-      title="Đổi trả & hoàn tiền"
-      description="Theo dõi yêu cầu đổi trả điện thoại và tiến trình hoàn tiền của bạn."
-      actions={
-        <button
-          type="button"
-          className="min-h-11 rounded-xl bg-primary px-5 font-bold text-white"
-        >
-          Tạo yêu cầu mới
-        </button>
-      }
+      title="Bảo hành của tôi"
+      description="Quản lý và tra cứu thông tin bảo hành, đổi trả các sản phẩm đã mua tại PinkPhone."
     >
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Summary icon={RefreshCcw} value="01" label="Đang xử lý" />
-        <Summary icon={Check} value="03" label="Đã hoàn tất" />
-        <Summary icon={Clock3} value="7 ngày" label="Thời hạn đổi trả" />
-      </div>
-      <Panel className="mt-5 overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-soft p-4">
-          <div>
-            <strong className="text-primary">#RT-240915</strong>
-            <span className="ml-3 text-xs text-muted">Tạo ngày 15/09/2024</span>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h1 className="text-headline-md font-headline-md font-bold text-on-background">
+            Bảo hành của tôi
+          </h1>
+          {/* Search Bar */}
+          <div className="relative w-full md:w-96">
+            <input
+              className="w-full bg-surface-container border-outline/30 text-body-md font-body-md rounded-full py-3 pl-12 pr-4 focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all"
+              placeholder="Tìm theo mã bảo hành, đơn hàng, IMEI..."
+              type="text"
+            />
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
+              size={20}
+            />
           </div>
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-warning">
-            Đang kiểm tra
-          </span>
         </div>
-        <div className="grid gap-4 p-5 sm:grid-cols-[7rem_1fr_auto] sm:items-center">
-          <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-soft">
-            <PhoneStripImage index={2} />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold">Google Pixel 8 Pro</h2>
-            <p className="mt-1 text-sm text-muted">
-              Lý do: Lỗi hiển thị màn hình khi sử dụng.
-            </p>
-            <p className="mt-2 text-sm">
-              <strong>Số tiền dự kiến hoàn:</strong>{" "}
-              <span className="text-primary">21.990.000đ</span>
-            </p>
-          </div>
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary px-4 text-sm font-bold text-primary"
-          >
-            Xem tiến trình <ChevronRight size={16} />
+
+        {/* Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <button className="px-4 py-2 rounded-full bg-primary-container text-on-primary-container text-label-sm font-label-sm whitespace-nowrap">
+            Tất cả
+          </button>
+          <button className="px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-variant transition-colors">
+            Đang hiệu lực (ACTIVE)
+          </button>
+          <button className="px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-variant transition-colors">
+            Hết hạn (EXPIRED)
           </button>
         </div>
-        <div className="grid grid-cols-4 gap-2 border-t border-border p-5">
-          {["Đã gửi yêu cầu", "Đã tiếp nhận", "Đang kiểm tra", "Hoàn tiền"].map(
-            (step, index) => (
-              <div key={step} className="text-center">
-                <div
-                  className={`mx-auto grid size-8 place-items-center rounded-full ${index < 3 ? "bg-primary text-white" : "bg-neutral-soft text-muted"}`}
-                >
-                  {index < 2 ? (
-                    <Check size={15} />
-                  ) : index === 2 ? (
-                    <Clock3 size={15} />
-                  ) : (
-                    <RefreshCcw size={15} />
-                  )}
+
+        {/* Warranty List */}
+        <div className="flex flex-col gap-6">
+          {/* Warranty Card 1: ACTIVE */}
+          <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-surface-container-highest flex flex-col lg:flex-row gap-6 hover:shadow-md transition-shadow">
+            <div className="w-32 h-32 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0">
+              <img
+                className="w-full h-full object-contain p-2"
+                alt="Product"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO6v5Q31yGSQ8gZV9DiOXaL9UKKA3aQDh86eBWAOe6JB_JByJxVq-9sTdKCB7wdLGaP1GphvHFPBMbFADBojBNagC8TwCV9ke38Iy87SASIQCXMu09VQl6Rbqp8TvlT9tEvmrQBm0epVT9q_4uag9yx_g__y2AtkEYYx4GvbBlqY9EvExSxVzOwEmMmDOH-P8r-d7LphjaLSXV7fyg9f77Vks2YiqiKrxkj88nypnftuBvGhV3zWNO"
+              />
+            </div>
+
+            <div className="flex-grow flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-body-lg font-body-lg font-bold text-on-background">
+                    PinkPhone 15 Pro Max
+                  </h3>
+                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider font-bold">
+                    Active
+                  </span>
                 </div>
-                <p className="mt-2 text-[11px] font-bold text-muted">{step}</p>
+                <p className="text-body-md font-body-md text-on-surface-variant mb-4">
+                  256GB / Rose Gold
+                </p>
               </div>
-            ),
-          )}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    Mã bảo hành
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background font-mono">
+                    W-8472-X9M
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    Mã đơn hàng
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background font-mono">
+                    ORD-99381
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    IMEI/Serial
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background font-mono">
+                    *****5921
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    Thời hạn
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background">
+                    12/2023 - 12/2024
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end lg:justify-start">
+              <Link
+                to={`/account/returns/W-8472-X9M`}
+                className="bg-primary text-on-primary px-6 py-3 rounded-lg text-label-sm font-label-sm font-semibold hover:bg-secondary active:scale-[0.98] transition-all whitespace-nowrap"
+              >
+                Yêu cầu bảo hành
+              </Link>
+            </div>
+          </div>
+
+          {/* Warranty Card 2: EXPIRED */}
+          <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-surface-container-highest flex flex-col lg:flex-row gap-6 opacity-75">
+            <div className="w-32 h-32 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0 grayscale">
+              <img
+                className="w-full h-full object-contain p-2"
+                alt="Product"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVlUQuIURzcuQSHdgLA_m0m4WrzKc7sjKRqDq1BkaRh3V7LAbNSSZcpgxrwcNTnv3F8YvWt8wAVJYPTwLqt8D_xmdu0jZq_c5UeBsyYxccNkopUx8EmKetNN-g59nyywL7R5rEho6kCyu9MSD-RKbDPI66tIA-ld5SeDf2yLbRqmnlxjuYZ-GpmXWXv_RvdSDuQEHLAjzsKN57jBoYh5W61j5lBe7tNoO-2Hv-5P33KQwveXnepvID"
+              />
+            </div>
+
+            <div className="flex-grow flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-body-lg font-body-lg font-bold text-on-background">
+                    PinkPhone 13
+                  </h3>
+                  <span className="bg-surface-dim text-on-surface px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider font-bold">
+                    Expired
+                  </span>
+                </div>
+                <p className="text-body-md font-body-md text-on-surface-variant mb-4">
+                  128GB / Midnight
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    Mã bảo hành
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background font-mono">
+                    W-2210-P4A
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    Mã đơn hàng
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background font-mono">
+                    ORD-44210
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    IMEI/Serial
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background font-mono">
+                    *****1042
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-on-surface-variant block mb-1">
+                    Thời hạn
+                  </span>
+                  <span className="text-label-sm font-label-sm text-on-background">
+                    05/2022 - 05/2023
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end lg:justify-start">
+              {/* No CTA for expired */}
+            </div>
+          </div>
         </div>
-      </Panel>
-      <div className="mt-5 rounded-2xl border border-border bg-surface-soft p-5 text-sm leading-6 text-muted">
-        Điện thoại được hỗ trợ đổi trả trong 7 ngày nếu đáp ứng điều kiện ngoại
-        quan và chính sách của PinkPhone.
       </div>
     </AccountShell>
   );
 }
 
-const notifications = [
-  [
-    Truck,
-    "Đơn hàng đang trên đường giao",
-    "Đơn #PP123-001 dự kiến giao trong hôm nay.",
-    "5 phút trước",
-  ],
-  [
-    PackageCheck,
-    "Đơn hàng đã được xác nhận",
-    "PinkPhone đã xác nhận đơn mua iPhone 16 Pro Max.",
-    "2 giờ trước",
-  ],
-  [
-    Star,
-    "Bạn vừa nhận thêm 100 điểm",
-    "Cảm ơn bạn đã đánh giá sản phẩm.",
-    "Hôm qua",
-  ],
-  [
-    Bell,
-    "Voucher thành viên sắp hết hạn",
-    "Mã PINKMEMBER sẽ hết hạn sau 3 ngày.",
-    "2 ngày trước",
-  ],
-] as const;
+const MOCK_NOTIFICATIONS = [
+  {
+    id: "1",
+    Icon: ShoppingBag,
+    title: "Xác nhận đơn hàng #PP-123456",
+    time: "Vừa xong",
+    text: "Đơn hàng của bạn đã được xác nhận và đang trong quá trình chuẩn bị. Chúng tôi sẽ thông báo khi đơn hàng được giao cho đơn vị vận chuyển.",
+    isRead: false,
+    category: "Đơn hàng",
+  },
+  {
+    id: "2",
+    Icon: CreditCard,
+    title: "Thanh toán thành công #PP-123412",
+    time: "2 giờ trước",
+    text: "Bạn đã thanh toán thành công số tiền 24,990,000đ cho đơn hàng #PP-123412.",
+    isRead: true,
+    category: "Đơn hàng",
+  },
+  {
+    id: "3",
+    Icon: Truck,
+    title: "Đơn hàng #PP-123390 đang được giao",
+    time: "Hôm qua",
+    text: "Đơn hàng của bạn đã được giao cho bưu tá. Vui lòng chú ý điện thoại để nhận hàng.",
+    isRead: true,
+    category: "Đơn hàng",
+  },
+];
 
 export function NotificationsPage() {
+  const [activeTab, setActiveTab] = useState("Tất cả");
+  // [DEV-MODE]: Added state machine to handle the 4 lifecycle paths organically
+  const [fetchStatus, setFetchStatus] = useState<
+    "loading" | "error" | "empty" | "success"
+  >("success");
+
+  const filteredNotifications = MOCK_NOTIFICATIONS.filter((n) => {
+    if (activeTab === "Chưa đọc") return !n.isRead;
+    if (activeTab === "Đơn hàng") return n.category === "Đơn hàng";
+    return true;
+  });
+
   return (
     <AccountShell
       title="Thông báo"
       description="Cập nhật đơn hàng, ưu đãi và hoạt động tài khoản PinkPhone."
       actions={
-        <button type="button" className="min-h-10 font-bold text-primary">
-          Đánh dấu tất cả đã đọc
-        </button>
-      }
-    >
-      <div className="flex gap-2 overflow-x-auto border-b border-border pb-2">
-        {["Tất cả", "Đơn hàng", "Ưu đãi", "Tài khoản"].map((tab, index) => (
+        <div className="flex items-center gap-4">
+          {/* Debug Panel to toggle states easily during UI verification */}
+          <div className="hidden lg:flex bg-surface-container-high rounded-full p-1 gap-1 text-[10px] font-bold">
+            {["loading", "empty", "error", "success"].map((s) => (
+              <button
+                key={s}
+                onClick={() => setFetchStatus(s as any)}
+                className={`px-3 py-1 rounded-full uppercase ${fetchStatus === s ? "bg-primary text-white" : "text-on-surface-variant hover:bg-surface-container-highest"}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
+            className="font-label-sm text-label-sm text-primary hover:text-secondary transition-colors underline decoration-primary decoration-2 underline-offset-4"
+          >
+            Đánh dấu tất cả là đã đọc
+          </button>
+        </div>
+      }
+    >
+      {/* Tabs */}
+      <div className="flex gap-8 overflow-x-auto border-b border-outline-variant mb-6">
+        {["Tất cả", "Chưa đọc", "Đơn hàng", "Ưu đãi"].map((tab) => (
+          <button
             key={tab}
-            className={`min-h-10 shrink-0 rounded-xl px-4 text-sm font-bold ${index === 0 ? "bg-primary text-white" : "text-muted"}`}
+            onClick={() => setActiveTab(tab)}
+            className={`font-label-sm text-label-sm pb-2 px-1 whitespace-nowrap transition-colors ${
+              activeTab === tab
+                ? "font-bold text-primary border-b-2 border-primary"
+                : "font-medium text-on-surface-variant hover:text-primary"
+            }`}
           >
             {tab}
           </button>
         ))}
       </div>
-      <Panel className="mt-5 overflow-hidden">
-        {notifications.map(([Icon, title, text, time], index) => (
-          <article
-            key={title}
-            className={`flex gap-4 border-b border-border p-5 last:border-0 ${index < 2 ? "bg-surface-soft" : ""}`}
-          >
-            <div className="grid size-11 shrink-0 place-items-center rounded-full bg-pink-100 text-primary">
-              <Icon size={19} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-extrabold">{title}</h2>
-                <time className="text-xs text-muted">{time}</time>
+
+      {fetchStatus === "loading" && (
+        <div className="flex flex-col gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-surface-container-low rounded-xl p-4 flex gap-4 items-start animate-pulse"
+            >
+              <div className="w-10 h-10 rounded-full bg-surface-variant shrink-0"></div>
+              <div className="flex-grow">
+                <div
+                  className={`h-4 bg-surface-variant rounded mb-2 ${i === 1 ? "w-1/3" : i === 2 ? "w-1/4" : "w-1/2"}`}
+                ></div>
+                <div className="h-3 bg-surface-variant rounded w-full mb-1"></div>
+                <div
+                  className={`h-3 bg-surface-variant rounded ${i === 1 ? "w-2/3" : i === 2 ? "w-1/2" : "w-3/4"}`}
+                ></div>
               </div>
-              <p className="mt-1 text-sm leading-6 text-muted">{text}</p>
-              {index === 0 && (
-                <Link
-                  to="/account/tracking"
-                  className="mt-2 inline-flex items-center text-sm font-bold text-primary"
-                >
-                  Theo dõi đơn hàng <ChevronRight size={15} />
-                </Link>
-              )}
             </div>
-            {index < 2 && (
-              <span
-                className="mt-2 size-2 shrink-0 rounded-full bg-primary"
-                aria-label="Chưa đọc"
-              />
-            )}
-          </article>
-        ))}
-      </Panel>
+          ))}
+        </div>
+      )}
+
+      {fetchStatus === "empty" && (
+        <div className="flex flex-col items-center justify-center py-16 text-center border-t border-outline-variant mt-8 fade-in">
+          <div className="w-24 h-24 bg-surface-variant rounded-full flex items-center justify-center mb-6 text-outline">
+            <BellOff size={48} />
+          </div>
+          <h3 className="font-headline-md text-headline-md text-on-surface mb-2">
+            Hộp thư thông báo đang trống
+          </h3>
+          <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
+            Các cập nhật về đơn hàng và ưu đãi sẽ xuất hiện tại đây.
+          </p>
+          <button className="mt-6 font-label-sm text-label-sm bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-secondary transition-colors">
+            Tiếp tục mua sắm
+          </button>
+        </div>
+      )}
+
+      {fetchStatus === "error" && (
+        <div className="flex flex-col items-center justify-center py-16 text-center border-t border-outline-variant mt-8 fade-in">
+          <div className="w-20 h-20 bg-error-container text-on-error-container rounded-full flex items-center justify-center mb-6">
+            <AlertCircle size={40} />
+          </div>
+          <h3 className="font-headline-md text-headline-md text-on-surface mb-2">
+            Đã xảy ra lỗi khi tải dữ liệu
+          </h3>
+          <p className="font-body-md text-body-md text-on-surface-variant mb-6">
+            Vui lòng kiểm tra kết nối mạng và thử lại.
+          </p>
+          <button
+            onClick={() => {
+              setFetchStatus("loading");
+              setTimeout(() => setFetchStatus("success"), 1000);
+            }}
+            className="font-label-sm text-label-sm border border-primary text-primary px-8 py-2 rounded-full hover:bg-primary hover:text-on-primary transition-colors"
+          >
+            Tải lại trang
+          </button>
+        </div>
+      )}
+
+      {fetchStatus === "success" && (
+        <div className="fade-in">
+          {filteredNotifications.length === 0 ? (
+            <div className="py-10 text-center text-on-surface-variant font-medium">
+              Không tìm thấy thông báo nào trong mục này
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {filteredNotifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`rounded-xl p-4 flex gap-4 items-start shadow-sm border border-border/50 hover:shadow-md transition-shadow relative cursor-pointer ${
+                    !notif.isRead
+                      ? "bg-primary-fixed-dim/10"
+                      : "bg-surface-container-lowest"
+                  }`}
+                >
+                  {!notif.isRead && (
+                    <div className="absolute top-4 right-4 w-2.5 h-2.5 bg-primary rounded-full"></div>
+                  )}
+
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                      !notif.isRead
+                        ? "bg-primary-container text-on-primary-container"
+                        : "bg-surface-variant text-on-surface-variant"
+                    }`}
+                  >
+                    <notif.Icon size={20} />
+                  </div>
+
+                  <div className="flex-grow pr-6">
+                    <div className="flex items-baseline justify-between mb-1">
+                      <h4 className="font-label-sm text-label-sm text-on-surface">
+                        {notif.title}
+                      </h4>
+                      <span className="font-body-md text-body-md text-on-surface-variant text-sm shrink-0 ml-2">
+                        {notif.time}
+                      </span>
+                    </div>
+                    <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+                      {notif.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-center mt-6">
+            <button className="font-label-sm text-label-sm text-primary border border-primary px-6 py-2 rounded-full hover:bg-primary hover:text-white transition-colors">
+              Xem thêm
+            </button>
+          </div>
+        </div>
+      )}
     </AccountShell>
   );
 }

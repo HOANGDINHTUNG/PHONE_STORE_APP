@@ -203,30 +203,31 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void requestPasswordReset(PasswordResetRequest request, String ipAddress) {
-        userRepository.findByEmail(request.email()).ifPresent(user -> {
-            if (user.getAccountStatus() == AccountStatus.DISABLED) {
-                return; // Do nothing if disabled
-            }
-            long recentRequests = passwordResetTokenRepository.countRecentRequests(user, LocalDateTime.now().minusHours(24));
-            if (recentRequests >= 3) {
-                throw new RateLimitExceededException("RATE_LIMIT_EXCEEDED", "Bạn đã yêu cầu đặt lại mật khẩu quá nhiều lần trong ngày hôm nay.");
-            }
-            
-            passwordResetTokenRepository.invalidateAllUserTokens(user);
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BusinessConflictException("EMAIL_NOT_FOUND", "Email này chưa được đăng ký trong hệ thống."));
+        
+        if (user.getAccountStatus() == AccountStatus.DISABLED) {
+            return; // Do nothing if disabled
+        }
+        long recentRequests = passwordResetTokenRepository.countRecentRequests(user, LocalDateTime.now().minusHours(24));
+        if (recentRequests >= 3) {
+            throw new RateLimitExceededException("RATE_LIMIT_EXCEEDED", "Bạn đã yêu cầu đặt lại mật khẩu quá nhiều lần trong ngày hôm nay.");
+        }
+        
+        passwordResetTokenRepository.invalidateAllUserTokens(user);
 
-            // Generate 6-digit OTP
-            String otpCode = generateOtpCode();
-            PasswordResetToken token = new PasswordResetToken(
-                    user, 
-                    hashString(otpCode), 
-                    LocalDateTime.now().plusMinutes(15), 
-                    ipAddress
-            );
-            passwordResetTokenRepository.save(token);
-            
-            // Async send OTP email
-            new Thread(() -> mailService.sendOtpEmail(user.getEmail(), otpCode)).start();
-        });
+        // Generate 6-digit OTP
+        String otpCode = generateOtpCode();
+        PasswordResetToken token = new PasswordResetToken(
+                user, 
+                hashString(otpCode), 
+                LocalDateTime.now().plusMinutes(15), 
+                ipAddress
+        );
+        passwordResetTokenRepository.save(token);
+        
+        // Async send OTP email
+        new Thread(() -> mailService.sendOtpEmail(user.getEmail(), otpCode)).start();
     }
 
     private String generateOtpCode() {

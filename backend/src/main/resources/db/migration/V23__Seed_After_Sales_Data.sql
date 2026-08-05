@@ -1,6 +1,8 @@
 -- V23__Seed_After_Sales_Data.sql
 -- Seed Orders, Order Items, Reviews, Warranties, Warranty Claims, and Return Requests for After-Sales Center
 
+SELECT id INTO @customer_id FROM users LIMIT 1 OFFSET 0;
+
 -- 1. Seed Parent Orders & Order Items
 INSERT INTO orders (
     id, order_code, idempotency_key_hash, customer_id, source_channel, contact_name, contact_phone, receiver_name, receiver_phone,
@@ -12,7 +14,7 @@ VALUES
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
     'ORD-55219-X',
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
-    UNHEX(REPLACE('00000000-0000-0000-0000-000000000001', '-', '')),
+    @customer_id,
     'WEB',
     'Nguyễn Văn A',
     '0901234567',
@@ -32,13 +34,28 @@ VALUES
 )
 ON DUPLICATE KEY UPDATE status = VALUES(status);
 
+SELECT id INTO @prod1_id FROM products LIMIT 1 OFFSET 0;
+SELECT id INTO @var1_id FROM product_variants WHERE product_id = @prod1_id LIMIT 1 OFFSET 0;
+
+SELECT id INTO @prod2_id FROM products LIMIT 1 OFFSET 1;
+SELECT id INTO @var2_id FROM product_variants WHERE product_id = @prod2_id LIMIT 1 OFFSET 0;
+
+SELECT id INTO @prod3_id FROM products LIMIT 1 OFFSET 2;
+SELECT id INTO @var3_id FROM product_variants WHERE product_id = @prod3_id LIMIT 1 OFFSET 0;
+
+SELECT id INTO @prod4_id FROM products LIMIT 1 OFFSET 3;
+SELECT id INTO @var4_id FROM product_variants WHERE product_id = @prod4_id LIMIT 1 OFFSET 0;
+
+SELECT id INTO @prod5_id FROM products LIMIT 1 OFFSET 4;
+SELECT id INTO @var5_id FROM product_variants WHERE product_id = @prod5_id LIMIT 1 OFFSET 0;
+
 INSERT INTO order_items (id, order_id, product_id, product_variant_id, product_name, variant_name, sku, unit_price, quantity)
 VALUES
 (
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555551', '-', '')),
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
-    UNHEX(REPLACE('33333333-3333-3333-3333-333333330011', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000001', '-', '')),
+    @prod1_id,
+    @var1_id,
     'iPhone 15 Pro Max',
     '256GB Titan Tự Nhiên',
     'IP15-PM-256-NT',
@@ -48,8 +65,8 @@ VALUES
 (
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555552', '-', '')),
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
-    UNHEX(REPLACE('33333333-3333-3333-3333-333333330011', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000002', '-', '')),
+    @prod2_id,
+    @var2_id,
     'Samsung Galaxy S24 Ultra',
     '256GB Xám Titan',
     'S24U-256-GREY',
@@ -59,8 +76,8 @@ VALUES
 (
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555553', '-', '')),
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
-    UNHEX(REPLACE('33333333-3333-3333-3333-333333330011', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000004', '-', '')),
+    @prod3_id,
+    @var3_id,
     'AirPods Pro 2',
     'USB-C',
     'AP-PRO-2-USBC',
@@ -70,8 +87,8 @@ VALUES
 (
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555554', '-', '')),
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
-    UNHEX(REPLACE('33333333-3333-3333-3333-333333330011', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000005', '-', '')),
+    @prod4_id,
+    @var4_id,
     'MacBook Pro 14',
     'M2 512GB',
     'MBP14-M2-512',
@@ -81,8 +98,8 @@ VALUES
 (
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')),
-    UNHEX(REPLACE('33333333-3333-3333-3333-333333330011', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000003', '-', '')),
+    @prod5_id,
+    @var5_id,
     'Oppo Find N3 Flip',
     '256GB Black',
     'OPPO-N3-FLIP',
@@ -96,7 +113,7 @@ INSERT INTO reviews (id, customer_id, order_item_id, rating, title, comment, sta
 VALUES
 (
     UNHEX(REPLACE('99999999-9999-9999-9999-999999999901', '-', '')),
-    UNHEX(REPLACE('00000000-0000-0000-0000-000000000001', '-', '')),
+    @customer_id,
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555551', '-', '')),
     5,
     'Sản phẩm tuyệt vời',
@@ -107,7 +124,7 @@ VALUES
 ),
 (
     UNHEX(REPLACE('99999999-9999-9999-9999-999999999902', '-', '')),
-    UNHEX(REPLACE('00000000-0000-0000-0000-000000000001', '-', '')),
+    @customer_id,
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555552', '-', '')),
     1,
     'Hàng kém chất lượng',
@@ -118,7 +135,7 @@ VALUES
 ),
 (
     UNHEX(REPLACE('99999999-9999-9999-9999-999999999903', '-', '')),
-    UNHEX(REPLACE('00000000-0000-0000-0000-000000000001', '-', '')),
+    @customer_id,
     UNHEX(REPLACE('55555555-5555-5555-5555-555555555553', '-', '')),
     4,
     'Dùng ổn',
@@ -132,11 +149,11 @@ ON DUPLICATE KEY UPDATE status = VALUES(status);
 -- 3. Seed Warranties & Claims
 INSERT INTO warranties (id, warranty_code, order_id, order_item_id, product_variant_id, customer_name, customer_phone, covered_quantity, status, start_date, end_date)
 VALUES
-(1001, 'WR-2023-8901', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555551', '-', '')), UNHEX(REPLACE('66666666-6666-4666-8666-000000000001', '-', '')), 'Nguyễn Văn A', '0901234567', 1, 'ACTIVE', '2023-10-01 00:00:00', '2024-10-01 00:00:00'),
-(1002, 'WR-2023-8895', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555552', '-', '')), UNHEX(REPLACE('66666666-6666-4666-8666-000000000002', '-', '')), 'Trần Thị B', '0987654321', 1, 'ACTIVE', '2023-09-15 00:00:00', '2024-09-15 00:00:00'),
-(1003, 'WR-2023-8870', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555553', '-', '')), UNHEX(REPLACE('66666666-6666-4666-8666-000000000004', '-', '')), 'Lê Văn C', '0912345678', 1, 'ACTIVE', '2023-08-20 00:00:00', '2024-08-20 00:00:00'),
-(1004, 'WR-2023-8865', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555554', '-', '')), UNHEX(REPLACE('66666666-6666-4666-8666-000000000005', '-', '')), 'Phạm Thị D', '0933445566', 1, 'ACTIVE', '2023-07-10 00:00:00', '2024-07-10 00:00:00'),
-(1005, 'WR-2023-8850', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('66666666-6666-4666-8666-000000000003', '-', '')), 'Hoàng Văn E', '0977889900', 1, 'ACTIVE', '2023-06-01 00:00:00', '2024-06-01 00:00:00')
+(1001, 'WR-2023-8901', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555551', '-', '')), @var1_id, 'Nguyễn Văn A', '0901234567', 1, 'ACTIVE', '2023-10-01 00:00:00', '2024-10-01 00:00:00'),
+(1002, 'WR-2023-8895', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555552', '-', '')), @var2_id, 'Trần Thị B', '0987654321', 1, 'ACTIVE', '2023-09-15 00:00:00', '2024-09-15 00:00:00'),
+(1003, 'WR-2023-8870', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555553', '-', '')), @var3_id, 'Lê Văn C', '0912345678', 1, 'ACTIVE', '2023-08-20 00:00:00', '2024-08-20 00:00:00'),
+(1004, 'WR-2023-8865', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555554', '-', '')), @var4_id, 'Phạm Thị D', '0933445566', 1, 'ACTIVE', '2023-07-10 00:00:00', '2024-07-10 00:00:00'),
+(1005, 'WR-2023-8850', UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), UNHEX(REPLACE('55555555-5555-5555-5555-555555555555', '-', '')), @var5_id, 'Hoàng Văn E', '0977889900', 1, 'ACTIVE', '2023-06-01 00:00:00', '2024-06-01 00:00:00')
 ON DUPLICATE KEY UPDATE status = VALUES(status);
 
 INSERT INTO warranty_claims (id, warranty_id, claim_code, status, issue_description, created_at)

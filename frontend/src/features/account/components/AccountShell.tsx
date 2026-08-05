@@ -81,6 +81,10 @@ export function AccountSidebar() {
   const { user, logout } = useStore();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [pathname]);
+
   const getInitials = (name?: string) => {
     if (!name) return "MA";
     const parts = name.trim().split(" ");

@@ -81,20 +81,23 @@ VALUES
 ON DUPLICATE KEY UPDATE note = VALUES(note);
 
 -- 4. Purchase Order Items for PO-2023-1045
+SELECT id INTO @po_variant1 FROM product_variants LIMIT 1 OFFSET 0;
+SELECT id INTO @po_variant2 FROM product_variants LIMIT 1 OFFSET 1;
+
 INSERT INTO purchase_order_items (purchase_order_id, product_variant_id, ordered_quantity, received_quantity, unit_cost)
 VALUES
 (
     UNHEX(REPLACE('88888888-8888-8888-8888-888888888801', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000001', '-', '')),
+    @po_variant1,
     50,
     0,
     28500000.00
 ),
 (
     UNHEX(REPLACE('88888888-8888-8888-8888-888888888801', '-', '')),
-    UNHEX(REPLACE('66666666-6666-4666-8666-000000000004', '-', '')),
+    @po_variant2,
     100,
     0,
     5200000.00
-)
-ON DUPLICATE KEY UPDATE ordered_quantity = VALUES(ordered_quantity);
+) AS new_row
+ON DUPLICATE KEY UPDATE ordered_quantity = new_row.ordered_quantity;
