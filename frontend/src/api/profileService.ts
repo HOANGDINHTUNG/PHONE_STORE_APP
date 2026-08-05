@@ -7,9 +7,11 @@ export const fetchProfile = async (): Promise<User | null> => {
     if (response.data) {
       return {
         id: response.data.id,
-        name: response.data.fullName,
+        name: response.data.fullName || response.data.username || "Khách Hàng",
         email: response.data.email,
         phone: response.data.phone,
+        customerCode: response.data.customerCode,
+        avatarUrl: response.data.avatarUrl,
       };
     }
   } catch (error) {
@@ -23,27 +25,17 @@ export const fetchProfile = async (): Promise<User | null> => {
 export const fetchMyOrders = async (): Promise<any[]> => {
   try {
     const response = await apiClient.get("/me/orders");
-    if (response.data && Array.isArray(response.data)) {
-      return response.data;
+    if (response.data) {
+      if (Array.isArray(response.data.items)) {
+        return response.data.items;
+      }
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
     }
   } catch (error) {
-    console.warn("Backend fetch orders error, fallback to mock:", error);
+    console.warn("Backend fetch orders error:", error);
   }
 
-  // Fallback mock orders
-  return [
-    {
-      orderCode: "#ORD-MOCK-1",
-      orderDate: new Date().toISOString(),
-      totalAmount: 18200000,
-      status: "COMPLETED",
-      items: [
-        {
-          productName: "Mock Product",
-          quantity: 1,
-          price: 18200000,
-        },
-      ],
-    },
-  ];
+  return [];
 };

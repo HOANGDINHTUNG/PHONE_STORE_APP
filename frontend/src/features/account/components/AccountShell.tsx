@@ -102,7 +102,10 @@ export function AccountSidebar() {
             <img
               className="w-full h-full object-cover"
               alt="Avatar"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuALxoNNgeP5lrulOxltVYMatoHQe3VbIeo6N55Q73hxAF2r3rcEFWeDxTG6x9wrTmOJ7ra_WD6H-7SXSQq1vhgx9TfA6I79PIXZqji9LtXpkkdPzwSv_dtJOqLvSqHxCcAsf3zSk-oMWCo1JKx4U2FNxS35hXLXT6aEELno_nhRtJyE_fpRJZ6-DZDpgGRdGH6nLrnECvHFm_hVbqHBwIlWYSWZ8Rz-yk-ezvpdoTH5fYi23tHoE4kh"
+              src={
+                user?.avatarUrl ||
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256"
+              }
             />
           </div>
           <div className="flex-1 min-w-0">

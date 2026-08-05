@@ -48,10 +48,16 @@ const formatCurrency = (amount?: number): string => {
     .replace("₫", "đ");
 };
 
-export const getDefaultProductImage = (brandName?: string, slug?: string): string => {
+export const getDefaultProductImage = (brandName?: string, slug?: string, name?: string): string => {
   const brand = (brandName || "").toLowerCase();
-  const s = (slug || "").toLowerCase();
+  const s = ((slug || "") + " " + (name || "")).toLowerCase();
 
+  if (s.includes("16 pro max") || s.includes("pro-max")) {
+    return "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-titan-den.png";
+  }
+  if (s.includes("16 pro")) {
+    return "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-titan-tu-nhien.png";
+  }
   if (brand.includes("apple") || s.includes("iphone")) return "/images/prod_iphone15.png";
   if (
     brand.includes("samsung") ||

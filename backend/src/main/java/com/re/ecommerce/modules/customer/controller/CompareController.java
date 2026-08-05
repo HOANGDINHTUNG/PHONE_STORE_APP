@@ -28,9 +28,10 @@ public class CompareController {
     @GetMapping("/api/v1/product-comparisons")
     public ResponseEntity<List<ProductCardResponse>> buildPublicComparison(
             @RequestParam List<UUID> productIds) {
-        // Mocked out for the controller logic requirement; 
+        // Mocked out for the controller logic requirement;
         // to fully implement COMPARE-001 we would add it into CompareService.
-        // For P1 integration test simplicity, we skip public comparison implementation details 
+        // For P1 integration test simplicity, we skip public comparison implementation
+        // details
         // until we reach Catalog extensions later, or just return mock data for now.
         return ResponseEntity.ok(List.of());
     }
@@ -38,7 +39,7 @@ public class CompareController {
     @GetMapping("/api/v1/me/compare-items")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<List<ProductCardResponse>> getMyCompareItems(
-             @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(compareService.getMyCompareItems(userDetails.getUsername()));
     }
 

@@ -28,7 +28,7 @@ public class ShippingAddressController {
     private final ShippingAddressService addressService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<AddressResponse>> listAddresses(
             @AuthenticationPrincipal String username) {
 
@@ -36,7 +36,7 @@ public class ShippingAddressController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AddressResponse> createAddress(
             @AuthenticationPrincipal String username,
             @Valid @RequestBody AddressCreateRequest request) {
@@ -46,7 +46,7 @@ public class ShippingAddressController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AddressResponse> getAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username) {
@@ -55,7 +55,7 @@ public class ShippingAddressController {
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AddressResponse> updateAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username,
@@ -65,7 +65,7 @@ public class ShippingAddressController {
     }
 
     @PostMapping("/{id}/set-default")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> setDefaultAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username) {
@@ -75,7 +75,7 @@ public class ShippingAddressController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal String username) {

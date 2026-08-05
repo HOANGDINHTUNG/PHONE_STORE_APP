@@ -20,27 +20,41 @@ public record ProductCardResponse(
         BigDecimal max = null;
         boolean available = false;
         long saleableCount = 0;
+        String img = "";
         
-        for (com.re.ecommerce.modules.catalog.entity.ProductVariant v : p.getVariants()) {
-            if (v.getStatus() == com.re.ecommerce.modules.catalog.entity.VariantStatus.ACTIVE) {
-                available = true;
-                saleableCount++;
-            }
-            BigDecimal pPrice = v.getSalePrice() != null ? v.getSalePrice() : v.getListPrice();
-            if (pPrice != null) {
-                if (min == null || pPrice.compareTo(min) < 0) min = pPrice;
-                if (max == null || pPrice.compareTo(max) > 0) max = pPrice;
+        if (p.getVariants() != null) {
+            for (com.re.ecommerce.modules.catalog.entity.ProductVariant v : p.getVariants()) {
+                if (v.getStatus() == com.re.ecommerce.modules.catalog.entity.VariantStatus.ACTIVE) {
+                    available = true;
+                    saleableCount++;
+                }
+                BigDecimal pPrice = v.getSalePrice() != null ? v.getSalePrice() : v.getListPrice();
+                if (pPrice != null) {
+                    if (min == null || pPrice.compareTo(min) < 0) min = pPrice;
+                    if (max == null || pPrice.compareTo(max) > 0) max = pPrice;
+                }
+
+                if (img.isEmpty() && v.getImages() != null && !v.getImages().isEmpty()) {
+                    for (com.re.ecommerce.modules.catalog.entity.ProductImage pi : v.getImages()) {
+                        if (pi.isPrimary()) {
+                            img = pi.getImageUrl();
+                            break;
+                        }
+                    }
+                    if (img.isEmpty()) {
+                        img = v.getImages().get(0).getImageUrl();
+                    }
+                }
             }
         }
         
-        // Use an empty string for primary image as it's not directly in Product entity
         return new ProductCardResponse(
                 p.getId(),
                 p.getName(),
                 p.getSlug(),
-                p.getBrand().getName(),
-                p.getCategory().getName(),
-                "", 
+                p.getBrand() != null ? p.getBrand().getName() : "",
+                p.getCategory() != null ? p.getCategory().getName() : "",
+                img != null ? img : "", 
                 min,
                 max,
                 available,
