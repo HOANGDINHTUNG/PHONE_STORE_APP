@@ -39,6 +39,7 @@ const ProductDetail = () => {
     let active = true;
     const loadData = async () => {
       if (!slug) return;
+      window.scrollTo(0, 0);
       setLoading(true);
       const data = await fetchProductBySlug(slug);
       if (active) {
@@ -95,7 +96,9 @@ const ProductDetail = () => {
 
   const handleBuyNow = () => {
     if (!user) {
-      message.warning("Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
+      message.warning(
+        "Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.",
+      );
       return;
     }
 
@@ -118,7 +121,9 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!user) {
-      message.warning("Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
+      message.warning(
+        "Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.",
+      );
       return;
     }
 
@@ -151,7 +156,10 @@ const ProductDetail = () => {
 
   const selectedVariant = product.variants?.[selectedVariantIndex];
   const displayedPrice =
-    selectedVariant?.newPrice || selectedVariant?.price || product.newPrice || product.price;
+    selectedVariant?.newPrice ||
+    selectedVariant?.price ||
+    product.newPrice ||
+    product.price;
   const displayedOldPrice = selectedVariant?.oldPrice || product.oldPrice;
 
   // Determine Out Of Stock state (Hardcoded demo logic or rely on `stock === 0`)
@@ -322,7 +330,9 @@ const ProductDetail = () => {
 
             {/* Variations Selector */}
             <div className="space-y-4">
-              <p className="text-sm font-bold mb-2">Chọn phiên bản biến thể (Màu sắc & Bộ nhớ):</p>
+              <p className="text-sm font-bold mb-2">
+                Chọn phiên bản biến thể (Màu sắc & Bộ nhớ):
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {product.variants && product.variants.length > 0 ? (
                   product.variants.map((v, idx) => (
@@ -339,7 +349,8 @@ const ProductDetail = () => {
                         {v.color || v.name}
                       </span>
                       <span className="text-xs font-semibold text-on-surface-variant">
-                        {v.storageGb ? `${v.storageGb}GB` : ""} {v.ramGb ? `· ${v.ramGb}GB RAM` : ""}
+                        {v.storageGb ? `${v.storageGb}GB` : ""}{" "}
+                        {v.ramGb ? `· ${v.ramGb}GB RAM` : ""}
                       </span>
                       <span className="text-sm font-bold text-primary mt-2">
                         {v.newPrice || v.price}

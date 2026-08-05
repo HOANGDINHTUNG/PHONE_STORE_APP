@@ -6,7 +6,6 @@ import com.re.ecommerce.common.exception.BusinessConflictException;
 import com.re.ecommerce.common.exception.UnprocessableEntityException;
 import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.cart.entity.Cart;
-import com.re.ecommerce.modules.cart.entity.CartItem;
 import com.re.ecommerce.modules.cart.entity.Coupon;
 import com.re.ecommerce.modules.cart.dto.request.CartItemRequest;
 import com.re.ecommerce.modules.cart.dto.response.CartResponse;

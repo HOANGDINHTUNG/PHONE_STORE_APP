@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Form, Input, Button, Checkbox, message } from "antd";
 import { GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
@@ -6,8 +6,14 @@ import { useStore } from "../../context/StoreContext";
 import styles from "./Login.module.css";
 
 const Login = () => {
-  const { login } = useStore();
+  const { login, user } = useStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const onFinish = async (values: any) => {
     const { emailOrPhone, password, remember } = values;

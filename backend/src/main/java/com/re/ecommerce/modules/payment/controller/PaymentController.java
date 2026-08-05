@@ -2,7 +2,6 @@ package com.re.ecommerce.modules.payment.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-// removed EmptyJsonResponse import
 import com.re.ecommerce.modules.payment.dto.request.ManualPaymentRequest;
 import com.re.ecommerce.modules.payment.dto.request.PaymentAttemptRequest;
 import com.re.ecommerce.modules.payment.dto.response.PaymentAttemptResponse;
@@ -11,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

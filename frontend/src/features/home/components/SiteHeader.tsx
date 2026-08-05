@@ -177,9 +177,15 @@ export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
                   onClick={() => setIsAccountOpen(!isAccountOpen)}
                   className="active:scale-95 transition-transform flex flex-col items-center justify-center min-w-[64px] h-12 rounded-xl bg-primary-container text-on-primary-container shadow-md"
                 >
-                  <User size={22} />
+                  {user ? (
+                    <div className="flex items-center justify-center w-[22px] h-[22px] bg-primary text-on-primary rounded-full text-[11px] font-black uppercase">
+                      {user.name ? user.name.charAt(0) : "U"}
+                    </div>
+                  ) : (
+                    <User size={22} />
+                  )}
                   <span className="text-[10px] font-bold uppercase mt-1">
-                    Tài khoản
+                    {user ? "Cá nhân" : "Tài khoản"}
                   </span>
                 </button>
 

@@ -19,7 +19,7 @@ SET @p_a55     = UNHEX(REPLACE('33333333-3333-3333-3333-333333333306', '-', ''))
 SET @p_x13tp   = UNHEX(REPLACE('33333333-3333-3333-3333-333333333307', '-', ''));
 SET @p_rn13p   = UNHEX(REPLACE('33333333-3333-3333-3333-333333333308', '-', ''));
 SET @p_n3flip  = UNHEX(REPLACE('33333333-3333-3333-3333-333333333309', '-', ''));
-SET @p_reno11p = UNHEX(REPLACE('33333333-3333-3333-3333-333333333310', '-', ''));
+SET @p_reno11p = UNHEX(REPLACE(UUID(), '-', ''));
 
 -- 1. Products
 INSERT IGNORE INTO products (id, category_id, brand_id, name, slug, description, publication_status) VALUES
@@ -44,7 +44,7 @@ SET @v_a55     = UNHEX(REPLACE('44444444-4444-4444-4444-444444444406', '-', ''))
 SET @v_x13tp   = UNHEX(REPLACE('44444444-4444-4444-4444-444444444407', '-', ''));
 SET @v_rn13p   = UNHEX(REPLACE('44444444-4444-4444-4444-444444444408', '-', ''));
 SET @v_n3flip  = UNHEX(REPLACE('44444444-4444-4444-4444-444444444409', '-', ''));
-SET @v_reno11p = UNHEX(REPLACE('44444444-4444-4444-4444-444444444410', '-', ''));
+SET @v_reno11p = UNHEX(REPLACE(UUID(), '-', ''));
 
 -- 2. Variants
 INSERT IGNORE INTO product_variants (id, product_id, sku, name, color, ram_gb, storage_gb, list_price, sale_price, status) VALUES
@@ -69,7 +69,7 @@ SET @img_a55     = UNHEX(REPLACE('55555555-5555-5555-5555-555555555506', '-', ''
 SET @img_x13tp   = UNHEX(REPLACE('55555555-5555-5555-5555-555555555507', '-', ''));
 SET @img_rn13p   = UNHEX(REPLACE('55555555-5555-5555-5555-555555555508', '-', ''));
 SET @img_n3flip  = UNHEX(REPLACE('55555555-5555-5555-5555-555555555509', '-', ''));
-SET @img_reno11p = UNHEX(REPLACE('55555555-5555-5555-5555-555555555510', '-', ''));
+SET @img_reno11p = UNHEX(REPLACE(UUID(), '-', ''));
 
 -- 3. Primary Product Images
 INSERT IGNORE INTO product_images (id, variant_id, image_url, is_primary) VALUES

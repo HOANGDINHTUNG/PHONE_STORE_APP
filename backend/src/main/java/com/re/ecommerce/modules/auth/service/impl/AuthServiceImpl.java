@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final com.re.ecommerce.common.service.impl.MailServiceImpl mailService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final int LOCKINFO_MINUTES = 30;
@@ -212,16 +214,25 @@ public class AuthServiceImpl implements AuthService {
             
             passwordResetTokenRepository.invalidateAllUserTokens(user);
 
-            String rawToken = UUID.randomUUID().toString();
+            // Generate 6-digit OTP
+            String otpCode = generateOtpCode();
             PasswordResetToken token = new PasswordResetToken(
                     user, 
-                    hashString(rawToken), 
+                    hashString(otpCode), 
                     LocalDateTime.now().plusMinutes(15), 
                     ipAddress
             );
             passwordResetTokenRepository.save(token);
-            // Async send email with rawToken
+            
+            // Async send OTP email
+            new Thread(() -> mailService.sendOtpEmail(user.getEmail(), otpCode)).start();
         });
+    }
+
+    private String generateOtpCode() {
+        SecureRandom random = new SecureRandom();
+        int otp = 100000 + random.nextInt(900000); // 100000 to 999999
+        return String.valueOf(otp);
     }
 
     @Override

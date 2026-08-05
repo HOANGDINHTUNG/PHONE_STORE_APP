@@ -82,7 +82,12 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   });
 
   useEffect(() => {
-    localStorage.setItem("pinkphone_user", user ? JSON.stringify(user) : "");
+    if (!user) return;
+    if (localStorage.getItem("pinkphone_token")) {
+      localStorage.setItem("pinkphone_user", JSON.stringify(user));
+    } else if (sessionStorage.getItem("pinkphone_token")) {
+      sessionStorage.setItem("pinkphone_user", JSON.stringify(user));
+    }
   }, [user]);
 
   useEffect(() => {

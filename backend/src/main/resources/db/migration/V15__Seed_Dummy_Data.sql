@@ -1,7 +1,7 @@
 -- V15: Seed Demo Data for Testing
 
 -- 1. Create a dummy test user (password: 123456)
-SET @demo_user_id = UNHEX(REPLACE('00000000-0000-0000-0000-000000000001', '-', ''));
+SET @demo_user_id = UNHEX(REPLACE(UUID(), '-', ''));
 INSERT INTO users (id, username, email, phone, password_hash, role, active, account_status)
 VALUES (@demo_user_id, 'tester', 'test@pinkphone.com', '0909999999', '$2a$10$1NOAnWWfXs12Tn7IQdEQwuHU1Iw/8jysW8p.OjDFvOPK2/z3EqlZq', 'USER', TRUE, 'ACTIVE');
 
@@ -32,9 +32,9 @@ INSERT INTO brands (id, name, slug, logo_url, status) VALUES
 (@b_oppo, 'Oppo', 'oppo', 'https://cdn2.cellphones.com.vn/x/media/wysiwyg/brand/oppo.png', 'ACTIVE');
 
 -- 4. Products
-SET @p_iphone15 = UNHEX(REPLACE('33333333-3333-3333-3333-333333333331', '-', ''));
-SET @p_s24u = UNHEX(REPLACE('33333333-3333-3333-3333-333333333332', '-', ''));
-SET @p_x14 = UNHEX(REPLACE('33333333-3333-3333-3333-333333333333', '-', ''));
+SET @p_iphone15 = UNHEX(REPLACE(UUID(), '-', ''));
+SET @p_s24u = UNHEX(REPLACE(UUID(), '-', ''));
+SET @p_x14 = UNHEX(REPLACE(UUID(), '-', ''));
 
 INSERT INTO products (id, category_id, brand_id, name, slug, description, publication_status) VALUES
 (@p_iphone15, @cat_phone, @b_apple, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max', 'ACTIVE'),
@@ -42,10 +42,10 @@ INSERT INTO products (id, category_id, brand_id, name, slug, description, public
 (@p_x14, @cat_phone, @b_xiaomi, 'Xiaomi 14 Ultra', 'xiaomi-14-ultra', 'Siêu phẩm camera Leica', 'ACTIVE');
 
 -- 5. Product Variants
-SET @v_ip15_1 = UNHEX(REPLACE('44444444-4444-4444-4444-444444444441', '-', ''));
-SET @v_ip15_2 = UNHEX(REPLACE('44444444-4444-4444-4444-444444444442', '-', ''));
-SET @v_s24u_1 = UNHEX(REPLACE('44444444-4444-4444-4444-444444444443', '-', ''));
-SET @v_x14_1 = UNHEX(REPLACE('44444444-4444-4444-4444-444444444444', '-', ''));
+SET @v_ip15_1 = UNHEX(REPLACE(UUID(), '-', ''));
+SET @v_ip15_2 = UNHEX(REPLACE(UUID(), '-', ''));
+SET @v_s24u_1 = UNHEX(REPLACE(UUID(), '-', ''));
+SET @v_x14_1 = UNHEX(REPLACE(UUID(), '-', ''));
 
 INSERT INTO product_variants (id, product_id, sku, name, color, ram_gb, storage_gb, list_price, sale_price, status) VALUES
 (@v_ip15_1, @p_iphone15, 'IP15PM-256-NATURAL', 'iPhone 15 Pro Max 256GB Titan Tự Nhiên', 'Titan Tự Nhiên', 8, 256, 34990000, 29890000, 'ACTIVE'),

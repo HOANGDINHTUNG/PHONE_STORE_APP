@@ -7,12 +7,7 @@ export function AccountHeader() {
     <header className="bg-surface dark:bg-surface-dim shadow-sm sticky top-0 z-50">
       <div className="flex flex-col w-full max-w-[1200px] mx-auto px-4 md:px-margin-desktop py-3">
         <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="font-display-lg text-display-lg font-black text-primary dark:text-primary-fixed"
-          >
-            PinkPhone
-          </Link>
+          <BrandLogo />
           <nav className="hidden md:flex items-center gap-6">
             <Link
               to="/"

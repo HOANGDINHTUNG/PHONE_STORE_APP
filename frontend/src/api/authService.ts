@@ -147,8 +147,8 @@ export const requestPasswordResetApi = async (
     await apiClient.post("/auth/password-reset-requests", { email });
     return true;
   } catch (error) {
-    console.warn("Backend auth password reset request error:", error);
-    return true;
+    console.error("Backend auth password reset request error:", error);
+    return false;
   }
 };
 
@@ -163,8 +163,8 @@ export const confirmPasswordResetApi = async (
     });
     return true;
   } catch (error) {
-    console.warn("Backend auth password reset confirm error:", error);
-    return true;
+    console.error("Backend auth password reset confirm error:", error);
+    return false;
   }
 };
 
