@@ -29,8 +29,10 @@ export interface PermissionGroup {
 
 export interface RoleAssignmentRecord {
   id: string;
+  userId?: string;
   userEmail: string;
   roleCode: string;
+  roleName?: string;
   status: "ACTIVE" | "REVOKED";
   expiryText: string;
   assignedBy: string;
@@ -40,6 +42,7 @@ export interface RoleAssignmentRecord {
 }
 
 export interface AssignRolePayload {
+  userId: string;
   userEmail: string;
   roleCode: string;
   expiryDate?: string;

@@ -3,16 +3,19 @@ export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
 export interface ReviewItem {
   id: string;
   productName: string;
+  variantName?: string;
   sku: string;
   image?: string;
   customerName: string;
   customerEmail: string;
   rating: number;
+  title?: string;
   comment: string;
   createdAt: string;
   status: ReviewStatus;
   rejectionReason?: string;
   moderatedBy?: string;
+  moderatedAt?: string;
 }
 
 export type WarrantyClaimStatusType =

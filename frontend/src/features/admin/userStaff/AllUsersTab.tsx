@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Dropdown, Input, Select, Table, message } from "antd";
 import {
   AlertCircle,
@@ -14,6 +15,7 @@ import { userStaffService } from "./userStaffService";
 import { ProfileType, UserAccountItem, UserAccountStatus } from "./userStaffTypes";
 
 export function AllUsersTab() {
+  const navigate = useNavigate();
   const [reloadKey, setReloadKey] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -159,6 +161,18 @@ export function AllUsersTab() {
       render: (type: ProfileType) => renderProfileBadge(type),
     },
     {
+      title: "Vai trò đang có",
+      key: "roles",
+      width: 210,
+      render: (_: any, record: UserAccountItem) => (
+        <div className="flex flex-wrap gap-1">
+          {record.roleNames?.length ? record.roleNames.map((role) => (
+            <span key={role} className="max-w-[180px] truncate rounded-md bg-[#fff0f5] px-2 py-1 text-xs font-bold text-[#c2185b]" title={role}>{role}</span>
+          )) : <span className="text-xs text-slate-400">Chưa được cấp vai trò</span>}
+        </div>
+      ),
+    },
+    {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
@@ -187,6 +201,11 @@ export function AllUsersTab() {
                 key: "details",
                 label: "Xem chi tiết hồ sơ",
                 onClick: () => message.info(`Đang xem chi tiết tài khoản ${record.name}`),
+              },
+              {
+                key: "roles",
+                label: "Quản lý vai trò & quyền",
+                onClick: () => navigate("/admin/roles"),
               },
               {
                 key: "status",

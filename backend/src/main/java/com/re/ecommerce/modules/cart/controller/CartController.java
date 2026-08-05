@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -96,6 +97,9 @@ public class CartController {
     private UUID extractCustomerId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            if (auth.getAuthorities().stream().anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()))) {
+                throw new AccessDeniedException("Administrator accounts cannot use customer carts");
+            }
             return userRepository.findByUsername(auth.getName())
                     .map(User::getId)
                     .orElse(null);

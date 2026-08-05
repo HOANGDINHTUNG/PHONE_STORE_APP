@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Input, Select, Table, message } from "antd";
 import {
   CheckCircle2,
@@ -18,6 +18,8 @@ export function ReturnsRefundsTab() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedId, setSelectedId] = useState<string>("ret-1");
   const [techNote, setTechNote] = useState("");
+
+  useEffect(() => { afterSalesService.fetchReturnRequestsFromBackend().then(() => setReloadKey((value) => value + 1)).catch(() => message.error("Không tải được yêu cầu đổi trả.")); }, []);
 
   const returnRequests = useMemo(() => {
     let list = afterSalesService.getReturnRequests();
@@ -45,16 +47,15 @@ export function ReturnsRefundsTab() {
     return returnRequests.find((r) => r.id === selectedId) || returnRequests[0];
   }, [returnRequests, selectedId]);
 
-  const handleApproveReturn = () => {
+  const handleApproveReturn = async () => {
     if (!selectedItem) return;
-    afterSalesService.updateReturnRequestStatus(selectedItem.id, "APPROVED", techNote);
+    await afterSalesService.approveReturnRequest(selectedItem.id);
     message.success(`Đã phê duyệt yêu cầu đổi trả ${selectedItem.returnCode}`);
     setReloadKey((prev) => prev + 1);
   };
 
   const handleSaveDraft = () => {
     if (!selectedItem) return;
-    afterSalesService.updateReturnRequestStatus(selectedItem.id, selectedItem.status, techNote);
     message.info("Đã lưu ghi chú kiểm định nháp.");
     setReloadKey((prev) => prev + 1);
   };

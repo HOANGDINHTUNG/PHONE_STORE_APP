@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
   DatePicker,
   Input,
+  message,
   Select,
   Table,
 } from "antd";
@@ -11,6 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { CreatePOModal } from "./CreatePOModal";
 import { procurementService } from "./procurementService";
 import { CreatePOPayload, PurchaseOrder, PurchaseOrderStatus } from "./procurementTypes";
+import { adminInventoryService, Warehouse } from "../../../api/adminInventoryService";
 
 const { RangePicker } = DatePicker;
 
@@ -19,13 +21,28 @@ export function ProcurementListPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [warehouseFilter, setWarehouseFilter] = useState<string>("ALL");
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(true);
   const [searchText, setSearchText] = useState<string>("");
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    procurementService.fetchPurchaseOrdersFromBackend()
+      .then(() => setReloadKey((value) => value + 1))
+      .catch(() => undefined);
+
+    adminInventoryService.warehouses()
+      .then((warehouseData) => {
+        setWarehouses(warehouseData.filter((warehouse) => warehouse.status === "ACTIVE"));
+      })
+      .catch(() => undefined)
+      .finally(() => setIsLoadingWarehouses(false));
+  }, []);
 
   const purchaseOrders = useMemo(() => {
     return procurementService.getPurchaseOrders({
       status: statusFilter,
-      warehouse: warehouseFilter,
+      warehouseId: warehouseFilter,
       search: searchText,
     });
   }, [statusFilter, warehouseFilter, searchText, reloadKey]);
@@ -36,13 +53,17 @@ export function ProcurementListPage() {
     setSearchText("");
   };
 
-  const handleCreateSubmit = (payload: CreatePOPayload) => {
-    const newPO = procurementService.createPO(payload);
-    setIsCreateOpen(false);
-    setReloadKey((prev) => prev + 1);
-    navigate(`/admin/procurement/${newPO.code}`);
+  const handleCreateSubmit = async (payload: CreatePOPayload) => {
+    try {
+      const newPO = await procurementService.createPO(payload);
+      setIsCreateOpen(false);
+      setReloadKey((prev) => prev + 1);
+      message.success(`Đã tạo phiếu nhập ${newPO.code}. Hãy gửi duyệt trước khi nhận hàng vào kho.`);
+      navigate(`/admin/procurement/${newPO.code}`);
+    } catch {
+      message.error("Không thể tạo phiếu nhập. Hãy chọn nhà cung cấp, kho và SKU đang có trong hệ thống.");
+    }
   };
-
   const renderStatusBadge = (status: PurchaseOrderStatus) => {
     switch (status) {
       case "COMPLETED":
@@ -203,12 +224,14 @@ export function ProcurementListPage() {
             onChange={(val) => setWarehouseFilter(val)}
             size="large"
             className="w-52"
+            loading={isLoadingWarehouses}
+            disabled={isLoadingWarehouses}
             options={[
               { label: "Tất cả kho hàng", value: "ALL" },
-              { label: "Kho Tổng - Quận 7", value: "Kho Tổng" },
-              { label: "Trung tâm Phân phối Chính", value: "Main Dist." },
-              { label: "Kho Miền Bắc (North Hub)", value: "North Hub" },
-              { label: "Kho Miền Nam (South Hub)", value: "South Hub" },
+              ...warehouses.map((warehouse) => ({
+                label: `${warehouse.code} — ${warehouse.name}`,
+                value: warehouse.id,
+              })),
             ]}
           />
 

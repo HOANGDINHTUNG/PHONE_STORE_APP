@@ -1,0 +1,13 @@
+import { useEffect, useState } from "react";
+import { message } from "antd";
+import { Boxes, ChevronRight, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { adminInventoryService, type Balance } from "../../api/adminInventoryService";
+
+export function AdminInventoryUnitDirectoryPage() {
+  const [balances, setBalances] = useState<Balance[]>([]);
+  const [query, setQuery] = useState("");
+  useEffect(() => { adminInventoryService.balances().then(setBalances).catch(() => message.error("Không tải được tồn kho.")); }, []);
+  const shown = balances.filter((item) => `${item.productName} ${item.variantName} ${item.sku} ${item.warehouseName}`.toLowerCase().includes(query.toLowerCase()));
+  return <div className="mx-auto max-w-[1280px] space-y-6"><section><h1 className="text-2xl font-black text-slate-950">Chi tiết hàng tồn kho</h1><p className="mt-1 text-sm text-slate-500">Chọn sản phẩm tại kho để xem từng đơn vị hàng, IMEI/serial và lịch sử biến động.</p></section><div className="relative max-w-lg"><Search size={17} className="absolute left-3 top-3 text-slate-500"/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm sản phẩm, SKU hoặc kho..." className="w-full rounded-lg border border-[#edcfda] bg-white py-2.5 pl-10 pr-3"/></div><section className="overflow-hidden rounded-xl border border-[#edd0db] bg-white"><div className="grid grid-cols-[minmax(0,1fr)_180px_120px] gap-4 bg-[#fbe1e8] px-5 py-3 text-xs font-bold uppercase text-slate-600"><span>Sản phẩm / biến thể</span><span>Kho</span><span className="text-right">Thao tác</span></div>{shown.map((item) => <div key={`${item.warehouseId}-${item.variantId}`} className="grid grid-cols-[minmax(0,1fr)_180px_120px] items-center gap-4 border-t border-[#f5e3e9] px-5 py-4 text-sm"><div className="flex min-w-0 items-center gap-3">{item.imageUrl ? <img src={item.imageUrl} className="h-11 w-11 rounded-lg object-contain"/> : <div className="grid h-11 w-11 place-items-center rounded-lg bg-[#fff0f5] text-[#c2185b]"><Boxes size={20}/></div>}<span className="min-w-0"><b className="block truncate text-slate-900">{item.productName}</b><small className="block truncate text-slate-500">{item.sku} · {item.variantName}</small></span></div><span className="text-slate-600">{item.warehouseName}</span><Link to={`/admin/inventory/unit-details/${item.warehouseId}/${item.variantId}`} className="inline-flex items-center justify-end gap-1 font-bold text-[#c2185b] hover:underline">Xem IMEI <ChevronRight size={16}/></Link></div>)}{!shown.length && <div className="p-12 text-center text-slate-500">Không có dữ liệu tồn kho phù hợp.</div>}</section></div>;
+}

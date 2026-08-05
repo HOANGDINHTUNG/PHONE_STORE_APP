@@ -174,6 +174,17 @@ const USERS_KEY = "pinkphone_admin_userstaff_users_v1";
 const STAFF_KEY = "pinkphone_admin_userstaff_staff_v1";
 const CUSTOMERS_KEY = "pinkphone_admin_userstaff_customers_v1";
 
+const fetchActiveRoleNamesByUser = async (): Promise<Map<string, string[]>> => {
+  const assignments = await apiClient.get<any[]>("/admin/role-assignments");
+  return (Array.isArray(assignments.data) ? assignments.data : []).reduce((map, assignment) => {
+    if (assignment.status === "ACTIVE" && assignment.userId && assignment.role?.name) {
+      const userId = String(assignment.userId);
+      map.set(userId, [...(map.get(userId) || []), assignment.role.name]);
+    }
+    return map;
+  }, new Map<string, string[]>());
+};
+
 export const userStaffService = {
   // Users
   getUsers(): UserAccountItem[] {
@@ -187,8 +198,11 @@ export const userStaffService = {
 
   async fetchUsersFromBackend(): Promise<UserAccountItem[]> {
     try {
-      const res = await apiClient.get<any[]>("/admin/users");
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      const [res, roleNamesByUser] = await Promise.all([
+        apiClient.get<any[]>("/admin/users"),
+        fetchActiveRoleNamesByUser().catch(() => new Map<string, string[]>()),
+      ]);
+      if (Array.isArray(res.data)) {
         const mapped: UserAccountItem[] = res.data.map((u, idx) => ({
           id: u.id || `usr-${idx}`,
           userIdCode: u.username ? u.username.toUpperCase() : `USR-00${idx + 100}`,
@@ -199,6 +213,7 @@ export const userStaffService = {
           phone: u.phone || "",
           isPhoneVerified: !!u.phoneVerifiedAt,
           profileType: u.role === "STAFF" || u.role === "ADMIN" ? "Staff" : "Customer",
+          roleNames: roleNamesByUser.get(String(u.id)) || [],
           status: u.accountStatus === "LOCKED" ? "BỊ KHÓA" : u.accountStatus === "PENDING_VERIFICATION" ? "CHỜ XÁC MINH" : "HOẠT ĐỘNG",
           lastLogin: u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("vi-VN") : "10:45 12/10/2023",
           createdAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString("vi-VN") : "01/01/2023",
@@ -224,15 +239,19 @@ export const userStaffService = {
 
   async fetchStaffFromBackend(): Promise<StaffMemberItem[]> {
     try {
-      const res = await apiClient.get<any>("/admin/staff");
-      const content = res.data?.content || res.data;
-      if (Array.isArray(content) && content.length > 0) {
+      const [res, roleNamesByUser] = await Promise.all([
+        apiClient.get<any>("/admin/staff"),
+        fetchActiveRoleNamesByUser().catch(() => new Map<string, string[]>()),
+      ]);
+      const content = res.data?.items || res.data?.content || res.data;
+      if (Array.isArray(content)) {
         const mapped: StaffMemberItem[] = content.map((s: any, idx: number) => ({
           id: s.userId || `emp-${idx}`,
           empCode: s.employeeCode || `EMP-00${idx + 1}`,
           name: s.fullName || "Nhân viên PinkPhone",
           email: s.companyEmail || s.email || `nv${idx}@pinkphone.vn`,
           avatar: s.avatarUrl || "",
+          roleNames: roleNamesByUser.get(String(s.userId)) || [],
           department: s.departmentName || "Phát triển Phần mềm",
           position: s.positionName || "Chuyên viên",
           directManager: s.managerName || "Không có",
@@ -282,5 +301,19 @@ export const userStaffService = {
     } catch {}
     localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(INITIAL_CUSTOMERS));
     return INITIAL_CUSTOMERS;
+  },
+
+  async fetchCustomersFromBackend(): Promise<CustomerItem[]> {
+    const response = await apiClient.get<any[]>("/admin/users");
+    const mapped: CustomerItem[] = (Array.isArray(response.data) ? response.data : [])
+      .filter((user) => user.role === "USER")
+      .map((user, index) => ({
+        id: user.id || `customer-${index}`, customerCode: (user.username || `CUS-${index + 1}`).toUpperCase(),
+        name: user.fullName || user.username || user.email, avatar: user.avatarUrl || "", email: user.email || "",
+        phone: user.phone || "", dob: "—", gender: "—", province: "—", totalSpend: 0, orderCount: 0,
+        marketingOptIn: false, status: user.accountStatus === "DISABLED" || user.accountStatus === "LOCKED" ? "Tạm khóa" : "Hoạt động",
+      }));
+    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(mapped));
+    return mapped;
   },
 };

@@ -11,6 +11,7 @@ export interface UserAccountItem {
   phone: string;
   isPhoneVerified: boolean;
   profileType: ProfileType;
+  roleNames?: string[];
   status: UserAccountStatus;
   lastLogin: string;
   createdAt: string;
@@ -29,6 +30,7 @@ export interface StaffMemberItem {
   directManager?: string;
   hireDate: string;
   status: StaffEmploymentStatus;
+  roleNames?: string[];
   isSelf?: boolean;
 }
 

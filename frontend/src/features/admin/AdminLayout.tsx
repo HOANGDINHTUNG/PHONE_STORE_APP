@@ -37,6 +37,11 @@ const navigation = [
   { label: "Thanh toán & Hoàn tiền", to: "/admin/payments", icon: HandCoins },
   { label: "Giao hàng", to: "/admin/shipping", icon: Truck },
   { label: "Kho hàng", to: "/admin/inventory", icon: Boxes },
+  { label: "Tra cứu tồn kho", to: "/admin/inventory/balances", icon: Boxes },
+  { label: "Chi tiết tồn kho", to: "/admin/inventory/unit-details", icon: PackageSearch },
+  { label: "Cảnh báo nhập", to: "/admin/inventory/alerts", icon: Bell },
+  { label: "Nhật ký kho", to: "/admin/inventory/history", icon: History },
+  { label: "Nhà cung cấp", to: "/admin/suppliers", icon: UsersRound },
   { label: "Nhập hàng", to: "/admin/procurement", icon: ClipboardList },
   { label: "Hậu mãi", to: "/admin/after-sales", icon: ReceiptText },
   { label: "Người dùng & Nhân sự", to: "/admin/users", icon: UsersRound },
@@ -79,7 +84,7 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fffafb] text-slate-800">
+    <div className="admin-shell min-h-screen bg-[#fffafb] text-slate-800">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-[#f0d6df] bg-[#fbe3e9] lg:flex">
         <div className="border-b border-[#f2d1dc] px-6 py-5">
           <div className="flex items-center gap-3">

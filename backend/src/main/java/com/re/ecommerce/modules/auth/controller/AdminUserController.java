@@ -24,7 +24,7 @@ public class AdminUserController {
     private final UserService userService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')") // P0 specs mentions USER_VIEW permission, mapping to role for now
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> listUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) AccountStatus status) {
@@ -33,14 +33,14 @@ public class AdminUserController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUser(@PathVariable UUID userId) {
 
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
     @PatchMapping("/{userId}")
-    @PreAuthorize("hasAuthority('ADMIN')") // USER_UPDATE
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable UUID userId,
             @RequestBody com.re.ecommerce.modules.auth.dto.request.UserUpdateAdminRequest request) {
@@ -49,7 +49,7 @@ public class AdminUserController {
     }
 
     @PatchMapping("/{userId}/status")
-    @PreAuthorize("hasAuthority('ADMIN')") // USER_DISABLE
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> changeUserStatus(
             @PathVariable UUID userId,
             @RequestParam AccountStatus status) {

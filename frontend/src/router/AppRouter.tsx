@@ -45,25 +45,21 @@ import { RolesPermissionsPage } from "../features/admin/rolePermissions/RolesPer
 import { NotificationsPage as AdminNotificationsPage } from "../features/admin/notificationAudit/NotificationsPage";
 import { AuditLogsPage } from "../features/admin/notificationAudit/AuditLogsPage";
 import { AdminCatalogPage } from "../features/admin/AdminCatalogPage";
-import {
-  AdminCouponDetailPage,
-  AdminCouponEditorPage,
-  AdminPromotionsPage,
-} from "../features/admin/AdminPromotionPages";
-import {
-  AdminOrderDetailPage,
-  AdminOrdersPage,
-} from "../features/admin/AdminOrderPages";
-import {
-  AdminPaymentDetailPage,
-  AdminPaymentsPage,
-  AdminRefundQueuePage,
-} from "../features/admin/AdminPaymentPages";
-import {
-  AdminShipmentCreatePage,
-  AdminShipmentDetailPage,
-  AdminShipmentsPage,
-} from "../features/admin/AdminShipmentPages";
+import { AdminCouponDetailPage, AdminCouponEditorPage, AdminPromotionsPage } from "../features/admin/AdminPromotionPages";
+import { AdminOrderDetailPage, AdminOrdersPage } from "../features/admin/AdminOrderPages";
+import { AdminPaymentDetailPage, AdminPaymentsPage, AdminRefundQueuePage } from "../features/admin/AdminPaymentPages";
+import { AdminShipmentCreatePage, AdminShipmentDetailPage, AdminShipmentsPage } from "../features/admin/AdminShipmentPages";
+import { AdminInventoryBalancesPage, AdminReorderAlertsPage, AdminStockHistoryPage, AdminWarehousesPage } from "../features/admin/AdminInventoryPages";
+import { AdminSuppliersPage } from "../features/admin/AdminSuppliersPage";
+import { AdminWarehouseCreatePage } from "../features/admin/AdminWarehouseCreatePage";
+import { AdminInventoryUnitDetailPage } from "../features/admin/AdminInventoryUnitDetailPage";
+import { AdminInventoryUnitDirectoryPage } from "../features/admin/AdminInventoryUnitDirectoryPage";
+import { AdminInventoryEntitiesPage, AdminStockLedgerPage, AdminWarehouseDetailPage, AdminWarehouseManagementPage } from "../features/admin/AdminInventoryOperationsPages";
+import { CustomerRouteGuard } from "../features/auth/CustomerRouteGuard";
+
+const customerRoute = (element: React.ReactNode) => (
+  <CustomerRouteGuard>{element}</CustomerRouteGuard>
+);
 
 export const router = createBrowserRouter([
   {
@@ -97,6 +93,7 @@ export const router = createBrowserRouter([
       { path: "shipping", element: <AdminShipmentsPage /> },
       { path: "shipments/new", element: <AdminShipmentCreatePage /> },
       { path: "shipments/:shipmentId", element: <AdminShipmentDetailPage /> },
+<<<<<<< HEAD
       {
         path: "inventory",
         element: (
@@ -106,6 +103,18 @@ export const router = createBrowserRouter([
           />
         ),
       },
+=======
+      { path: "inventory", element: <AdminWarehouseManagementPage /> },
+      { path: "inventory/new", element: <AdminWarehouseCreatePage /> },
+      { path: "inventory/balances", element: <AdminInventoryEntitiesPage /> },
+      { path: "inventory/alerts", element: <AdminReorderAlertsPage /> },
+      { path: "inventory/history", element: <AdminStockLedgerPage /> },
+      { path: "inventory/ledger", element: <AdminStockLedgerPage /> },
+      { path: "inventory/warehouses/:warehouseId", element: <AdminWarehouseDetailPage /> },
+      { path: "inventory/unit-details", element: <AdminInventoryUnitDirectoryPage /> },
+      { path: "inventory/unit-details/:warehouseId/:variantId", element: <AdminInventoryUnitDetailPage /> },
+      { path: "suppliers", element: <AdminSuppliersPage /> },
+>>>>>>> 0b41d2d (fix admin page)
       { path: "procurement", element: <ProcurementListPage /> },
       { path: "procurement/:poCode", element: <ProcurementDetailPage /> },
       { path: "after-sales", element: <AfterSalesPage /> },
@@ -135,10 +144,10 @@ export const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <HomePage />,
+    element: customerRoute(<HomePage />),
   },
   {
-    element: <AppLayout />,
+    element: customerRoute(<AppLayout />),
     children: [
       {
         path: "/product/:slug",
@@ -152,28 +161,35 @@ export const router = createBrowserRouter([
   },
   {
     path: "/account",
-    element: <AccountOverviewPage />,
+    element: customerRoute(<AccountOverviewPage />),
   },
   {
     path: "/account/orders",
-    element: <OrderHistoryPage />,
+    element: customerRoute(<OrderHistoryPage />),
   },
   {
     path: "/account/tracking",
-    element: <OrderTrackingPage />,
+    element: customerRoute(<OrderTrackingPage />),
   },
   {
     path: "/account/warranty",
-    element: <WarrantyPage />,
+    element: customerRoute(<WarrantyPage />),
   },
   {
     path: "/account/tier",
-    element: <MembershipTierPage />,
+    element: customerRoute(<MembershipTierPage />),
   },
+<<<<<<< HEAD
 
+=======
+  {
+    path: "/account/reviews",
+    element: customerRoute(<MyReviewsPage />),
+  },
+>>>>>>> 0b41d2d (fix admin page)
   {
     path: "/account/returns",
-    element: <ReturnsPage />,
+    element: customerRoute(<ReturnsPage />),
   },
   {
     path: "/account/returns/new",
@@ -189,7 +205,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/account/notifications",
-    element: <NotificationsPage />,
+    element: customerRoute(<NotificationsPage />),
   },
   {
     path: "/account/vouchers",
@@ -225,30 +241,30 @@ export const router = createBrowserRouter([
   },
   {
     path: "/checkout",
-    element: <Checkout />,
+    element: customerRoute(<Checkout />),
   },
   {
     path: "/payment/vnpay-return",
-    element: <VnpayReturn />,
+    element: customerRoute(<VnpayReturn />),
   },
   {
     path: "/login",
-    element: <Login />,
+    element: customerRoute(<Login />),
   },
   {
     path: "/register",
-    element: <Register />,
+    element: customerRoute(<Register />),
   },
   {
     path: "/forgot-password",
-    element: <ForgotPassword />,
+    element: customerRoute(<ForgotPassword />),
   },
   {
     path: "/reset-password",
-    element: <ResetPassword />,
+    element: customerRoute(<ResetPassword />),
   },
   {
     path: "/verify-email",
-    element: <EmailVerification />,
+    element: customerRoute(<EmailVerification />),
   },
 ]);

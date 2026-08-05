@@ -46,6 +46,9 @@ public class UserRole {
     @Column(name = "assigned_by")
     private String assignedBy;
 
+    @Column(name = "assignment_reason", length = 255)
+    private String assignmentReason;
+
     @Column(name = "revoked_by")
     private String revokedBy;
 

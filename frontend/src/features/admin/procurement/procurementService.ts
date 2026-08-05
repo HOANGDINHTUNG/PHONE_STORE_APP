@@ -3,6 +3,7 @@ import {
   FilterParams,
   PurchaseOrder,
 } from "./procurementTypes";
+import { apiClient } from "../../../api/client";
 
 const INITIAL_MOCK_POS: PurchaseOrder[] = [
   {
@@ -244,7 +245,51 @@ function saveStoredPOs(pos: PurchaseOrder[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
 }
 
+function mapBackendPO(po: any, fallback?: Partial<PurchaseOrder>): PurchaseOrder {
+  return {
+    id: String(po.id),
+    code: po.purchaseOrderCode,
+    supplierName: po.supplierName || fallback?.supplierName || "—",
+    supplierId: po.supplierId,
+    destWarehouse: po.warehouseName || fallback?.destWarehouse || "—",
+    warehouseId: po.warehouseId,
+    totalAmount: Number(po.totalAmount || 0),
+    expectedDelivery: po.expectedAt ? new Date(po.expectedAt).toLocaleDateString("vi-VN") : "—",
+    createdAt: po.createdAt ? new Date(po.createdAt).toLocaleDateString("vi-VN") : new Date().toLocaleDateString("vi-VN"),
+    creator: "Hệ thống",
+    approver: po.approvedBy ? String(po.approvedBy) : "—",
+    note: po.note,
+    status: po.status,
+    items: (po.items || []).map((item: any) => ({
+      id: item.id,
+      sku: item.sku || "—",
+      name: item.productVariantName || "—",
+      image: item.imageUrl || undefined,
+      qtyOrd: item.orderedQuantity || 0,
+      qtyRec: item.receivedQuantity || 0,
+      unitCost: Number(item.unitCost || 0),
+      totalCost: Number(item.lineTotal || 0),
+    })),
+    history: fallback?.history || [],
+  };
+}
+
+function upsertStoredPO(po: PurchaseOrder) {
+  const list = getStoredPOs();
+  const index = list.findIndex((item) => item.id === po.id || item.code === po.code);
+  if (index >= 0) list[index] = po;
+  else list.unshift(po);
+  saveStoredPOs(list);
+}
+
 export const procurementService = {
+  async fetchPurchaseOrdersFromBackend(): Promise<PurchaseOrder[]> {
+    const response = await apiClient.get<any>("/purchase-orders", { params: { page: 1, size: 100 } });
+    const content = response.data?.items || response.data?.content || [];
+    const mapped: PurchaseOrder[] = content.map((po: any) => mapBackendPO(po));
+    saveStoredPOs(mapped);
+    return mapped;
+  },
   getPurchaseOrders(filters?: FilterParams): PurchaseOrder[] {
     let list = getStoredPOs();
 
@@ -252,10 +297,8 @@ export const procurementService = {
       list = list.filter((po) => po.status === filters.status);
     }
 
-    if (filters?.warehouse && filters.warehouse !== "ALL") {
-      list = list.filter((po) =>
-        po.destWarehouse.toLowerCase().includes(filters.warehouse!.toLowerCase())
-      );
+    if (filters?.warehouseId && filters.warehouseId !== "ALL") {
+      list = list.filter((po) => po.warehouseId === filters.warehouseId);
     }
 
     if (filters?.search && filters.search.trim() !== "") {
@@ -279,64 +322,37 @@ export const procurementService = {
     );
   },
 
-  createPO(payload: CreatePOPayload): PurchaseOrder {
-    const list = getStoredPOs();
-    const nextNum = 1046 + list.length;
-    const code = `PO-2023-${nextNum}`;
-
-    const items = payload.items.map((item, idx) => ({
-      id: `item-${Date.now()}-${idx}`,
-      sku: item.sku,
-      name: item.name,
-      image: item.image,
-      qtyOrd: item.qtyOrd,
-      qtyRec: 0,
-      unitCost: item.unitCost,
-      totalCost: item.qtyOrd * item.unitCost,
-    }));
-
-    const rawSubtotal = items.reduce((acc, it) => acc + it.totalCost, 0);
-    const totalAmount = Math.round(rawSubtotal * 1.1);
-
-    const todayStr = new Date().toLocaleDateString("vi-VN");
-
-    const newPO: PurchaseOrder = {
-      id: `po-${Date.now()}`,
-      code,
-      supplierName: payload.supplierName,
-      destWarehouse: payload.destWarehouse,
-      totalAmount,
-      expectedDelivery: payload.expectedDelivery,
-      createdAt: todayStr,
-      creator: "Quản trị viên (Admin User)",
-      approver: "--",
-      referenceNo: payload.referenceNo || `REF-${Math.floor(1000 + Math.random() * 9000)}`,
-      note: payload.note || "",
-      status: "PENDING_APPROVAL",
-      items,
-      history: [
-        {
-          id: `h-${Date.now()}`,
-          title: "Đã gửi yêu cầu phê duyệt",
-          timestamp: "Vừa xong",
-          actor: "Quản trị viên (Admin User)",
-          type: "submitted",
-        },
-        {
-          id: `h-${Date.now() - 1}`,
-          title: "Đã tạo đơn nhập hàng",
-          timestamp: "Vừa xong",
-          actor: "Quản trị viên (Admin User)",
-          type: "created",
-        },
-      ],
-    };
-
-    list.unshift(newPO);
-    saveStoredPOs(list);
-    return newPO;
+  async createPO(payload: CreatePOPayload): Promise<PurchaseOrder> {
+    const response = await apiClient.post<any>("/admin/procurement", {
+      supplierName: payload.supplierName, destWarehouse: payload.destWarehouse,
+      expectedDelivery: payload.expectedDelivery, note: payload.note,
+      items: payload.items.map((item) => ({ sku: item.sku, qtyOrd: item.qtyOrd, unitCost: item.unitCost })),
+    });
+    const created = mapBackendPO(response.data, { supplierName: payload.supplierName, destWarehouse: payload.destWarehouse });
+    await this.fetchPurchaseOrdersFromBackend();
+    return created;
   },
-
+  async submitPO(id: string): Promise<PurchaseOrder> {
+    const response = await apiClient.post<any>(`/admin/procurement/${id}/submit`);
+    const mapped = mapBackendPO(response.data, this.getPOByCode(id));
+    upsertStoredPO(mapped);
+    return mapped;
+  },
+  async approvePO(id: string): Promise<PurchaseOrder> {
+    const response = await apiClient.post<any>(`/admin/procurement/${id}/approve`);
+    const mapped = mapBackendPO(response.data, this.getPOByCode(id));
+    upsertStoredPO(mapped);
+    return mapped;
+  },
+  async receivePurchaseOrder(id: string, receivedMap: Record<string | number, number>): Promise<PurchaseOrder> {
+    const items = Object.entries(receivedMap)
+      .map(([purchaseOrderItemId, quantity]) => ({ purchaseOrderItemId: Number(purchaseOrderItemId), quantity }))
+      .filter((item) => item.quantity > 0);
+    const response = await apiClient.post<any>(`/admin/procurement/${id}/receive`, { items });
+    const mapped = mapBackendPO(response.data, this.getPOByCode(id));
+    upsertStoredPO(mapped);
+    return mapped;
+  },
   receiveItems(code: string, receivedMap: Record<string | number, number>): PurchaseOrder | undefined {
     const list = getStoredPOs();
     const poIndex = list.findIndex(

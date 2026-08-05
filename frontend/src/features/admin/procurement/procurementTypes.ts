@@ -46,7 +46,7 @@ export interface PurchaseOrder {
 
 export interface FilterParams {
   status?: string;
-  warehouse?: string;
+  warehouseId?: string;
   startDate?: string;
   endDate?: string;
   search?: string;

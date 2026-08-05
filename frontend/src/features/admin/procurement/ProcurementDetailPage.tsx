@@ -54,8 +54,21 @@ export function ProcurementDetailPage() {
     setReloadKey((prev) => prev + 1);
   };
 
-  const handleReceiveSubmit = (receivedMap: Record<string | number, number>) => {
-    procurementService.receiveItems(po.code, receivedMap);
+  const handleReceiveSubmit = async (receivedMap: Record<string | number, number>) => {
+    await procurementService.receivePurchaseOrder(po.id, receivedMap);
+    message.success("Đã nhập kho và cập nhật tồn kho thành công.");
+    setReloadKey((prev) => prev + 1);
+  };
+
+  const handleSubmitForApproval = async () => {
+    await procurementService.submitPO(po.id);
+    message.success("Đã gửi phiếu nhập để phê duyệt.");
+    setReloadKey((prev) => prev + 1);
+  };
+
+  const handleApprove = async () => {
+    await procurementService.approvePO(po.id);
+    message.success("Đã phê duyệt phiếu nhập. Bạn có thể nhận hàng vào kho.");
     setReloadKey((prev) => prev + 1);
   };
 
@@ -130,6 +143,16 @@ export function ProcurementDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-3">
+          {po.status === "DRAFT" && (
+            <Button size="large" onClick={() => void handleSubmitForApproval()} className="rounded-xl border-[#dca9bf] font-bold text-[#a70f4b]">
+              Gửi duyệt
+            </Button>
+          )}
+          {po.status === "PENDING_APPROVAL" && (
+            <Button type="primary" size="large" onClick={() => void handleApprove()} className="rounded-xl bg-[#c2185b] font-bold hover:bg-[#a70f4b]">
+              Phê duyệt phiếu nhập
+            </Button>
+          )}
           {po.status !== "CANCELLED" && po.status !== "COMPLETED" && (
             <Popconfirm
               title="Hủy đơn nhập hàng"
@@ -145,7 +168,7 @@ export function ProcurementDetailPage() {
             </Popconfirm>
           )}
 
-          {po.status !== "CANCELLED" && po.status !== "COMPLETED" && (
+          {(po.status === "APPROVED" || po.status === "PARTIALLY_RECEIVED") && (
             <Button
               type="primary"
               icon={<PackageCheck size={18} />}
@@ -235,15 +258,15 @@ export function ProcurementDetailPage() {
                     <tr key={item.id} className="hover:bg-[#fffcfd]">
                       <td className="px-6 py-4">
                         <div className="relative h-12 w-12 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                          <img
+                          {item.image && <img
                             src={item.image}
                             alt={item.name}
-                            className="h-full w-full object-cover"
+                            className="relative z-10 h-full w-full object-contain"
                             onError={(e) => {
-                              (e.target as HTMLElement).style.display = "none";
+                              e.currentTarget.style.display = "none";
                             }}
-                          />
-                          <div className="absolute inset-0 -z-10 grid place-items-center bg-slate-100 text-xs font-bold text-slate-400">
+                          />}
+                          <div className="absolute inset-0 z-0 grid place-items-center bg-[#fff0f5] text-xs font-bold text-[#c2185b]">
                             📱
                           </div>
                         </div>
@@ -320,7 +343,7 @@ export function ProcurementDetailPage() {
             </div>
 
             <div className="mt-6 space-y-3">
-              {po.status !== "CANCELLED" && po.status !== "COMPLETED" && (
+              {(po.status === "APPROVED" || po.status === "PARTIALLY_RECEIVED") && (
                 <Button
                   type="primary"
                   block

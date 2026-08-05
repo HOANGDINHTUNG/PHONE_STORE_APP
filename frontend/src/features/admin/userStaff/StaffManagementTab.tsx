@@ -176,6 +176,17 @@ export function StaffManagementTab() {
       ),
     },
     {
+      title: "Vai trò hệ thống",
+      key: "roles",
+      render: (_: any, record: StaffMemberItem) => (
+        <div className="flex max-w-[180px] flex-wrap gap-1">
+          {record.roleNames?.length ? record.roleNames.map((role) => (
+            <span key={role} className="max-w-full truncate rounded bg-[#fff0f5] px-2 py-1 text-[11px] font-bold text-[#c2185b]" title={role}>{role}</span>
+          )) : <span className="text-xs text-slate-400">Chưa cấp quyền</span>}
+        </div>
+      ),
+    },
+    {
       title: "Ngày vào làm",
       dataIndex: "hireDate",
       key: "hireDate",

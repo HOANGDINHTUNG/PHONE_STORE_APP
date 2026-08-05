@@ -8,12 +8,14 @@ import com.re.ecommerce.modules.customer.dto.request.ReviewCreateRequest;
 import com.re.ecommerce.modules.customer.dto.request.ReviewEditRequest;
 import com.re.ecommerce.modules.customer.dto.response.ReviewEligibilityResponse;
 import com.re.ecommerce.modules.customer.dto.response.ReviewResponse;
+import com.re.ecommerce.modules.customer.dto.response.AdminReviewResponse;
 import com.re.ecommerce.modules.customer.dto.request.ReviewRejectRequest;
 import com.re.ecommerce.modules.catalog.dto.response.ProductRatingSummaryResponse;
 import com.re.ecommerce.modules.catalog.entity.ProductRatingSummary;
 import com.re.ecommerce.modules.catalog.repository.ProductRatingSummaryRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductRepository;
 import com.re.ecommerce.modules.catalog.entity.Product;
+import com.re.ecommerce.modules.catalog.entity.ProductImage;
 import com.re.ecommerce.modules.customer.entity.Review;
 import com.re.ecommerce.modules.customer.entity.ReviewStatus;
 import com.re.ecommerce.modules.customer.entity.ReviewStatusHistory;
@@ -162,19 +164,19 @@ public class ReviewServiceImpl implements ReviewService {
     
     @Override
     @Transactional(readOnly = true)
-    public Page<ReviewResponse> getModerationQueue(ReviewStatus status, Pageable pageable) {
+    public Page<AdminReviewResponse> getModerationQueue(ReviewStatus status, Pageable pageable) {
         Page<Review> reviews = (status != null) 
                 ? reviewRepository.findByStatus(status, pageable)
                 : reviewRepository.findAll(pageable);
-        return reviews.map(this::mapToResponse);
+        return reviews.map(this::mapToAdminResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ReviewResponse getAdminReviewDetail(UUID reviewId) {
+    public AdminReviewResponse getAdminReviewDetail(UUID reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("REVIEW_NOT_FOUND", "Review not found"));
-        return mapToResponse(review);
+        return mapToAdminResponse(review);
     }
 
     @Override
@@ -268,5 +270,32 @@ public class ReviewServiceImpl implements ReviewService {
                 r.getRejectionReason(),
                 r.getCreatedAt()
         );
+    }
+
+    private AdminReviewResponse mapToAdminResponse(Review review) {
+        OrderItem item = review.getOrderItem();
+        User customer = review.getCustomer();
+
+        return new AdminReviewResponse(
+                review.getId(), item.getProduct().getId(), item.getId(), item.getProductName(),
+                item.getVariantName(), item.getSku(), resolveImageUrl(item), customer.getUsername(), customer.getEmail(),
+                review.getRating(), review.getTitle(), review.getComment(), review.getStatus(), review.getRejectionReason(),
+                review.getModeratedBy() == null ? null : review.getModeratedBy().getUsername(), review.getModeratedAt(), review.getCreatedAt()
+        );
+    }
+
+    private String resolveImageUrl(OrderItem item) {
+        if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) {
+            return item.getImageUrl();
+        }
+        return item.getProductVariant().getImages().stream()
+                .sorted((left, right) -> {
+                    int primaryFirst = Boolean.compare(right.isPrimary(), left.isPrimary());
+                    return primaryFirst != 0 ? primaryFirst : Integer.compare(left.getSortOrder(), right.getSortOrder());
+                })
+                .map(ProductImage::getImageUrl)
+                .filter(url -> url != null && !url.isBlank())
+                .findFirst()
+                .orElse(null);
     }
 }

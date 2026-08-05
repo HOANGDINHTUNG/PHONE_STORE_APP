@@ -398,18 +398,33 @@ export const rolePermissionService = {
 
   async fetchRolesFromBackend(): Promise<RoleItem[]> {
     try {
-      const res = await apiClient.get<any[]>("/admin/roles");
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        const mapped: RoleItem[] = res.data.map((r, idx) => ({
+      const [res, assignmentsResponse] = await Promise.all([
+        apiClient.get<any>("/admin/roles"),
+        apiClient.get<any[]>("/admin/role-assignments").catch(() => ({ data: [] })),
+      ]);
+      const content = res.data?.items || res.data;
+      if (Array.isArray(content)) {
+        const activeUsersByRole = (Array.isArray(assignmentsResponse.data) ? assignmentsResponse.data : []).reduce((count, assignment) => {
+          if (assignment.status === "ACTIVE" && assignment.role?.id) {
+            const roleId = String(assignment.role.id);
+            count.set(roleId, (count.get(roleId) || 0) + 1);
+          }
+          return count;
+        }, new Map<string, number>());
+        const mapped: RoleItem[] = content.map((r, idx) => {
+          const roleCode = r.code || `ROLE-00${idx + 1}`;
+          const permissions = Object.fromEntries((r.permissions || []).map((permission: any) => [permission.code, true]));
+          localStorage.setItem(`pinkphone_role_perm_${roleCode}`, JSON.stringify(permissions));
+          return {
           id: r.id || `role-${idx}`,
-          roleCode: r.code || `ROLE-00${idx + 1}`,
+          roleCode,
           roleName: r.name || "Vai trò",
           description: r.description || "Mô tả vai trò",
           type: r.roleType === "SYSTEM" ? "SYSTEM" : "CUSTOM",
           status: r.status === "INACTIVE" ? "Không hoạt động" : "Hoạt động",
-          permissionCount: r.permissionCount || (idx === 0 ? 142 : idx === 1 ? 86 : 45),
-          userCount: r.userCount || (idx === 0 ? 3 : idx === 1 ? 12 : 8),
-        }));
+          permissionCount: Array.isArray(r.permissions) ? r.permissions.length : 0,
+          userCount: activeUsersByRole.get(String(r.id)) || 0,
+        }; });
         localStorage.setItem(ROLES_KEY, JSON.stringify(mapped));
         return mapped;
       }
@@ -421,6 +436,31 @@ export const rolePermissionService = {
 
   getPermissionGroups(): PermissionGroup[] {
     return INITIAL_PERMISSION_GROUPS;
+  },
+
+  async fetchPermissionGroupsFromBackend(): Promise<PermissionGroup[]> {
+    try {
+      const response = await apiClient.get<any>("/admin/permissions", { params: { size: 100 } });
+      const permissions = response.data?.items || response.data || [];
+      if (!Array.isArray(permissions) || permissions.length === 0) return this.getPermissionGroups();
+      const groups = new Map<string, PermissionGroup>();
+      permissions.forEach((permission: any) => {
+        const groupName = permission.module || "Khác";
+        const group = groups.get(groupName) || { groupName, permissions: [] };
+        group.permissions.push({
+          id: String(permission.id),
+          code: permission.code,
+          name: String(permission.code || "Quyền").replaceAll("_", " "),
+          description: permission.description || "Không có mô tả.",
+          group: groupName,
+          isSensitive: /DELETE|APPROVE|ADJUST|MANAGE|REFUND/i.test(permission.code || ""),
+        });
+        groups.set(groupName, group);
+      });
+      return [...groups.values()];
+    } catch {
+      return this.getPermissionGroups();
+    }
   },
 
   getRolePermissions(roleCode: string): Record<string, boolean> {
@@ -435,11 +475,16 @@ export const rolePermissionService = {
     return initial;
   },
 
-  saveRolePermissions(roleCode: string, state: Record<string, boolean>) {
-    const storedKey = `pinkphone_role_perm_${roleCode}`;
-    localStorage.setItem(storedKey, JSON.stringify(state));
+  async saveRolePermissions(roleCode: string, state: Record<string, boolean>) {
+    const [rolesResponse, permissionsResponse] = await Promise.all([apiClient.get<any>("/admin/roles"), apiClient.get<any>("/admin/permissions")]);
+    const roles = rolesResponse.data?.items || rolesResponse.data || [];
+    const permissions = permissionsResponse.data?.items || permissionsResponse.data || [];
+    const role = roles.find((item: any) => item.code === roleCode);
+    if (!role) throw new Error("Không tìm thấy vai trò.");
+    const permissionIds = permissions.filter((permission: any) => state[permission.code]).map((permission: any) => permission.id);
+    await apiClient.put(`/admin/roles/${role.id}/permissions`, permissionIds);
+    localStorage.setItem(`pinkphone_role_perm_${roleCode}`, JSON.stringify(state));
   },
-
   getAssignments(): RoleAssignmentRecord[] {
     try {
       const raw = localStorage.getItem(ASSIGNMENTS_KEY);
@@ -449,20 +494,39 @@ export const rolePermissionService = {
     return INITIAL_ASSIGNMENT_HISTORY;
   },
 
-  assignRole(payload: AssignRolePayload): RoleAssignmentRecord {
-    const list = this.getAssignments();
-    const newRecord: RoleAssignmentRecord = {
-      id: `asgn-${Date.now()}`,
-      userEmail: payload.userEmail,
-      roleCode: payload.roleCode,
-      status: "ACTIVE",
-      expiryText: payload.expiryDate || "Vĩnh viễn",
-      assignedBy: "admin.sys",
-      assignedAt: new Date().toLocaleString("vi-VN"),
-      reason: payload.reason,
-    };
-    list.unshift(newRecord);
-    localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(list));
-    return newRecord;
+  async fetchAssignmentsFromBackend(): Promise<RoleAssignmentRecord[]> {
+    const [assignmentsResponse, usersResponse] = await Promise.all([
+      apiClient.get<any[]>("/admin/role-assignments"),
+      apiClient.get<any[]>("/admin/users"),
+    ]);
+    const users = new Map((Array.isArray(usersResponse.data) ? usersResponse.data : []).map((user: any) => [String(user.id), user]));
+    const records: RoleAssignmentRecord[] = (Array.isArray(assignmentsResponse.data) ? assignmentsResponse.data : []).map((assignment: any) => {
+      const user = users.get(String(assignment.userId));
+      return {
+        id: String(assignment.id), userId: String(assignment.userId), userEmail: user?.email || "Tài khoản đã xóa",
+        roleCode: assignment.role?.code || "—", roleName: assignment.role?.name,
+        status: assignment.status === "REVOKED" ? "REVOKED" : "ACTIVE",
+        expiryText: assignment.expiresAt ? new Date(assignment.expiresAt).toLocaleString("vi-VN") : "Không thời hạn",
+        assignedBy: assignment.assignedBy || "—",
+        assignedAt: assignment.assignedAt ? new Date(assignment.assignedAt).toLocaleString("vi-VN") : "—",
+        revokedAt: assignment.revokedAt ? new Date(assignment.revokedAt).toLocaleString("vi-VN") : undefined,
+        reason: assignment.assignedReason || assignment.revokedReason || "Cấp quyền quản trị",
+      };
+    });
+    localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(records));
+    return records;
+  },
+
+  async assignRole(payload: AssignRolePayload): Promise<RoleAssignmentRecord> {
+    const [usersResponse, rolesResponse] = await Promise.all([apiClient.get<any[]>("/admin/users"), apiClient.get<any>("/admin/roles")]);
+    const user = (usersResponse.data || []).find((item: any) => String(item.id) === payload.userId);
+    const roles = rolesResponse.data?.items || rolesResponse.data || [];
+    const role = roles.find((item: any) => item.code === payload.roleCode);
+    if (!user || !role) throw new Error("Không tìm thấy người dùng hoặc vai trò.");
+    const response = await apiClient.post<any>(`/admin/users/${user.id}/role-assignments`, { roleId: role.id, expiresAt: payload.expiryDate || undefined, reason: payload.reason });
+    const assignment = response.data;
+    const record: RoleAssignmentRecord = { id: assignment.id || `asgn-${Date.now()}`, userId: String(user.id), userEmail: payload.userEmail, roleCode: payload.roleCode, roleName: role.name, status: "ACTIVE", expiryText: assignment.expiresAt ? new Date(assignment.expiresAt).toLocaleString("vi-VN") : "Không thời hạn", assignedBy: assignment.assignedBy || "admin", assignedAt: assignment.assignedAt ? new Date(assignment.assignedAt).toLocaleString("vi-VN") : new Date().toLocaleString("vi-VN"), reason: payload.reason };
+    localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify([record, ...this.getAssignments()]));
+    return record;
   },
 };

@@ -1,229 +1,106 @@
-import React, { useMemo, useState } from "react";
-import {
-  Alert,
-  Button,
-  DatePicker,
-  Form,
-  Input,
-  Select,
-  Table,
-  message,
-} from "antd";
-import {
-  CheckCircle2,
-  Filter,
-  History,
-  Info,
-  RefreshCw,
-  UserCheck,
-  XCircle,
-} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, DatePicker, Form, Input, Select, Table, Tag, message } from "antd";
+import { History, Info, RefreshCw, UserCheck } from "lucide-react";
+import { apiClient } from "../../../api/client";
 import { rolePermissionService } from "./rolePermissionService";
-import { AssignRolePayload, RoleAssignmentRecord } from "./rolePermissionTypes";
+import { AssignRolePayload, RoleAssignmentRecord, RoleItem } from "./rolePermissionTypes";
+
+interface UserOption { id: string; name: string; email: string; }
 
 export function RoleAssignmentTab() {
-  const [reloadKey, setReloadKey] = useState(0);
   const [form] = Form.useForm();
+  const [records, setRecords] = useState<RoleAssignmentRecord[]>([]);
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [roles, setRoles] = useState<RoleItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const selectedUserId = Form.useWatch("userId", form);
 
-  const historyRecords = useMemo(() => {
-    return rolePermissionService.getAssignments();
-  }, [reloadKey]);
-
-  const handleFinish = (values: any) => {
-    const payload: AssignRolePayload = {
-      userEmail: values.userEmail,
-      roleCode: values.roleCode,
-      expiryDate: values.expiryDate
-        ? values.expiryDate.format("DD/MM/YYYY")
-        : "Vĩnh viễn",
-      reason: values.reason,
-    };
-
-    rolePermissionService.assignRole(payload);
-    message.success(`Đã gán vai trò ${values.roleCode} cho ${values.userEmail} thành công!`);
-    form.resetFields();
-    setReloadKey((prev) => prev + 1);
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [usersResponse, roleList, assignments] = await Promise.all([
+        apiClient.get<any[]>("/admin/users"),
+        rolePermissionService.fetchRolesFromBackend(),
+        rolePermissionService.fetchAssignmentsFromBackend(),
+      ]);
+      setUsers((Array.isArray(usersResponse.data) ? usersResponse.data : []).map((user: any) => ({
+        id: String(user.id), name: user.fullName || user.username || user.email, email: user.email || "",
+      })));
+      setRoles(roleList.filter((role) => role.status === "Hoạt động"));
+      setRecords(assignments);
+    } catch {
+      message.error("Không tải được dữ liệu phân quyền. Hãy kiểm tra backend và quyền admin.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderStatusBadge = (status: "ACTIVE" | "REVOKED") => {
-    if (status === "ACTIVE") {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-[#dcf9e8] px-2.5 py-0.5 text-[11px] font-black text-[#168a51]">
-          ● ACTIVE
-        </span>
-      );
+  useEffect(() => { void load(); }, []);
+
+  const activeRoles = useMemo(() => records.filter((record) => record.userId === selectedUserId && record.status === "ACTIVE"), [records, selectedUserId]);
+  const selectedUser = users.find((user) => user.id === selectedUserId);
+
+  const handleFinish = async (values: any) => {
+    const user = users.find((item) => item.id === values.userId);
+    if (!user) return;
+    const payload: AssignRolePayload = {
+      userId: user.id,
+      userEmail: user.email,
+      roleCode: values.roleCode,
+      expiryDate: values.expiryDate?.toISOString(),
+      reason: values.reason,
+    };
+    try {
+      await rolePermissionService.assignRole(payload);
+      message.success("Đã gán vai trò. Quyền áp dụng ngay cho tài khoản này.");
+      form.resetFields();
+      await load();
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || "Không thể gán vai trò. Tài khoản có thể đã được cấp role này.");
     }
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[#ffdce7] px-2.5 py-0.5 text-[11px] font-black text-[#d92e70]">
-        ✕ REVOKED
-      </span>
-    );
   };
 
   const columns = [
     {
-      title: "NGƯỜI DÙNG / VAI TRÒ",
-      key: "userRole",
-      render: (_: any, record: RoleAssignmentRecord) => (
-        <div>
-          <div className="font-extrabold text-slate-900">{record.userEmail}</div>
-          <span className="rounded bg-rose-50 px-2 py-0.5 font-mono text-[11px] font-bold text-[#c2185b]">
-            {record.roleCode}
-          </span>
-        </div>
-      ),
+      title: "Tài khoản nhận quyền", key: "user", width: 250,
+      render: (_: unknown, record: RoleAssignmentRecord) => <div><p className="font-bold text-slate-900">{record.userEmail}</p><p className="text-xs text-slate-400">ID: {record.userId || "—"}</p></div>,
     },
     {
-      title: "TRẠNG THÁI",
-      key: "status",
-      render: (_: any, record: RoleAssignmentRecord) => (
-        <div className="space-y-1">
-          <div>{renderStatusBadge(record.status)}</div>
-          <div className="text-[11px] text-slate-400">Hết hạn: {record.expiryText}</div>
-        </div>
-      ),
+      title: "Vai trò", key: "role", width: 240,
+      render: (_: unknown, record: RoleAssignmentRecord) => <div><p className="font-bold text-slate-800">{record.roleName || record.roleCode}</p><span className="rounded bg-[#fff0f5] px-2 py-0.5 font-mono text-[11px] font-bold text-[#c2185b]">{record.roleCode}</span></div>,
     },
-    {
-      title: "CHI TIẾT GÁN",
-      key: "assignedDetails",
-      render: (_: any, record: RoleAssignmentRecord) => (
-        <div className="text-xs space-y-0.5 text-slate-600">
-          <div>
-            Bởi: <b>{record.assignedBy}</b>
-          </div>
-          <div className="text-slate-400">Ngày: {record.assignedAt}</div>
-        </div>
-      ),
-    },
-    {
-      title: "LÝ DO",
-      dataIndex: "reason",
-      key: "reason",
-      render: (text: string) => (
-        <span className="text-xs text-slate-700 max-w-[240px] line-clamp-2">{text}</span>
-      ),
-    },
+    { title: "Trạng thái", key: "status", width: 135, render: (_: unknown, record: RoleAssignmentRecord) => <Tag color={record.status === "ACTIVE" ? "green" : "red"}>{record.status === "ACTIVE" ? "Đang hiệu lực" : "Đã thu hồi"}</Tag> },
+    { title: "Thời hạn", dataIndex: "expiryText", key: "expiry", width: 175, render: (text: string) => <span className="text-sm text-slate-600">{text}</span> },
+    { title: "Người cấp / thời gian", key: "audit", width: 200, render: (_: unknown, record: RoleAssignmentRecord) => <div className="text-xs text-slate-600"><p>Bởi: <b>{record.assignedBy}</b></p><p className="mt-1 text-slate-400">{record.assignedAt}</p></div> },
+    { title: "Lý do", dataIndex: "reason", key: "reason", render: (text: string) => <span className="line-clamp-2 text-sm text-slate-600">{text}</span> },
   ];
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[440px_1fr]">
-        {/* Left Form: THỰC HIỆN GÁN VAI TRÒ matching Image 3 */}
-        <div className="rounded-2xl border border-[#eed2db] bg-white p-6 shadow-[0_3px_10px_rgba(79,20,45,0.02)] space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#f3dce4] pb-3">
-            <UserCheck size={20} className="text-[#c2185b]" />
-            <h2 className="text-base font-black text-slate-950">THỰC HIỆN GÁN VAI TRÒ</h2>
-          </div>
-
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleFinish}
-            initialValues={{
-              userEmail: "Nguyen Van A (a.nguyen@pinkphone.vn)",
-              roleCode: "CS Representative (Hỗ trợ KH)",
-            }}
-            className="space-y-4"
-          >
-            <Form.Item
-              name="userEmail"
-              label="Người dùng nhận quyền *"
-              rules={[{ required: true, message: "Vui lòng chọn người dùng." }]}
-            >
-              <Input size="large" placeholder="Tìm kiếm theo email..." />
+      <section className="rounded-2xl border border-[#eed2db] bg-[#fffafb] p-4 text-sm text-slate-600">
+        <b className="text-slate-900">Luồng cấp quyền:</b> chọn tài khoản → chọn vai trò → hệ thống áp dụng tập quyền của vai trò đó. Hồ sơ nhân sự chỉ là thông tin tổ chức; quyền đăng nhập luôn được cấp cho tài khoản.
+      </section>
+      <section className="grid gap-6 xl:grid-cols-[410px_1fr]">
+        <div className="rounded-2xl border border-[#eed2db] bg-white p-6 shadow-[0_3px_10px_rgba(79,20,45,0.02)]">
+          <div className="mb-5 flex items-center gap-2 border-b border-[#f3dce4] pb-3"><UserCheck size={20} className="text-[#c2185b]" /><h2 className="text-base font-black text-slate-950">Cấp vai trò cho tài khoản</h2></div>
+          <Form form={form} layout="vertical" onFinish={handleFinish}>
+            <Form.Item name="userId" label="Tài khoản nhận quyền *" rules={[{ required: true, message: "Hãy chọn tài khoản." }]}>
+              <Select showSearch optionFilterProp="label" loading={loading} placeholder="Tìm tên hoặc email..." options={users.map((user) => ({ value: user.id, label: `${user.name} — ${user.email}` }))} />
             </Form.Item>
-
-            <Form.Item
-              name="roleCode"
-              label="Vai trò cấp phát *"
-              rules={[{ required: true, message: "Vui lòng chọn vai trò." }]}
-            >
-              <Select
-                size="large"
-                options={[
-                  { label: "CS Representative (Hỗ trợ KH)", value: "CS_REP" },
-                  { label: "Quản lý Cửa hàng (Store Manager)", value: "STORE_MANAGER" },
-                  { label: "Quản lý Kho (Warehouse Lead)", value: "WH_MGR" },
-                  { label: "Kiểm toán Tài chính (Finance Auditor)", value: "FINANCE_AUDITOR" },
-                ]}
-              />
+            {selectedUser && <div className="mb-4 rounded-xl bg-slate-50 p-3 text-xs"><p className="font-bold text-slate-800">Vai trò đang có</p><div className="mt-2 flex flex-wrap gap-1">{activeRoles.length ? activeRoles.map((record) => <Tag key={record.id} color="magenta">{record.roleName || record.roleCode}</Tag>) : <span className="text-slate-400">Chưa có vai trò nào.</span>}</div></div>}
+            <Form.Item name="roleCode" label="Vai trò cấp phát *" rules={[{ required: true, message: "Hãy chọn vai trò." }]}>
+              <Select showSearch optionFilterProp="label" loading={loading} placeholder="Chọn vai trò đang hoạt động" options={roles.map((role) => ({ value: role.roleCode, label: `${role.roleName} (${role.roleCode})` }))} />
             </Form.Item>
-
-            {/* Security Callout Box */}
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 flex items-start gap-2.5 text-xs text-rose-700">
-              <Info size={16} className="mt-0.5 shrink-0 text-[#c2185b]" />
-              <div>
-                <b>Lưu ý Bảo mật:</b> Vai trò <b>SUPER_ADMIN</b> không thể được gán qua giao diện này. Yêu cầu quy trình duyệt kỹ thuật cấp cao.
-              </div>
-            </div>
-
-            <Form.Item name="expiryDate" label="Ngày hết hạn (Tuỳ chọn)">
-              <DatePicker size="large" className="w-full" format="DD/MM/YYYY" placeholder="mm/dd/yyyy" />
-              <div className="mt-1 text-[11px] text-slate-400">
-                Để trống nếu cấp quyền vĩnh viễn.
-              </div>
-            </Form.Item>
-
-            <Form.Item
-              name="reason"
-              label="Lý do gán quyền *"
-              rules={[{ required: true, message: "Vui lòng nhập lý do." }]}
-            >
-              <Input.TextArea
-                rows={3}
-                placeholder="Nhập mã ticket JIRA hoặc lý do cụ thể..."
-              />
-            </Form.Item>
-
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              block
-              className="rounded-xl bg-[#c2185b] font-bold hover:bg-[#a70f4b]"
-            >
-              👤+ Xác nhận Gán Quyền
-            </Button>
+            <div className="mb-4 flex gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"><Info size={16} className="shrink-0" />Mỗi lần cấp quyền đều được lưu người cấp, thời điểm và lý do để đối soát.</div>
+            <Form.Item name="expiryDate" label="Ngày hết hạn (không bắt buộc)"><DatePicker className="w-full" format="DD/MM/YYYY" /></Form.Item>
+            <Form.Item name="reason" label="Lý do cấp quyền *" rules={[{ required: true, message: "Hãy nhập lý do cấp quyền." }]}><Input.TextArea rows={3} maxLength={255} showCount placeholder="Ví dụ: Bổ nhiệm quản lý kho tháng 8/2026" /></Form.Item>
+            <Button type="primary" htmlType="submit" block className="bg-[#c2185b] font-bold hover:!bg-[#a70f4b]">Xác nhận cấp vai trò</Button>
           </Form>
         </div>
-
-        {/* Right Table: LỊCH SỬ GÁN QUYỀN GẦN ĐÂY matching Image 3 */}
-        <div className="overflow-hidden rounded-2xl border border-[#eed2db] bg-white shadow-[0_3px_10px_rgba(79,20,45,0.02)] flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between border-b border-[#f3dce4] p-4">
-              <div className="flex items-center gap-2">
-                <History size={18} className="text-[#c2185b]" />
-                <h3 className="text-base font-black text-slate-950">
-                  LỊCH SỬ GÁN QUYỀN GẦN ĐÂY
-                </h3>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button className="grid h-9 w-9 place-items-center rounded-xl border border-[#efd3dc] text-slate-600 hover:bg-[#fff0f5] hover:text-[#c2185b]">
-                  <Filter size={15} />
-                </button>
-                <button className="grid h-9 w-9 place-items-center rounded-xl border border-[#efd3dc] text-slate-600 hover:bg-[#fff0f5] hover:text-[#c2185b]">
-                  <RefreshCw size={15} />
-                </button>
-              </div>
-            </div>
-
-            <Table
-              dataSource={historyRecords}
-              columns={columns}
-              rowKey="id"
-              pagination={{
-                pageSize: 5,
-                showSizeChanger: false,
-                showTotal: (total, range) => (
-                  <span className="text-xs font-medium text-slate-500">
-                    Hiển thị <b className="text-slate-800">{range[0]}-{range[1]}</b> của <b className="text-slate-800">128</b> bản ghi
-                  </span>
-                ),
-              }}
-            />
-          </div>
-        </div>
+        <section className="overflow-hidden rounded-2xl border border-[#eed2db] bg-white shadow-[0_3px_10px_rgba(79,20,45,0.02)]">
+          <div className="flex items-center justify-between border-b border-[#f3dce4] p-4"><div className="flex items-center gap-2"><History size={18} className="text-[#c2185b]" /><h3 className="font-black text-slate-950">Lịch sử cấp và thu hồi vai trò</h3></div><Button icon={<RefreshCw size={15} />} onClick={() => void load()}>Tải lại</Button></div>
+          <Table dataSource={records} columns={columns} rowKey="id" loading={loading} scroll={{ x: 1100 }} pagination={{ pageSize: 8, showSizeChanger: false, showTotal: (total) => `Tổng ${total} bản ghi` }} />
+        </section>
       </section>
     </div>
   );

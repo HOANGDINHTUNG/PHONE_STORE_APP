@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Checkbox, Input, Select, Table } from "antd";
 import {
   Activity,
@@ -17,9 +17,12 @@ import { userStaffService } from "./userStaffService";
 import { CustomerItem } from "./userStaffTypes";
 
 export function CustomerManagementTab() {
+  const [reloadKey, setReloadKey] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [marketingFilter, setMarketingFilter] = useState("ALL");
+
+  useEffect(() => { userStaffService.fetchCustomersFromBackend().then(() => setReloadKey((value) => value + 1)); }, []);
 
   const customers = useMemo(() => {
     let list = userStaffService.getCustomers();
@@ -46,7 +49,7 @@ export function CustomerManagementTab() {
     }
 
     return list;
-  }, [statusFilter, marketingFilter, searchText]);
+  }, [statusFilter, marketingFilter, searchText, reloadKey]);
 
   const renderStatusBadge = (status: "Hoạt động" | "Tạm khóa") => {
     if (status === "Hoạt động") {

@@ -10,7 +10,9 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("pinkphone_token");
+    const token =
+      localStorage.getItem("pinkphone_token") ||
+      sessionStorage.getItem("pinkphone_token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -60,6 +62,14 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const refreshToken =
+          localStorage.getItem("pinkphone_refreshToken") ||
+          sessionStorage.getItem("pinkphone_refreshToken");
+
+        if (!refreshToken) {
+          throw new Error("Phiên đăng nhập đã hết hạn.");
+        }
+
         const refreshResponse = await axios.post(
           (import.meta.env.VITE_API_BASE_URL || "/api/v1") +
           "/auth/token/refresh",
@@ -68,17 +78,25 @@ apiClient.interceptors.response.use(
         );
         const { accessToken } = refreshResponse.data;
         if (accessToken) {
-          localStorage.setItem("pinkphone_token", accessToken);
+          const tokenStorage = localStorage.getItem("pinkphone_refreshToken")
+            ? localStorage
+            : sessionStorage;
+          tokenStorage.setItem("pinkphone_token", accessToken);
           apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           processQueue(null, accessToken);
           return apiClient(originalRequest);
         }
+        throw new Error("Máy chủ không cấp access token mới.");
       } catch (err) {
         processQueue(err, null);
-        // Dispatch event or callback to logout user entirely since refresh failed
         localStorage.removeItem("pinkphone_token");
-        window.location.href = "/login";
+        localStorage.removeItem("pinkphone_refreshToken");
+        sessionStorage.removeItem("pinkphone_token");
+        sessionStorage.removeItem("pinkphone_refreshToken");
+        window.location.href = window.location.pathname.startsWith("/admin")
+          ? "/admin/login"
+          : "/login";
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

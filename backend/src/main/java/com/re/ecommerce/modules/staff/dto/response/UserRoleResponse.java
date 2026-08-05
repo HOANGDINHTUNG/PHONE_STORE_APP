@@ -16,6 +16,7 @@ public class UserRoleResponse {
     private Instant revokedAt;
     private Instant assignedAt;
     private String assignedBy;
+    private String assignedReason;
     private String revokedBy;
     private String revokedReason;
 

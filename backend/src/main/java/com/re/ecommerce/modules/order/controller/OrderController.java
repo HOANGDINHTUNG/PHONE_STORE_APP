@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,10 @@ public class OrderController {
             @RequestHeader(value = "X-Guest-Cart-Token", required = false) String guestToken,
             @Valid @RequestBody CheckoutRequest request) {
         
+        if (hasAdminRole(auth)) {
+            throw new AccessDeniedException("Administrator accounts cannot place customer orders");
+        }
+
         User currentUser = null;
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             currentUser = userRepository.findByUsername(auth.getName()).orElse(null);
@@ -50,7 +55,7 @@ public class OrderController {
     }
 
     @GetMapping("/me/orders")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PagedResponse<OrderResponse>> getMyOrders(
             Authentication auth,
             @RequestParam(defaultValue = "1") int page,
@@ -60,7 +65,7 @@ public class OrderController {
     }
 
     @GetMapping("/me/orders/{orderCode}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<OrderResponse> getMyOrder(
             Authentication auth,
             @PathVariable String orderCode) {
@@ -148,5 +153,10 @@ public class OrderController {
             @RequestParam String orderCode,
             @RequestParam String email) {
         return ResponseEntity.ok(orderService.generateGuestAccessLink(orderCode, email));
+    }
+
+    private boolean hasAdminRole(Authentication auth) {
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
     }
 }

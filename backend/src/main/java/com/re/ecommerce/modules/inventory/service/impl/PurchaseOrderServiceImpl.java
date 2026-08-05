@@ -309,6 +309,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 i.getProductVariant().getId(),
                 i.getProductVariant().getName(),
                 i.getProductVariant().getSku(),
+                primaryImage(i.getProductVariant()),
                 i.getOrderedQuantity(),
                 i.getReceivedQuantity(),
                 i.getUnitCost(),
@@ -337,5 +338,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 po.getUpdatedAt(),
                 itemResponses
         );
+    }
+
+    private String primaryImage(ProductVariant variant) {
+        return variant.getImages().stream()
+                .filter(image -> image.isPrimary())
+                .findFirst()
+                .or(() -> variant.getImages().stream().findFirst())
+                .map(image -> image.getImageUrl())
+                .orElse(null);
     }
 }

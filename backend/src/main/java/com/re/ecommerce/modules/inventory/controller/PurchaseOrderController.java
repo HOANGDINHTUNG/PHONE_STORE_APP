@@ -29,7 +29,7 @@ public class PurchaseOrderController {
     private final PurchaseOrderService purchaseOrderService;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_PO_VIEW', 'SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_PO_VIEW', 'SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PagedResponse<PurchaseOrderResponse>> getAllPurchaseOrders(
             @RequestParam(required = false) PurchaseOrderStatus status,
             @RequestParam(defaultValue = "1") int page,
@@ -40,20 +40,20 @@ public class PurchaseOrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_PO_VIEW', 'SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_PO_VIEW', 'SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> getPurchaseOrder(@PathVariable UUID id) {
         return ResponseEntity.ok(purchaseOrderService.getPurchaseOrder(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> createPurchaseOrder(@Valid @RequestBody PurchaseOrderRequest request) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(purchaseOrderService.createPurchaseOrder(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> updatePurchaseOrder(
             @PathVariable UUID id,
             @Valid @RequestBody PurchaseOrderRequest request) {
@@ -62,7 +62,7 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{id}/items")
-    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> addItem(
             @PathVariable UUID id,
             @Valid @RequestBody com.re.ecommerce.modules.inventory.dto.request.PurchaseOrderItemRequest request) {
@@ -71,7 +71,7 @@ public class PurchaseOrderController {
     }
 
     @PatchMapping("/{id}/items/{itemId}")
-    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> updateItem(
             @PathVariable UUID id,
             @PathVariable Long itemId,
@@ -81,7 +81,7 @@ public class PurchaseOrderController {
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
-    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> removeItem(
             @PathVariable UUID id,
             @PathVariable Long itemId) {
@@ -100,7 +100,7 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('SCOPE_PO_APPROVE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_APPROVE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> approvePurchaseOrder(
             @PathVariable UUID id,
             Authentication authentication) {
@@ -110,7 +110,7 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE')")
+    @PreAuthorize("hasAuthority('SCOPE_PO_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PurchaseOrderResponse> cancelPurchaseOrder(
             @PathVariable UUID id,
             @RequestParam String cancelReason,

@@ -1,15 +1,15 @@
-import React, { useMemo, useState } from "react";
-import { Button, Input, Select, Table } from "antd";
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Input, Select, Table, message } from "antd";
 import { ChevronRight, Filter, Plus, Search } from "lucide-react";
 import { afterSalesService } from "./afterSalesService";
 import { WarrantyClaimItem, WarrantyClaimStatusType } from "./afterSalesTypes";
-import { CreateWarrantyModal } from "./CreateWarrantyModal";
 
 export function WarrantyClaimsTab() {
   const [reloadKey, setReloadKey] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  useEffect(() => { afterSalesService.fetchWarrantyClaimsFromBackend().then(() => setReloadKey((value) => value + 1)); }, []);
 
   const claims = useMemo(() => {
     let list = afterSalesService.getWarrantyClaims();
@@ -168,7 +168,7 @@ export function WarrantyClaimsTab() {
             type="primary"
             icon={<Plus size={18} />}
             size="large"
-            onClick={() => setIsCreateOpen(true)}
+            onClick={() => message.info("Yêu cầu bảo hành được tạo từ hồ sơ bảo hành của khách hàng.")}
             className="ml-auto rounded-xl bg-[#c2185b] px-5 font-bold shadow-sm hover:bg-[#a70f4b]"
           >
             Tạo Yêu cầu
@@ -194,15 +194,6 @@ export function WarrantyClaimsTab() {
         />
       </section>
 
-      <CreateWarrantyModal
-        open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSubmit={(newClaim) => {
-          afterSalesService.createWarrantyClaim(newClaim);
-          setIsCreateOpen(false);
-          setReloadKey((prev) => prev + 1);
-        }}
-      />
     </div>
   );
 }

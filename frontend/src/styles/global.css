@@ -62,3 +62,60 @@
 .ant-rate {
   color: #ffc107 !important;
 }
+
+/*
+ * Back-office pages combine native controls and Ant Design controls.  Keep one
+ * Vietnamese-friendly system font and avoid synthetic 800/900 weights, which
+ * render jaggedly on Windows when the requested font file is unavailable.
+ */
+.admin-shell,
+.admin-shell button,
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea,
+.admin-shell .ant-btn,
+.admin-shell .ant-input,
+.admin-shell .ant-select,
+.admin-shell .ant-table,
+.admin-shell .ant-drawer,
+.admin-shell .ant-modal {
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, Arial, sans-serif !important;
+  font-synthesis: none;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.admin-shell button:not(.ant-btn-icon-only),
+.admin-shell .ant-btn:not(.ant-btn-icon-only) {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Ant Design renders Drawer content in a portal outside .admin-shell. */
+.audit-log-drawer,
+.audit-log-drawer .ant-drawer-content,
+.audit-log-drawer .ant-drawer-body,
+.audit-log-drawer button {
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, Arial, sans-serif !important;
+  font-synthesis: none;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.audit-log-drawer .font-black {
+  font-weight: 700 !important;
+}
+
+.audit-log-drawer .font-bold,
+.audit-log-drawer .font-semibold {
+  font-weight: 600 !important;
+}
+
+.audit-log-drawer pre,
+.audit-log-drawer .font-mono {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace !important;
+  font-weight: 400 !important;
+  letter-spacing: 0;
+}

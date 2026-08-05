@@ -13,6 +13,7 @@ import java.util.UUID;
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
     Optional<Supplier> findBySupplierCode(String supplierCode);
+    Optional<Supplier> findByName(String name);
     Optional<Supplier> findByTaxCode(String taxCode);
     Page<Supplier> findByStatus(SupplierStatus status, Pageable pageable);
 }

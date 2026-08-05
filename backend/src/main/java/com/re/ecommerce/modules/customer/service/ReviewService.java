@@ -3,6 +3,7 @@ package com.re.ecommerce.modules.customer.service;
 import com.re.ecommerce.modules.customer.dto.request.ReviewCreateRequest;
 import com.re.ecommerce.modules.customer.dto.request.ReviewEditRequest;
 import com.re.ecommerce.modules.customer.dto.response.ReviewEligibilityResponse;
+import com.re.ecommerce.modules.customer.dto.response.AdminReviewResponse;
 import com.re.ecommerce.modules.customer.dto.response.ReviewResponse;
 import com.re.ecommerce.modules.customer.dto.request.ReviewRejectRequest;
 import com.re.ecommerce.modules.customer.entity.ReviewStatus;
@@ -21,8 +22,8 @@ public interface ReviewService {
     void editMyReview(String username, UUID reviewId, ReviewEditRequest request);
 
     // Admin Moderation
-    Page<ReviewResponse> getModerationQueue(ReviewStatus status, Pageable pageable);
-    ReviewResponse getAdminReviewDetail(UUID reviewId);
+    Page<AdminReviewResponse> getModerationQueue(ReviewStatus status, Pageable pageable);
+    AdminReviewResponse getAdminReviewDetail(UUID reviewId);
     void approveReview(String adminUsername, UUID reviewId);
     void rejectReview(String adminUsername, UUID reviewId, ReviewRejectRequest request);
 

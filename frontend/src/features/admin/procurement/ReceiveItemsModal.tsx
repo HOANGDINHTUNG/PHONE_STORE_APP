@@ -7,7 +7,7 @@ interface ReceiveItemsModalProps {
   open: boolean;
   po?: PurchaseOrder;
   onClose: () => void;
-  onSubmit: (receivedMap: Record<string | number, number>) => void;
+  onSubmit: (receivedMap: Record<string | number, number>) => Promise<void>;
 }
 
 export function ReceiveItemsModal({
@@ -38,15 +38,19 @@ export function ReceiveItemsModal({
     }));
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const totalAdded = Object.values(receivedMap).reduce((a, b) => a + b, 0);
     if (totalAdded <= 0) {
       message.warning("Vui lòng nhập số lượng nhận lớn hơn 0.");
       return;
     }
-    onSubmit(receivedMap);
-    message.success("Đã ghi nhận số lượng thực nhận vào kho thành công.");
-    onClose();
+    try {
+      await onSubmit(receivedMap);
+      onClose();
+    } catch (error) {
+      const detail = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail;
+      message.error(detail || "Không thể nhập hàng vào kho.");
+    }
   };
 
   const columns = [

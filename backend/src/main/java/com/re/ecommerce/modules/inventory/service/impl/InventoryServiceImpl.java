@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final StockTransactionRepository stockTransactionRepository;
     private final InventoryUnitIdentifierRepository inventoryUnitIdentifierRepository;
     private final StockReservationRepository stockReservationRepository;
+    private final StockTransactionUnitRepository stockTransactionUnitRepository;
 
     @Override
     @Transactional
@@ -53,6 +58,7 @@ public class InventoryServiceImpl implements InventoryService {
             }
 
             ProductVariant variant = poItem.getProductVariant();
+            List<InventoryUnit> receivedUnits = new ArrayList<>();
             
             // Generate Inventory Units
             for (int i = 0; i < itemReq.quantity(); i++) {
@@ -75,6 +81,7 @@ public class InventoryServiceImpl implements InventoryService {
                 }
                 
                 inventoryUnitRepository.save(unit);
+                receivedUnits.add(unit);
             }
 
             poItem.setReceivedQuantity(poItem.getReceivedQuantity() + itemReq.quantity());
@@ -113,6 +120,7 @@ public class InventoryServiceImpl implements InventoryService {
             tx.setCreatedBy(request.receivedBy().toString());
             
             stockTransactionRepository.save(tx);
+            receivedUnits.forEach(unit -> stockTransactionUnitRepository.save(new StockTransactionUnit(tx, unit)));
         }
 
         // Check if fully received
@@ -207,8 +215,9 @@ public class InventoryServiceImpl implements InventoryService {
         tx.setReservedBefore(reservedBefore);
         tx.setReservedAfter(reservedBefore);
         tx.setReferenceType(StockReferenceType.MANUAL_ADJUSTMENT);
-        tx.setReferenceId(null);
-        tx.setCreatedBy("MANUAL_LOG_ACCOUNT");
+        tx.setReferenceId(UUID.nameUUIDFromBytes(("MANUAL_ADJUSTMENT:" + idempotencyKey).getBytes(StandardCharsets.UTF_8)));
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        tx.setCreatedBy(authentication != null && authentication.isAuthenticated() ? authentication.getName() : "system");
         
         stockTransactionRepository.save(tx);
     }

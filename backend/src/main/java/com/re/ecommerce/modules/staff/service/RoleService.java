@@ -125,6 +125,14 @@ public class RoleService {
         return assignments.stream().map(this::mapAssignment).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<UserRoleResponse> listAllAssignments() {
+        return userRoleRepository.findAll(Sort.by(Sort.Direction.DESC, "assignedAt"))
+                .stream()
+                .map(this::mapAssignment)
+                .toList();
+    }
+
     @Transactional
     public UserRoleResponse assignRole(UUID userId, UserRoleRequest request, String assignedBy) {
         User user = userRepository.findById(userId)
@@ -145,6 +153,7 @@ public class RoleService {
         assignment.setStatus("ACTIVE");
         assignment.setExpiresAt(request.getExpiresAt());
         assignment.setAssignedBy(assignedBy);
+        assignment.setAssignmentReason(request.getReason());
         return mapAssignment(userRoleRepository.save(assignment));
     }
 
@@ -209,6 +218,7 @@ public class RoleService {
                 .revokedAt(ur.getRevokedAt())
                 .assignedAt(ur.getAssignedAt())
                 .assignedBy(ur.getAssignedBy())
+                .assignedReason(ur.getAssignmentReason())
                 .revokedBy(ur.getRevokedBy())
                 .revokedReason(ur.getRevokedReason())
                 .build();

@@ -38,6 +38,7 @@ export function PermissionMatrixTab({ role, onBack }: PermissionMatrixTabProps) 
   // Permission selection state dynamically loaded per role
   const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
   const [initialState, setInitialState] = useState<Record<string, boolean>>({});
+  const [permissionGroups, setPermissionGroups] = useState<PermissionGroup[]>([]);
 
   useEffect(() => {
     const loaded = rolePermissionService.getRolePermissions(roleCode);
@@ -45,8 +46,10 @@ export function PermissionMatrixTab({ role, onBack }: PermissionMatrixTabProps) 
     setInitialState(loaded);
   }, [roleCode]);
 
-  const permissionGroups: PermissionGroup[] = useMemo(() => {
-    return rolePermissionService.getPermissionGroups();
+  useEffect(() => {
+    rolePermissionService.fetchPermissionGroupsFromBackend().then((groups) => {
+      setPermissionGroups(groups);
+    });
   }, []);
 
   // Compute added & removed permission codes for summary sidebar
@@ -82,13 +85,16 @@ export function PermissionMatrixTab({ role, onBack }: PermissionMatrixTabProps) 
     });
   };
 
-  const handleSave = () => {
-    rolePermissionService.saveRolePermissions(roleCode, checkedState);
-    setInitialState(checkedState);
-    message.success(`Đã lưu thay đổi phân quyền cho vai trò ${roleName}!`);
-    if (onBack) onBack();
+  const handleSave = async () => {
+    try {
+      await rolePermissionService.saveRolePermissions(roleCode, checkedState);
+      setInitialState(checkedState);
+      message.success(`Đã lưu thay đổi phân quyền cho vai trò ${roleName}!`);
+      if (onBack) onBack();
+    } catch {
+      message.error("Không thể lưu phân quyền.");
+    }
   };
-
   const getGroupIcon = (name: string) => {
     switch (name) {
       case "Kho hàng":

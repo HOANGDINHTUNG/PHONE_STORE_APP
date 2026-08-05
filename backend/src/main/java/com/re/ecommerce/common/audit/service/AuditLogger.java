@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -38,6 +40,10 @@ public class AuditLogger {
                 ipAddress = request.getRemoteAddr();
                 userAgent = request.getHeader("User-Agent");
                 correlationId = request.getHeader("X-Correlation-Id");
+            }
+
+            if (correlationId == null || correlationId.isBlank()) {
+                correlationId = UUID.randomUUID().toString();
             }
 
             String oldDataStr = oldData != null ? objectMapper.writeValueAsString(oldData) : null;
