@@ -14,7 +14,6 @@ import { OrderTrackingPage } from "../features/account/pages/OrderTrackingPage";
 import { WarrantyPage } from "../features/account/pages/WarrantyPage";
 import { MembershipTierPage } from "../features/account/pages/MembershipTierPage";
 import {
-  MyReviewsPage,
   ReturnsPage,
   NotificationsPage,
 } from "../features/account/pages/AccountActivityPages";
@@ -24,6 +23,12 @@ import { AccountProfilePage } from "../features/account/pages/AccountProfilePage
 import { AccountAddressPage } from "../features/account/pages/AccountAddressPage";
 import { WarrantyDetailPage } from "../features/account/pages/WarrantyDetailPage";
 import { AccountSupportPage } from "../features/account/pages/AccountSupportPage";
+import { AccountTermsPage } from "../features/account/pages/AccountTermsPage";
+import { AccountReviewsPage } from "../features/account/pages/AccountReviewsPage";
+import { AccountReviewsHistoryPage } from "../features/account/pages/AccountReviewsHistoryPage";
+import { ReturnCreatePage } from "../features/account/pages/ReturnCreatePage";
+import { ReturnDetailsPage } from "../features/account/pages/ReturnDetailsPage";
+import { WarrantyDetailPage } from "../features/account/pages/WarrantyDetailPage";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import EmailVerification from "../pages/EmailVerification";
@@ -165,16 +170,21 @@ export const router = createBrowserRouter([
     path: "/account/tier",
     element: <MembershipTierPage />,
   },
-  {
-    path: "/account/reviews",
-    element: <MyReviewsPage />,
-  },
+
   {
     path: "/account/returns",
     element: <ReturnsPage />,
   },
   {
+    path: "/account/returns/new",
+    element: <ReturnCreatePage />,
+  },
+  {
     path: "/account/returns/:id",
+    element: <ReturnDetailsPage />,
+  },
+  {
+    path: "/account/warranty/:id",
     element: <WarrantyDetailPage />,
   },
   {
@@ -200,6 +210,18 @@ export const router = createBrowserRouter([
   {
     path: "/account/support",
     element: <AccountSupportPage />,
+  },
+  {
+    path: "/account/terms",
+    element: <AccountTermsPage />,
+  },
+  {
+    path: "/account/reviews/pending",
+    element: <AccountReviewsPage />,
+  },
+  {
+    path: "/account/reviews",
+    element: <AccountReviewsHistoryPage />,
   },
   {
     path: "/checkout",

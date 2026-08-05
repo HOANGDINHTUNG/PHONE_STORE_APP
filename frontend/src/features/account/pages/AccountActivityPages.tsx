@@ -12,6 +12,10 @@ import {
   Truck,
   BellOff,
   Search,
+  Plus,
+  Inbox,
+  CornerDownLeft,
+  AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AccountShell, Panel } from "../components/AccountShell";
@@ -22,242 +26,184 @@ const reviewPhones = [
   ["Samsung Galaxy S24 Ultra", "Đơn #PP122-890", 1, true],
 ] as const;
 
-export function MyReviewsPage() {
-  return (
-    <AccountShell
-      title="Đánh giá của tôi"
-      description="Quản lý đánh giá và chia sẻ trải nghiệm sử dụng điện thoại đã mua tại PinkPhone."
-    >
-      <div className="flex gap-2 overflow-x-auto border-b border-border pb-2">
-        <button
-          type="button"
-          className="min-h-10 shrink-0 rounded-xl bg-primary px-4 text-sm font-bold text-white"
-        >
-          Chờ đánh giá (1)
-        </button>
-        <button
-          type="button"
-          className="min-h-10 shrink-0 rounded-xl px-4 text-sm font-bold text-muted"
-        >
-          Đã đánh giá (1)
-        </button>
-      </div>
-      <div className="mt-5 space-y-4">
-        {reviewPhones.map(([name, order, index, reviewed]) => (
-          <Panel
-            key={name}
-            className="grid gap-4 p-5 sm:grid-cols-[7rem_1fr_auto] sm:items-center"
-          >
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-soft">
-              <PhoneStripImage index={index} />
-            </div>
-            <div>
-              <p className="text-xs text-muted">{order}</p>
-              <h2 className="mt-1 text-lg font-extrabold">{name}</h2>
-              {reviewed ? (
-                <>
-                  <div className="mt-2 flex gap-0.5 text-warning">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={16} fill="currentColor" />
-                    ))}
-                  </div>
-                  <p className="mt-2 text-sm text-muted">
-                    Máy đẹp, hiệu năng tốt và giao hàng rất nhanh.
-                  </p>
-                </>
-              ) : (
-                <p className="mt-2 text-sm text-muted">
-                  Bạn nhận được 100 điểm khi hoàn thành đánh giá.
-                </p>
-              )}
-            </div>
-            <button
-              type="button"
-              className={`min-h-11 rounded-xl px-5 text-sm font-bold ${reviewed ? "border border-primary text-primary" : "bg-primary text-white"}`}
-            >
-              {reviewed ? "Chỉnh sửa" : "Viết đánh giá"}
-            </button>
-          </Panel>
-        ))}
-      </div>
-    </AccountShell>
-  );
-}
-
 export function ReturnsPage() {
   return (
     <AccountShell
-      title="Bảo hành của tôi"
-      description="Quản lý và tra cứu thông tin bảo hành, đổi trả các sản phẩm đã mua tại PinkPhone."
+      title="Đổi trả & hoàn tiền"
+      description="Quản lý các yêu cầu đổi trả và hoàn tiền của bạn."
     >
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-headline-md font-headline-md font-bold text-on-background">
-            Bảo hành của tôi
-          </h1>
-          {/* Search Bar */}
-          <div className="relative w-full md:w-96">
-            <input
-              className="w-full bg-surface-container border-outline/30 text-body-md font-body-md rounded-full py-3 pl-12 pr-4 focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all"
-              placeholder="Tìm theo mã bảo hành, đơn hàng, IMEI..."
-              type="text"
-            />
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
-              size={20}
-            />
+      <div className="-mt-2 w-full">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b-2 border-primary/20 pb-4">
+          <div>
+            <h1
+              className="text-display-lg-mobile md:text-display-lg font-black text-primary tracking-tight"
+              style={{ fontSize: "32px", lineHeight: "40px" }}
+            >
+              Đổi trả & hoàn tiền
+            </h1>
+            <p className="text-body-md text-on-surface-variant font-medium mt-1">
+              Quản lý các yêu cầu đổi trả và hoàn tiền của bạn.
+            </p>
+          </div>
+          <Link
+            to="/account/returns/new"
+            className="bg-primary text-white px-6 py-3 rounded-full font-bold text-label-sm hover:bg-secondary active:scale-95 transition-all duration-200 flex items-center gap-2 shadow-sm whitespace-nowrap"
+          >
+            <Plus size={20} />
+            Tạo yêu cầu mới
+          </Link>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+            <span className="text-[32px] leading-[40px] font-black text-primary">
+              3
+            </span>
+            <span className="text-label-sm font-bold text-on-surface-variant mt-2 text-center">
+              Đang xử lý
+            </span>
+          </div>
+          <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+            <span className="text-[32px] leading-[40px] font-black text-on-surface">
+              1
+            </span>
+            <span className="text-label-sm font-bold text-on-surface-variant mt-2 text-center">
+              Đang vận chuyển
+            </span>
+          </div>
+          <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+            <span className="text-[32px] leading-[40px] font-black text-on-surface">
+              5
+            </span>
+            <span className="text-label-sm font-bold text-on-surface-variant mt-2 text-center">
+              Hoàn thành
+            </span>
+          </div>
+          <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center hover:shadow-md transition-shadow opacity-60">
+            <span className="text-[32px] leading-[40px] font-black text-on-surface">
+              0
+            </span>
+            <span className="text-label-sm font-bold text-on-surface-variant mt-2 text-center">
+              Đã hủy
+            </span>
           </div>
         </div>
 
-        {/* Filter Chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-          <button className="px-4 py-2 rounded-full bg-primary-container text-on-primary-container text-label-sm font-label-sm whitespace-nowrap">
-            Tất cả
-          </button>
-          <button className="px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-variant transition-colors">
-            Đang hiệu lực (ACTIVE)
-          </button>
-          <button className="px-4 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-variant transition-colors">
-            Hết hạn (EXPIRED)
-          </button>
-        </div>
-
-        {/* Warranty List */}
-        <div className="flex flex-col gap-6">
-          {/* Warranty Card 1: ACTIVE */}
-          <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-surface-container-highest flex flex-col lg:flex-row gap-6 hover:shadow-md transition-shadow">
-            <div className="w-32 h-32 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0">
-              <img
-                className="w-full h-full object-contain p-2"
-                alt="Product"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO6v5Q31yGSQ8gZV9DiOXaL9UKKA3aQDh86eBWAOe6JB_JByJxVq-9sTdKCB7wdLGaP1GphvHFPBMbFADBojBNagC8TwCV9ke38Iy87SASIQCXMu09VQl6Rbqp8TvlT9tEvmrQBm0epVT9q_4uag9yx_g__y2AtkEYYx4GvbBlqY9EvExSxVzOwEmMmDOH-P8r-d7LphjaLSXV7fyg9f77Vks2YiqiKrxkj88nypnftuBvGhV3zWNO"
-              />
-            </div>
-
-            <div className="flex-grow flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-body-lg font-body-lg font-bold text-on-background">
-                    PinkPhone 15 Pro Max
-                  </h3>
-                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider font-bold">
-                    Active
-                  </span>
+        {/* List View */}
+        <div className="flex flex-col gap-5">
+          {/* Item 1: PENDING */}
+          <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 transition-all hover:shadow-md">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-xl text-primary">
+                  <CornerDownLeft size={24} />
                 </div>
-                <p className="text-body-md font-body-md text-on-surface-variant mb-4">
-                  256GB / Rose Gold
-                </p>
+                <div>
+                  <h4 className="text-[15px] font-bold text-on-surface">
+                    #RT-12345
+                  </h4>
+                  <p className="text-[13px] font-medium text-on-surface-variant mt-0.5">
+                    Đơn hàng: <span className="font-mono">#ORD-98765</span>
+                  </p>
+                </div>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    Mã bảo hành
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background font-mono">
-                    W-8472-X9M
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    Mã đơn hàng
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background font-mono">
-                    ORD-99381
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    IMEI/Serial
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background font-mono">
-                    *****5921
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    Thời hạn
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background">
-                    12/2023 - 12/2024
-                  </span>
-                </div>
+              <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-outline-variant/20">
+                <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[12px] font-bold bg-[#fff0f1] text-primary border border-primary/20 tracking-wider">
+                  PENDING
+                </span>
+                <span className="text-[12px] font-medium text-on-surface-variant text-right w-full">
+                  24/10/2024
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-end lg:justify-start">
+            <div className="h-px bg-outline-variant/30 my-4 w-full"></div>
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4 w-full">
+                <div className="w-16 h-16 bg-surface-container-low rounded-xl flex-shrink-0 p-1.5 border border-outline-variant/20">
+                  <img
+                    alt="Product"
+                    className="w-full h-full object-contain"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBKvDTQ1O4iRarAMqmCOO27UlBLSBrgLTOEvnVyEVf77F-6fFu4CKoYkWVKpcSVdbWqtND6pRkbVn2hD3Z-cpqHT-N38gX_8LDk_rTNI2S0ZRnU_xZFsfwNMeGYbD_2YO9_WHPqxMefEfdYEYTIz6ZqCuhP7mYxsWk2XIUnxzTaQakh_TBBQrpKfD_h0iCprhb8N0I-8ykS3tFUpTu35WfGQpJIMw9jzYiPM0vjXw_Qv5KhSXqm73"
+                  />
+                </div>
+                <div className="flex-grow">
+                  <p className="text-[15px] text-on-surface font-bold line-clamp-1">
+                    PinkPhone Pro Max 256GB - Rose Pink
+                  </p>
+                  <p className="text-[13px] font-medium text-on-surface-variant mt-1">
+                    Yêu cầu:{" "}
+                    <span className="text-secondary font-bold">Hoàn tiền</span>
+                  </p>
+                </div>
+              </div>
+
               <Link
-                to={`/account/returns/W-8472-X9M`}
-                className="bg-primary text-on-primary px-6 py-3 rounded-lg text-label-sm font-label-sm font-semibold hover:bg-secondary active:scale-[0.98] transition-all whitespace-nowrap"
+                to="/account/returns/RT-12345"
+                className="w-full sm:w-auto text-primary border-2 border-primary/20 bg-primary/5 hover:bg-primary hover:text-white hover:border-primary font-bold text-[14px] px-6 py-2.5 rounded-xl transition-all whitespace-nowrap text-center"
               >
-                Yêu cầu bảo hành
+                Xem chi tiết
               </Link>
             </div>
           </div>
 
-          {/* Warranty Card 2: EXPIRED */}
-          <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-surface-container-highest flex flex-col lg:flex-row gap-6 opacity-75">
-            <div className="w-32 h-32 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0 grayscale">
-              <img
-                className="w-full h-full object-contain p-2"
-                alt="Product"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVlUQuIURzcuQSHdgLA_m0m4WrzKc7sjKRqDq1BkaRh3V7LAbNSSZcpgxrwcNTnv3F8YvWt8wAVJYPTwLqt8D_xmdu0jZq_c5UeBsyYxccNkopUx8EmKetNN-g59nyywL7R5rEho6kCyu9MSD-RKbDPI66tIA-ld5SeDf2yLbRqmnlxjuYZ-GpmXWXv_RvdSDuQEHLAjzsKN57jBoYh5W61j5lBe7tNoO-2Hv-5P33KQwveXnepvID"
-              />
-            </div>
-
-            <div className="flex-grow flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-body-lg font-body-lg font-bold text-on-background">
-                    PinkPhone 13
-                  </h3>
-                  <span className="bg-surface-dim text-on-surface px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider font-bold">
-                    Expired
-                  </span>
+          {/* Item 2: IN_TRANSIT */}
+          <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 transition-all hover:shadow-md">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-xl text-primary">
+                  <RefreshCcw size={24} />
                 </div>
-                <p className="text-body-md font-body-md text-on-surface-variant mb-4">
-                  128GB / Midnight
-                </p>
+                <div>
+                  <h4 className="text-[15px] font-bold text-on-surface">
+                    #RT-12344
+                  </h4>
+                  <p className="text-[13px] font-medium text-on-surface-variant mt-0.5">
+                    Đơn hàng: <span className="font-mono">#ORD-98760</span>
+                  </p>
+                </div>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    Mã bảo hành
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background font-mono">
-                    W-2210-P4A
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    Mã đơn hàng
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background font-mono">
-                    ORD-44210
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    IMEI/Serial
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background font-mono">
-                    *****1042
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-on-surface-variant block mb-1">
-                    Thời hạn
-                  </span>
-                  <span className="text-label-sm font-label-sm text-on-background">
-                    05/2022 - 05/2023
-                  </span>
-                </div>
+              <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-outline-variant/20">
+                <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[12px] font-bold bg-[#fffdf0] text-[#8a7200] border border-[#ffe066] tracking-wider">
+                  IN_TRANSIT
+                </span>
+                <span className="text-[12px] font-medium text-on-surface-variant text-right w-full">
+                  20/10/2024
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-end lg:justify-start">
-              {/* No CTA for expired */}
+            <div className="h-px bg-outline-variant/30 my-4 w-full"></div>
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4 w-full">
+                <div className="w-16 h-16 bg-surface-container-low rounded-xl flex-shrink-0 p-1.5 border border-outline-variant/20">
+                  <img
+                    alt="Product"
+                    className="w-full h-full object-contain"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh-MXDsnjZf6tDIbn2nIV-E8k2c1wc89J9xmXi66e3zfrSMIo85lmMeMFDopbE00jRJFhds9SuDBIVsRItmqbqwX3cKVF41UIPRDS1ucxhTRgC_dFJBx6Gg8qOyD0zmuTgvE7_R6_GJIOYxe4acewqGX2LPHNWQa18pFOyIjrBHVK9b4sI2B_YVcB9kDqlgM8FLe0Pusgr04o5KDNbZzJsBLT7X919oAF7PtjJwQrUTsgoKZWy6ik6"
+                  />
+                </div>
+                <div className="flex-grow">
+                  <p className="text-[15px] text-on-surface font-bold line-clamp-1">
+                    PinkPods ANC - Cotton Candy
+                  </p>
+                  <p className="text-[13px] font-medium text-on-surface-variant mt-1">
+                    Yêu cầu:{" "}
+                    <span className="text-primary font-bold">Đổi sản phẩm</span>
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                to="/account/returns/RT-12344"
+                className="w-full sm:w-auto bg-surface-container hover:bg-surface-variant/80 text-on-surface font-bold text-[14px] px-6 py-2.5 rounded-xl transition-all whitespace-nowrap text-center outline-none"
+              >
+                Xem chi tiết
+              </Link>
             </div>
           </div>
         </div>

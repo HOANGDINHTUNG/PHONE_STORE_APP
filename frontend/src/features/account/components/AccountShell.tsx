@@ -25,7 +25,7 @@ const accountNavigation = [
   [LayoutGrid, "Tổng quan", "/account"],
   [History, "Lịch sử mua hàng", "/account/orders"],
   [Truck, "Theo dõi đơn hàng", "/account/tracking"],
-  [MessageSquare, "Đánh giá của tôi", "/account/reviews"],
+  [MessageSquare, "Đánh giá sản phẩm", "/account/reviews"],
   [ShieldCheck, "Bảo hành của tôi", "/account/warranty"],
   [Award, "Hạng thành viên", "/account/tier"],
   [RefreshCcw, "Đổi trả & hoàn tiền", "/account/returns"],
@@ -122,19 +122,24 @@ export function AccountSidebar() {
         </div>
         <nav className="flex flex-col gap-1">
           {accountNavigation.map(([Icon, label, href]) => {
-            const active = pathname === href;
+            const active =
+              href === "/account"
+                ? pathname === "/account"
+                : pathname.startsWith(href as string);
             return (
               <Link
-                key={href}
-                to={href}
-                className={`flex items-center gap-3 rounded-lg px-4 py-2 transition-all ${
+                key={href as string}
+                to={href as string}
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
                   active
-                    ? "bg-primary-container text-on-primary-container font-bold scale-98"
-                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary font-medium"
+                    ? "bg-primary-container/10 text-primary font-bold scale-98"
+                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary font-bold"
                 }`}
               >
                 <Icon size={20} className={active ? "" : "opacity-80"} />
-                <span className="font-label-sm text-label-sm">{label}</span>
+                <span className="font-label-sm text-label-sm tracking-tight">
+                  {label as string}
+                </span>
               </Link>
             );
           })}
