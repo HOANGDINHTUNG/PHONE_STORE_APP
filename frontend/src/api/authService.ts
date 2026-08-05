@@ -5,6 +5,8 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken?: string;
   tokenType?: string;
+  username?: string;
+  role?: string;
   user?: {
     id: string;
     fullName: string;
@@ -38,7 +40,7 @@ export const loginApi = async (
       const u = response.data.user;
       const parsedUser = {
         id: u?.id,
-        name: u?.fullName || emailOrPhone,
+        name: u?.fullName || response.data.username || emailOrPhone,
         email:
           u?.email ||
           (emailOrPhone.includes("@") ? emailOrPhone : "user@example.com"),
@@ -46,6 +48,7 @@ export const loginApi = async (
           u?.phone ||
           (!emailOrPhone.includes("@") ? emailOrPhone : "0901234567"),
         token: token,
+        role: u?.role || response.data.role,
       };
 
       if (remember) {
@@ -102,10 +105,11 @@ export const registerApi = async (details: {
       const u = response.data.user;
       const parsedUser = {
         id: u?.id,
-        name: u?.fullName || details.fullName,
+        name: u?.fullName || response.data.username || details.fullName,
         email: u?.email || details.email || "user@example.com",
         phone: u?.phone || details.phone,
         token: response.data.accessToken,
+        role: u?.role || response.data.role,
       };
       localStorage.setItem("pinkphone_user", JSON.stringify(parsedUser));
       return parsedUser;

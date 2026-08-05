@@ -21,8 +21,42 @@ import {
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import EmailVerification from "../pages/EmailVerification";
+import { AdminLoginPage } from "../features/admin/AdminLoginPage";
+import { AdminRouteGuard } from "../features/admin/AdminRouteGuard";
+import { AdminLayout } from "../features/admin/AdminLayout";
+import { AdminDashboardPage } from "../features/admin/AdminDashboardPage";
+import { AdminPlaceholderPage } from "../features/admin/AdminPlaceholderPage";
 
 export const router = createBrowserRouter([
+  {
+    path: "/admin/login",
+    element: <AdminLoginPage />,
+  },
+  {
+    path: "/admin",
+    element: (
+      <AdminRouteGuard>
+        <AdminLayout />
+      </AdminRouteGuard>
+    ),
+    children: [
+      { index: true, element: <AdminDashboardPage /> },
+      { path: "products", element: <AdminPlaceholderPage title="Sản phẩm & Nội dung" description="Quản lý sản phẩm, biến thể, hình ảnh, danh mục và nội dung bán hàng." /> },
+      { path: "promotions", element: <AdminPlaceholderPage title="Khuyến mãi" description="Thiết lập chương trình khuyến mãi, mã giảm giá và ưu đãi." /> },
+      { path: "orders", element: <AdminPlaceholderPage title="Đơn hàng" description="Theo dõi, xác nhận và xử lý đơn hàng của khách." /> },
+      { path: "payments", element: <AdminPlaceholderPage title="Thanh toán & Hoàn tiền" description="Kiểm soát giao dịch thanh toán, đối soát và yêu cầu hoàn tiền." /> },
+      { path: "shipping", element: <AdminPlaceholderPage title="Giao hàng" description="Theo dõi vận đơn, tiến độ giao hàng và các sự cố vận chuyển." /> },
+      { path: "inventory", element: <AdminPlaceholderPage title="Kho hàng" description="Theo dõi tồn kho và điều chuyển sản phẩm giữa các kho." /> },
+      { path: "procurement", element: <AdminPlaceholderPage title="Nhập hàng" description="Quản lý yêu cầu mua hàng, phiếu nhập và nhà cung cấp." /> },
+      { path: "after-sales", element: <AdminPlaceholderPage title="Hậu mãi" description="Xử lý bảo hành, đổi trả và chăm sóc khách hàng sau mua." /> },
+      { path: "users", element: <AdminPlaceholderPage title="Người dùng & Nhân sự" description="Quản lý khách hàng, nhân sự và trạng thái tài khoản." /> },
+      { path: "roles", element: <AdminPlaceholderPage title="Vai trò & Quyền" description="Thiết lập vai trò và phạm vi quyền truy cập của nhân sự." /> },
+      { path: "notifications", element: <AdminPlaceholderPage title="Thông báo" description="Quản lý thông báo vận hành gửi đến nhân sự và khách hàng." /> },
+      { path: "audit-logs", element: <AdminPlaceholderPage title="Nhật ký kiểm toán" description="Theo dõi lịch sử thay đổi quan trọng trong hệ thống." /> },
+      { path: "settings", element: <AdminPlaceholderPage title="Settings" description="Cấu hình vận hành cho hệ thống quản trị PinkPhone." /> },
+      { path: "support", element: <AdminPlaceholderPage title="Support" description="Kênh hỗ trợ dành cho nhân sự quản trị." /> },
+    ],
+  },
   {
     path: "/",
     element: <HomePage />,

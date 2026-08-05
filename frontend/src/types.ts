@@ -4,6 +4,7 @@ export interface User {
   phone: string;
   email: string;
   token?: string;
+  role?: string;
 }
 
 export interface ProductVariantUI {

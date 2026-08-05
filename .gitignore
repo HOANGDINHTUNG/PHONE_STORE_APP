@@ -3,3 +3,4 @@ backend/.jqwik-database
 .xgrok/
 AGENTS.md
 .env.example
+.vscode/

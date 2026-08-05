@@ -18,8 +18,8 @@ interface StoreContextType {
     emailOrPhone: string,
     password?: string,
     remember?: boolean,
-  ) => Promise<boolean> | boolean;
-  logout: () => void;
+  ) => Promise<User | null>;
+  logout: () => Promise<void>;
   registerUser: (details: {
     fullName: string;
     phone: string;
@@ -93,7 +93,7 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
       if (token) {
         const profile = await fetchProfile();
         if (profile) {
-          setUser(profile);
+          setUser((currentUser) => ({ ...profile, role: currentUser?.role }));
         }
       }
     };
@@ -118,12 +118,12 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
       const loggedUser = await loginApi(emailOrPhone, password, remember);
       if (loggedUser) {
         setUser(loggedUser);
-        return true;
+        return loggedUser;
       }
     } catch (error) {
       console.error(error);
     }
-    return false;
+    return null;
   };
 
   const logout = async () => {
