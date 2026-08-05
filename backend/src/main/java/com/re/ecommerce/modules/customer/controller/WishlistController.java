@@ -26,7 +26,7 @@ public class WishlistController {
     private final WishlistService wishlistService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PagedResponse<WishlistItemResponse>> listWishlist(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "1") int page,
@@ -35,7 +35,7 @@ public class WishlistController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> addProductToWishlist(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody WishlistAddRequest req) {
@@ -44,7 +44,7 @@ public class WishlistController {
     }
 
     @DeleteMapping("/{productId}")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> removeProductFromWishlist(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable UUID productId) {
@@ -53,7 +53,7 @@ public class WishlistController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> clearWishlist(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         wishlistService.clearWishlist(userDetails.getUsername());

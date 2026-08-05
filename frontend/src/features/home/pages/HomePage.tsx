@@ -20,6 +20,7 @@ import { fetchProducts } from "../../../api/productService";
 import { fetchNews, type NewsItem } from "../../../api/newsService";
 import { fetchBanners, type Banner } from "../../../api/bannerService";
 import { fetchBrands } from "../../../api/brandService";
+import { useStore } from "../../../context/StoreContext";
 import type { Product, Brand } from "../../../types";
 
 const ITEMS_PER_PAGE = 30;
@@ -48,6 +49,7 @@ const getProductPrice = (product: Product): number =>
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { toggleWishlist, isInWishlist } = useStore();
   const [search, setSearch] = useState("");
   const [brand, setBrand] = useState("Tất cả");
   const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>();
@@ -436,22 +438,44 @@ export function HomePage() {
           {/* Product Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-gutter">
             {products.length > 0 ? (
-              products.map((p) => (
-                <Link
-                  to={`/product/${p.slug}`}
-                  key={p.slug}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/20 hover:border-primary/40 transition-all hover:-translate-y-1.5 group relative flex flex-col"
-                >
-                  {p.badge && (
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="bg-secondary text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">
-                        {p.badge}
-                      </span>
-                    </div>
-                  )}
-                  <button className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur shadow-sm flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95">
-                    <Star size={16} />
-                  </button>
+              products.map((p) => {
+                const isFavorite = p?.id ? isInWishlist(p.id) : false;
+                return (
+                  <Link
+                    to={`/product/${p.slug}`}
+                    key={p.slug}
+                    className="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/20 hover:border-primary/40 transition-all hover:-translate-y-1.5 group relative flex flex-col"
+                  >
+                    {p.badge && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-secondary text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">
+                          {p.badge}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleWishlist(p);
+                      }}
+                      className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur shadow-sm flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95"
+                      aria-label={
+                        isFavorite
+                          ? `Bỏ thích ${p.name}`
+                          : `Yêu thích ${p.name}`
+                      }
+                    >
+                      <Star
+                        size={16}
+                        className={
+                          isFavorite
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-on-surface-variant"
+                        }
+                      />
+                    </button>
                   <div className="h-44 md:h-56 bg-surface-container-lowest flex items-center justify-center p-4">
                     <img
                       src={p.image}
@@ -489,7 +513,8 @@ export function HomePage() {
                     </div>
                   </div>
                 </Link>
-              ))
+              );
+            })
             ) : (
               <div className="col-span-full py-16 text-center bg-surface-container-low rounded-xl border border-dashed border-outline">
                 <Smartphone

@@ -45,12 +45,12 @@ public class WishlistServiceImpl implements WishlistService {
     public void addProductToWishlist(String username, UUID productId) {
         CustomerProfile customer = getCustomer(username);
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
-            
+                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
+
         if (product.getPublicationStatus() != PublicationStatus.ACTIVE || product.getDeletedAt() != null) {
             throw new IllegalArgumentException("Product is not valid for wishlist");
         }
-            
+
         if (!wishlistRepository.existsByCustomerAndProduct(customer, product)) {
             WishlistItem item = new WishlistItem(customer, product);
             wishlistRepository.save(item);
@@ -62,7 +62,7 @@ public class WishlistServiceImpl implements WishlistService {
     public void removeProductFromWishlist(String username, UUID productId) {
         CustomerProfile customer = getCustomer(username);
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product not found"));
         wishlistRepository.deleteByCustomerAndProduct(customer, product);
     }
 
@@ -75,13 +75,14 @@ public class WishlistServiceImpl implements WishlistService {
 
     private CustomerProfile getCustomer(String username) {
         return customerRepository.findByUserUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("CUSTOMER_NOT_FOUND", "Không tìm thấy hồ sơ khách hàng cho user: " + username));
+                .orElseThrow(() -> new ResourceNotFoundException("CUSTOMER_NOT_FOUND",
+                        "Không tìm thấy hồ sơ khách hàng cho user: " + username));
     }
 
     private WishlistItemResponse mapToResponse(WishlistItem item) {
-        com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse productCard = 
-            com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse.fromProduct(item.getProduct());
-        
+        com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse productCard = com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse
+                .fromProduct(item.getProduct());
+
         return new WishlistItemResponse(item.getId(), productCard, item.getCreatedAt());
     }
 }

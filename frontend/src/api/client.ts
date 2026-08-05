@@ -62,7 +62,7 @@ apiClient.interceptors.response.use(
       try {
         const refreshResponse = await axios.post(
           (import.meta.env.VITE_API_BASE_URL || "/api/v1") +
-            "/auth/token/refresh",
+          "/auth/token/refresh",
           {},
           { withCredentials: true }, // Assuming refresh token might be in httpOnly cookie
         );

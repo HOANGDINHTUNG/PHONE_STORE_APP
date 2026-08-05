@@ -21,6 +21,7 @@ import { Breadcrumbs } from "../../storefront/components/Breadcrumbs";
 import { PhoneStripImage } from "../../storefront/components/PhoneStripImage";
 import { StorePageLayout } from "../../storefront/components/StorePageLayout";
 import { fetchProductBySlug } from "../../../api/productService";
+import { useStore } from "../../../context/StoreContext";
 import { Product } from "../../../types";
 
 export type ProductAvailability = "available" | "out-of-stock";
@@ -41,12 +42,14 @@ export function ProductDetailPage({
 }: ProductDetailPageProps) {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const { toggleWishlist, isInWishlist } = useStore();
   const [productData, setProductData] = useState<Product | null>(null);
   const [mainImage, setMainImage] = useState<string>("");
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
-  const [favorite, setFavorite] = useState(false);
   const [notified, setNotified] = useState(false);
   const outOfStock = availability === "out-of-stock";
+
+  const isFavorite = productData ? isInWishlist(productData.id) : false;
 
   useEffect(() => {
     if (slug) {
@@ -94,14 +97,17 @@ export function ProductDetailPage({
               />
               <button
                 type="button"
-                onClick={() => setFavorite((value) => !value)}
-                className="absolute right-5 top-5 grid size-11 place-items-center rounded-full bg-white text-muted shadow-sm hover:text-primary"
+                onClick={() => productData && toggleWishlist(productData)}
+                className="absolute right-5 top-5 grid size-11 place-items-center rounded-full bg-white text-muted shadow-sm hover:text-primary transition-colors"
                 aria-label={
-                  favorite ? "Bỏ khỏi yêu thích" : "Thêm vào yêu thích"
+                  isFavorite ? "Bỏ khỏi yêu thích" : "Thêm vào yêu thích"
                 }
-                aria-pressed={favorite}
+                aria-pressed={isFavorite}
               >
-                <Heart size={20} fill={favorite ? "currentColor" : "none"} />
+                <Heart
+                  size={20}
+                  className={isFavorite ? "fill-primary text-primary" : "text-muted"}
+                />
               </button>
             </div>
 

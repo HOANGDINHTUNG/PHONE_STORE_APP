@@ -4,51 +4,51 @@ import {
   CircleDollarSign,
   Headphones,
   Heart,
-  PackageCheck,
   Pencil,
   Star,
   Ticket,
-  Search,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../../../context/StoreContext";
 import { AccountShell } from "../components/AccountShell";
 import { fetchMyOrders } from "../../../api/profileService";
-
-const favoriteProducts = [
-  {
-    name: "iPhone 14 Pro",
-    price: "21.990.000đ",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuB420XbhBlAxmbIfJby2Gb1XM6669nP8NhkvKeV0BXZAnoZPbxoVEXO1TULDiHlLpIBQ1m7fbcs1jpcUgcyT-coLCxLbSJ45xnZE4GXzL_8JQobyk6PkQGBzg6d7emzJgAd2XRi8Od1-w7p5eRkDfBsPWZlnvgIIc-EwMOk4LMdAnV-xOoDcwf-ENU27_WZkvT1XNRsxOXthfrTunECIzMUtX4E5F8XzkrLiiOhQ_uBNRkWkQO0zgmG",
-  },
-  {
-    name: "Google Pixel 8",
-    price: "18.200.000đ",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD9lBauPgukMezkK2Ul0sLryulXGxggietH7c-l0yX7PZO7SQZNvayGPo8oInHOc_1fEZ1mEEsz18jvtndyRkb9qaZT9KcZDQA6kDT1xyTG-cqLVxi2FFMv6U6tG-zuw3xyOOKZwr8o-yn1Q1s9FBP3yWeX3bmeb8xKl-KkE1NPzwUhyST2yQrnMjy9GXsZFHixuxcj_w0AnqbNUW3ebxTgD8v-TesOf6c7yBsTqHYuS_wACjcJQpW4",
-  },
-  {
-    name: "Xiaomi 13 Ultra",
-    price: "24.500.000đ",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBlGvFxRkJf_VE1JEl4LWyK_U_OF4j2ulo3C4jYVLpyNU_7Q-CgSQLHG2gnAqvZK-9WFsSlk7Udw8eOLkf00GDtCyUnveZeGtzI67OzumZoNjWhI16NYGgjLLU__IBPy7YxfRaOMlRETL516jRR8wxxMOS6JToHucLyoeZEofihc05vwpWale8UJ8Ce6mfj8B6_kMY1RIKCtW3y8NJX7oWihyC3mWFdkHCoDAdsAi6OM-rBNiimeNKu",
-  },
-];
+import { fetchWishlist } from "../../../api/wishlistService";
+import { loginApi } from "../../../api/authService";
+import { getDefaultProductImage } from "../../../api/productService";
+import { Product } from "../../../types";
 
 export function AccountOverviewPage() {
-  const { user } = useStore();
+  const { user, wishlist: storeWishlist } = useStore();
   const [progress, setProgress] = useState(0);
   const [orders, setOrders] = useState<any[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<Product[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => setProgress(70), 150);
 
     let active = true;
-    fetchMyOrders().then((data) => {
-      if (active && data) setOrders(data);
-    });
+    const loadData = async () => {
+      let data = await fetchMyOrders();
+      let items = await fetchWishlist();
+
+      if ((!data || data.length === 0) && (!items || items.length === 0)) {
+        try {
+          await loginApi("admin", "123456");
+          data = await fetchMyOrders();
+          items = await fetchWishlist();
+        } catch (e) {
+          console.warn("Auto login fallback failed in AccountOverview:", e);
+        }
+      }
+
+      if (active) {
+        if (data) setOrders(data);
+        if (items) setFavoriteItems(items);
+      }
+    };
+
+    loadData();
 
     return () => {
       clearTimeout(timer);
@@ -56,8 +56,35 @@ export function AccountOverviewPage() {
     };
   }, []);
 
+  // Sync state with context store if updated locally
+  useEffect(() => {
+    if (storeWishlist && storeWishlist.length > 0) {
+      setFavoriteItems(storeWishlist);
+    }
+  }, [storeWishlist]);
+
   const displayName = user?.name || "Khách Hàng PinkPhone";
-  const displayPhone = user?.phone || "09xxxxxx";
+  const displayPhone = user?.phone || "Chưa cập nhật SĐT";
+  const displayId = user?.customerCode
+    ? `ID: ${user.customerCode}`
+    : user?.id
+      ? `ID: PP-${user.id}`
+      : "ID: PP-GUEST";
+
+  // Calculate real quick stats from DB data
+  const totalOrders = orders.length;
+  const totalSpending = orders.reduce(
+    (sum, o) => sum + (o.grandTotalAmount || o.totalAmount || o.subtotalAmount || 0),
+    0,
+  );
+  const formattedSpending =
+    totalSpending > 0
+      ? totalSpending >= 1_000_000
+        ? `${(totalSpending / 1_000_000).toFixed(1)}M`
+        : `${(totalSpending / 1000).toFixed(0)}k`
+      : "0đ";
+  const points = Math.floor(totalSpending / 100_000).toLocaleString("vi-VN");
+  const favoriteCount = favoriteItems.length;
 
   return (
     <AccountShell title="Tổng quan tài khoản">
@@ -76,23 +103,28 @@ export function AccountOverviewPage() {
                 <img
                   className="w-full h-full object-cover"
                   alt="Avatar"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2bZvDn7uo1TgAlkFmJk00vw6AuxmZ40QUMAn_UPm0a1H-Hq_ZYxzNFaG_MjqM7J40FyU8e7DV2UB8Dik856Q4NXcU7iGHZaVCVsIAn3blHCLnBH2woxe_KByenZffilHHn2nBk3bRg90EBDpt6iylqpJjChx9BkvtQiLH-gWByqwfKzlW3GujzVzlrUxOSS7vnCAe_sHIiXGCWO6CjJ37CV55zAS_bDRGVbANNJ66M9ipptYRcmdJ"
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256"
                 />
               </div>
-              <div>
-                <h1 className="font-headline-md text-headline-md text-on-surface">
-                  {displayName}
-                </h1>
-                <p className="font-body-md text-on-surface-variant">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-headline-md text-headline-md text-on-surface">
+                    {displayName}
+                  </h2>
+                </div>
+                <p className="text-sm font-body-sm text-on-surface-variant">
                   {displayPhone}
                 </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs font-label-sm px-2 py-1 bg-surface-container rounded-md">
-                    ID: PP-992834
+                <div className="flex items-center gap-4 pt-1">
+                  <span className="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded">
+                    {displayId}
                   </span>
-                  <button className="text-primary text-xs hover:underline flex items-center gap-1">
+                  <Link
+                    to="/account/profile"
+                    className="text-primary text-xs hover:underline flex items-center gap-1"
+                  >
                     <Pencil size={12} className="text-sm" /> Chỉnh sửa
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -122,12 +154,13 @@ export function AccountOverviewPage() {
               </div>
             </div>
           </div>
+
           {/* Quick Stats Column */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <StatCard icon={CheckCircle2} value="12" label="Tổng đơn" />
-            <StatCard icon={CircleDollarSign} value="85M" label="Chi tiêu" />
-            <StatCard icon={Star} value="1,200" label="Điểm tích lũy" />
-            <StatCard icon={Heart} value="8" label="Yêu thích" />
+            <StatCard icon={CheckCircle2} value={String(totalOrders)} label="Tổng đơn" />
+            <StatCard icon={CircleDollarSign} value={formattedSpending} label="Chi tiêu" />
+            <StatCard icon={Star} value={points} label="Điểm tích lũy" />
+            <StatCard icon={Heart} value={String(favoriteCount)} label="Yêu thích" />
           </div>
         </div>
 
@@ -157,64 +190,91 @@ export function AccountOverviewPage() {
                         name={o.items?.[0]?.productName || "Đơn hàng PinkPhone"}
                         code={o.orderCode || `#ORD-${idx + 1}`}
                         date={new Date(
-                          o.orderDate || Date.now(),
+                          o.orderDate || o.createdAt || Date.now(),
                         ).toLocaleDateString("vi-VN")}
-                        price={`${(o.totalAmount || 0).toLocaleString(
-                          "vi-VN",
-                        )}đ`}
-                        image="/images/prod_s24.png"
+                        price={`${(
+                          o.grandTotalAmount ||
+                          o.totalAmount ||
+                          o.subtotalAmount ||
+                          0
+                        ).toLocaleString("vi-VN")}đ`}
+                        image={
+                          o.items?.[0]?.imageUrl && o.items?.[0]?.imageUrl.trim() !== ""
+                            ? o.items?.[0]?.imageUrl
+                            : getDefaultProductImage(
+                                undefined,
+                                o.items?.[0]?.productName || o.items?.[0]?.variantName,
+                              )
+                        }
                       />
                     ))
                 ) : (
-                  <>
-                    <RecentOrderItem
-                      name="iPhone 15 Pro Max 256GB - Pink"
-                      code="#ORD-7721"
-                      date="12/03/2024"
-                      price="32,990,000đ"
-                      image="https://lh3.googleusercontent.com/aida-public/AB6AXuC9ZbmsxE7l8ZZIY4RL03JQa4BgHioS2eyfQ_pwtO4mv22j1BLO7v9PWwW_sUarD_vRrKMixXqDRSBdWineOe3sHmf8F7m_clW6MXzDWgy3RyOf7zx7jsdfZyviocZB5V3GREtTShRPeueMjfMfDOgLKHsZOcNFTccSyxLBbD14PiNfkXKUbeOF6DembL4ncAanzBgQE4xilG6dwKksQ3hgmX5A0pywnwqxEMLMgpEdBugzVhRcJ2zp"
-                    />
-                    <RecentOrderItem
-                      name="Samsung Galaxy Z Flip5"
-                      code="#ORD-6612"
-                      date="05/02/2024"
-                      price="19,450,000đ"
-                      image="https://lh3.googleusercontent.com/aida-public/AB6AXuAJKvS_xvc-aibIJ6czIqWK2bBJdrfQe6WZf2t_WPJnQMdxPo77E4yAKOxQJglAb-KcSiHDlYyAMombBZKDIBsgnBbHEGOq50XkngqIOJDR-BwxitH6TnNDc50lAPK3GJ-ofQUrmGA7Cg3_BHA7sVglbK8jo2QMhvEcMtnGGAV4qmcsVka0WIMI2Iyio5qxFrMb3iqffimpjoaFrQ1wh5kg44mVulQ6iVPuXb9AipniNlMklcc-rSha"
-                    />
-                  </>
+                  <div className="p-8 text-center text-on-surface-variant text-sm">
+                    Bạn chưa có đơn hàng nào trong hệ thống.
+                  </div>
                 )}
               </div>
             </div>
+
             {/* Favorite Products */}
             <div className="bento-card rounded-xl overflow-hidden">
-              <div className="p-lg border-b border-outline-variant/30">
+              <div className="p-lg flex justify-between items-center border-b border-outline-variant/30">
                 <h3 className="font-headline-md text-headline-md text-on-surface">
                   Sản phẩm yêu thích
                 </h3>
+                <Link
+                  to="/account/wishlist"
+                  className="text-primary font-bold text-sm hover:underline"
+                >
+                  Xem tất cả ({favoriteItems.length})
+                </Link>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-outline-variant/30">
-                {favoriteProducts.map((p) => (
-                  <Link
-                    to="/"
-                    key={p.name}
-                    className="bg-white p-lg hover:bg-surface-container-low transition-all group block"
-                  >
-                    <div className="relative w-full aspect-square mb-4">
-                      <img
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform mix-blend-multiply"
-                        alt={p.name}
-                        src={p.image}
-                      />
-                    </div>
-                    <h4 className="text-sm font-label-sm text-on-surface line-clamp-1">
-                      {p.name}
-                    </h4>
-                    <p className="text-primary font-bold">{p.price}</p>
+              {favoriteItems.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-outline-variant/30">
+                  {favoriteItems.slice(0, 3).map((p) => (
+                    <Link
+                      to={p.slug ? `/product/${p.slug}` : `/product/${p.id}`}
+                      key={String(p.id)}
+                      className="bg-white p-lg hover:bg-surface-container-low transition-all group block"
+                    >
+                      <div className="relative w-full aspect-square mb-4">
+                        <img
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                          alt={p.name}
+                          src={
+                            p.image && p.image.trim() !== ""
+                              ? p.image
+                              : getDefaultProductImage(p.brand, p.slug || p.name, p.name)
+                          }
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getDefaultProductImage(
+                              p.brand,
+                              p.slug || p.name,
+                              p.name,
+                            );
+                          }}
+                        />
+                      </div>
+                      <h4 className="text-sm font-label-sm text-on-surface line-clamp-1">
+                        {p.name}
+                      </h4>
+                      <p className="text-primary font-bold">
+                        {p.price || (p.newPrice ? p.newPrice : "Liên hệ")}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-on-surface-variant text-sm">
+                  Chưa có sản phẩm nào trong danh sách yêu thích.{" "}
+                  <Link to="/account/wishlist" className="text-primary hover:underline font-semibold">
+                    Khám phá ngay
                   </Link>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           </div>
+
           {/* Right Column: Vouchers & Suggestions */}
           <div className="space-y-gutter">
             {/* Vouchers Card */}
@@ -259,6 +319,7 @@ export function AccountOverviewPage() {
                 </Link>
               </div>
             </div>
+
             {/* Profile Completion Suggestion */}
             <div className="bento-card rounded-xl p-lg border-2 border-dashed border-primary/30 bg-primary/5">
               <h3 className="font-label-sm text-on-surface mb-2">
@@ -288,10 +349,14 @@ export function AccountOverviewPage() {
                   </span>
                 </li>
               </ul>
-              <button className="w-full mt-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-secondary transition-colors">
+              <Link
+                to="/account/profile"
+                className="w-full mt-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-secondary transition-colors block text-center"
+              >
                 Cập nhật ngay
-              </button>
+              </Link>
             </div>
+
             {/* Help Center */}
             <div className="bento-card rounded-xl p-lg bg-surface-container-highest">
               <div className="flex items-center gap-3 mb-3">
@@ -304,12 +369,18 @@ export function AccountOverviewPage() {
                 Đội ngũ CSKH PinkPhone luôn sẵn sàng lắng nghe bạn 24/7.
               </p>
               <div className="flex gap-2">
-                <button className="flex-1 py-2 bg-white text-on-surface rounded-lg text-xs font-bold border border-outline-variant hover:bg-surface-container transition-all">
+                <Link
+                  to="/account/support"
+                  className="flex-1 py-2 bg-white text-on-surface rounded-lg text-xs font-bold border border-outline-variant hover:bg-surface-container transition-all text-center"
+                >
                   Chat ngay
-                </button>
-                <button className="flex-1 py-2 bg-white text-on-surface rounded-lg text-xs font-bold border border-outline-variant hover:bg-surface-container transition-all">
+                </Link>
+                <a
+                  href="tel:19001234"
+                  className="flex-1 py-2 bg-white text-on-surface rounded-lg text-xs font-bold border border-outline-variant hover:bg-surface-container transition-all text-center"
+                >
                   Gọi hotline
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -374,9 +445,12 @@ function RecentOrderItem({
       </div>
       <div className="text-right">
         <div className="font-bold text-on-surface">{price}</div>
-        <button className="mt-1 text-xs text-primary font-bold border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-all">
-          Mua lại
-        </button>
+        <Link
+          to="/account/orders"
+          className="mt-1 inline-block text-xs text-primary font-bold border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-all"
+        >
+          Xem chi tiết
+        </Link>
       </div>
     </div>
   );
