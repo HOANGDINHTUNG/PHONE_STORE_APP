@@ -12,6 +12,7 @@ import {
   Share2,
   Smartphone,
   ThumbsUp,
+  Sparkles,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { SiteFooter } from "../components/SiteFooter";
@@ -230,28 +231,27 @@ export function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-gutter">
             {brands.length > 0
               ? brands.map((b) => (
-                  <div
-                    key={b.id}
-                    onClick={() => selectBrand(b)}
-                    className={`h-20 bg-white rounded-lg flex items-center justify-center p-gutter shadow-sm border cursor-pointer transition-all ${
-                      selectedBrandId === String(b.id)
-                        ? "border-primary ring-2 ring-primary/20"
-                        : "border-outline-variant/30 hover:border-primary"
+                <div
+                  key={b.id}
+                  onClick={() => selectBrand(b)}
+                  className={`h-20 bg-white rounded-lg flex items-center justify-center p-gutter shadow-sm border cursor-pointer transition-all ${selectedBrandId === String(b.id)
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "border-outline-variant/30 hover:border-primary"
                     }`}
-                  >
-                    <img
-                      src={b.logo}
-                      alt={`${b.name} logo`}
-                      className="max-h-10 max-w-32 object-contain"
-                    />
-                  </div>
-                ))
+                >
+                  <img
+                    src={b.logo}
+                    alt={`${b.name} logo`}
+                    className="max-h-10 max-w-32 object-contain"
+                  />
+                </div>
+              ))
               : [1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-20 bg-surface-container-low rounded-lg animate-pulse border border-outline-variant/10"
-                  ></div>
-                ))}
+                <div
+                  key={i}
+                  className="h-20 bg-surface-container-low rounded-lg animate-pulse border border-outline-variant/10"
+                ></div>
+              ))}
           </div>
         </section>
 
@@ -261,11 +261,10 @@ export function HomePage() {
             {brands.length > 0 && (
               <button
                 onClick={() => setOpenFilter(openFilter === "brand" ? null : "brand")}
-                className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${
-                  selectedBrandId
+                className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${selectedBrandId
                     ? "border-primary bg-primary text-white"
                     : "border-outline text-on-surface-variant hover:bg-surface-container"
-                }`}
+                  }`}
               >
                 {selectedBrandId ? brand : "Tất cả hãng"}
                 <ChevronDown size={16} className="ml-2 opacity-80" />
@@ -273,11 +272,10 @@ export function HomePage() {
             )}
             <button
               onClick={() => setOpenFilter(openFilter === "price" ? null : "price")}
-              className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${
-                priceRange !== "all"
+              className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${priceRange !== "all"
                   ? "border-primary bg-primary text-white"
                   : "border-outline text-on-surface-variant hover:bg-surface-container"
-              }`}
+                }`}
             >
               {priceRange === "all"
                 ? "Mức giá"
@@ -287,11 +285,10 @@ export function HomePage() {
             {storageOptions.length > 0 && (
               <button
                 onClick={() => setOpenFilter(openFilter === "storage" ? null : "storage")}
-                className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${
-                  selectedStorage !== undefined
+                className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${selectedStorage !== undefined
                     ? "border-primary bg-primary text-white"
                     : "border-outline text-on-surface-variant hover:bg-surface-container"
-                }`}
+                  }`}
               >
                 {selectedStorage === undefined ? "Bộ nhớ" : `${selectedStorage}GB`}
                 <ChevronDown size={16} className="ml-2 opacity-80" />
@@ -299,11 +296,10 @@ export function HomePage() {
             )}
             <button
               onClick={() => setOpenFilter(openFilter === "sort" ? null : "sort")}
-              className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${
-                sortOption !== "default"
+              className={`px-6 min-h-10 shrink-0 rounded-full border text-label-sm font-label-sm flex items-center whitespace-nowrap transition-colors ${sortOption !== "default"
                   ? "border-primary bg-primary text-white"
                   : "border-outline text-on-surface-variant hover:bg-surface-container"
-              }`}
+                }`}
             >
               {sortOption === "default"
                 ? "Sắp xếp"
@@ -318,9 +314,8 @@ export function HomePage() {
                 <>
                   <button
                     onClick={() => selectBrand()}
-                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                      !selectedBrandId ? "bg-primary text-white" : "bg-surface-container hover:bg-surface-container-high"
-                    }`}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${!selectedBrandId ? "bg-primary text-white" : "bg-surface-container hover:bg-surface-container-high"
+                      }`}
                   >
                     Tất cả hãng
                   </button>
@@ -328,11 +323,10 @@ export function HomePage() {
                     <button
                       key={item.id}
                       onClick={() => selectBrand(item)}
-                      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                        selectedBrandId === String(item.id)
+                      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${selectedBrandId === String(item.id)
                           ? "bg-primary text-white"
                           : "bg-surface-container hover:bg-surface-container-high"
-                      }`}
+                        }`}
                     >
                       {item.name}
                     </button>
@@ -348,11 +342,10 @@ export function HomePage() {
                       setCurrentPage(1);
                       setOpenFilter(null);
                     }}
-                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                      priceRange === item.value
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${priceRange === item.value
                         ? "bg-primary text-white"
                         : "bg-surface-container hover:bg-surface-container-high"
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </button>
@@ -365,11 +358,10 @@ export function HomePage() {
                       setCurrentPage(1);
                       setOpenFilter(null);
                     }}
-                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                      selectedStorage === undefined
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${selectedStorage === undefined
                         ? "bg-primary text-white"
                         : "bg-surface-container hover:bg-surface-container-high"
-                    }`}
+                      }`}
                   >
                     Tất cả bộ nhớ
                   </button>
@@ -381,11 +373,10 @@ export function HomePage() {
                         setCurrentPage(1);
                         setOpenFilter(null);
                       }}
-                      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                        selectedStorage === storage
+                      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${selectedStorage === storage
                           ? "bg-primary text-white"
                           : "bg-surface-container hover:bg-surface-container-high"
-                      }`}
+                        }`}
                     >
                       {storage}GB
                     </button>
@@ -401,11 +392,10 @@ export function HomePage() {
                       setCurrentPage(1);
                       setOpenFilter(null);
                     }}
-                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                      sortOption === item.value
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${sortOption === item.value
                         ? "bg-primary text-white"
                         : "bg-surface-container hover:bg-surface-container-high"
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </button>
@@ -446,13 +436,27 @@ export function HomePage() {
                     key={p.slug}
                     className="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/20 hover:border-primary/40 transition-all hover:-translate-y-1.5 group relative flex flex-col"
                   >
-                    {p.badge && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-secondary text-white text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">
-                          {p.badge}
-                        </span>
-                      </div>
-                    )}
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="bg-gradient-to-r from-pink-600 to-rose-600 text-white text-[11px] font-black px-2.5 py-1 rounded-md uppercase shadow-md flex items-center gap-1 transition-transform group-hover:scale-105">
+                        <Sparkles size={11} className="text-amber-300" />
+                        {(() => {
+                          const parseNum = (str?: string) => (str ? parseInt(str.replace(/\D/g, "") || "0") : 0);
+                          const newP = parseNum(p.newPrice);
+                          const oldP = parseNum(p.oldPrice);
+                          let pct = 0;
+                          if (oldP > newP && newP > 0) {
+                            pct = Math.round(((oldP - newP) / oldP) * 100);
+                          }
+                          if (pct > 0) {
+                            return `GIẢM ${pct}%`;
+                          }
+                          if (p.badge && p.badge.includes("%")) {
+                            return p.badge;
+                          }
+                          return "GIẢM 20%";
+                        })()}
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -476,45 +480,45 @@ export function HomePage() {
                         }
                       />
                     </button>
-                  <div className="h-44 md:h-56 bg-surface-container-lowest flex items-center justify-center p-4">
-                    <img
-                      src={p.image}
-                      alt={p.name}
-                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="p-4 space-y-2 flex flex-col flex-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-[11px] font-semibold text-outline px-2 py-0.5 rounded bg-surface-container-high truncate">
-                        256GB / Đủ Màu
-                      </span>
+                    <div className="h-44 md:h-56 bg-surface-container-lowest flex items-center justify-center p-4">
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                      />
                     </div>
-                    <h3 className="font-label-sm text-label-sm text-on-surface line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">
-                      {p.name}
-                    </h3>
-                    <div className="flex flex-col mt-auto pt-2">
-                      <span className="text-primary font-bold text-base md:text-lg">
-                        {p.newPrice}
-                      </span>
-                      {p.oldPrice && (
-                        <span className="text-on-surface-variant text-xs md:text-sm line-through decoration-primary/30">
-                          {p.oldPrice}
+                    <div className="p-4 space-y-2 flex flex-col flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[11px] font-semibold text-outline px-2 py-0.5 rounded bg-surface-container-high truncate">
+                          256GB / Đủ Màu
                         </span>
-                      )}
-                    </div>
-                    {p.gift && (
-                      <div className="bg-surface-container text-[11px] p-2 rounded text-on-surface-variant flex items-center mt-1 truncate">
-                        <Gift size={12} className="mr-1 shrink-0" />
-                        <span className="truncate">{p.gift}</span>
                       </div>
-                    )}
-                    <div className="w-full mt-3 py-2.5 bg-primary-container text-white rounded-lg font-label-sm text-label-sm opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 flex items-center justify-center">
-                      Mua ngay
+                      <h3 className="font-label-sm text-label-sm text-on-surface line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">
+                        {p.name}
+                      </h3>
+                      <div className="flex flex-col mt-auto pt-2">
+                        <span className="text-primary font-bold text-base md:text-lg">
+                          {p.newPrice}
+                        </span>
+                        {p.oldPrice && (
+                          <span className="text-on-surface-variant text-xs md:text-sm line-through decoration-primary/30">
+                            {p.oldPrice}
+                          </span>
+                        )}
+                      </div>
+                      {p.gift && (
+                        <div className="bg-surface-container text-[11px] p-2 rounded text-on-surface-variant flex items-center mt-1 truncate">
+                          <Gift size={12} className="mr-1 shrink-0" />
+                          <span className="truncate">{p.gift}</span>
+                        </div>
+                      )}
+                      <div className="w-full mt-3 py-2.5 bg-primary-container text-white rounded-lg font-label-sm text-label-sm opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 flex items-center justify-center">
+                        Mua ngay
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              );
-            })
+                  </Link>
+                );
+              })
             ) : (
               <div className="col-span-full py-16 text-center bg-surface-container-low rounded-xl border border-dashed border-outline">
                 <Smartphone
@@ -564,11 +568,10 @@ export function HomePage() {
                         setCurrentPage(pageNum);
                         window.scrollTo({ top: 600, behavior: "smooth" });
                       }}
-                      className={`w-9 h-9 rounded-lg font-bold text-sm transition-all ${
-                        currentPage === pageNum
+                      className={`w-9 h-9 rounded-lg font-bold text-sm transition-all ${currentPage === pageNum
                           ? "bg-primary text-white shadow-md scale-105"
                           : "bg-surface-container-low text-on-surface hover:bg-surface-container border border-outline-variant/30"
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>
@@ -605,38 +608,38 @@ export function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
             {news.length > 0
               ? news.map((item) => (
-                  <Link
-                    to={`/tin-tuc/${item.id}`}
-                    key={item.id}
-                    className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md group cursor-pointer border border-outline-variant/20 transition-all flex flex-col"
-                  >
-                    <div className="h-48 overflow-hidden">
-                      <div
-                        className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700"
-                        style={{ backgroundImage: `url('${item.image}')` }}
-                      ></div>
+                <Link
+                  to={`/tin-tuc/${item.id}`}
+                  key={item.id}
+                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md group cursor-pointer border border-outline-variant/20 transition-all flex flex-col"
+                >
+                  <div className="h-48 overflow-hidden">
+                    <div
+                      className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700"
+                      style={{ backgroundImage: `url('${item.image}')` }}
+                    ></div>
+                  </div>
+                  <div className="p-lg flex-1 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-primary-container mb-2 block tracking-wider">
+                        {item.tag}
+                      </span>
+                      <h3 className="font-label-sm text-label-sm text-on-surface line-clamp-2 mb-sm group-hover:text-primary transition-colors leading-relaxed">
+                        {item.title}
+                      </h3>
+                      <p className="text-body-md text-on-surface-variant text-sm line-clamp-2 leading-relaxed">
+                        {item.description}
+                      </p>
                     </div>
-                    <div className="p-lg flex-1 flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-primary-container mb-2 block tracking-wider">
-                          {item.tag}
-                        </span>
-                        <h3 className="font-label-sm text-label-sm text-on-surface line-clamp-2 mb-sm group-hover:text-primary transition-colors leading-relaxed">
-                          {item.title}
-                        </h3>
-                        <p className="text-body-md text-on-surface-variant text-sm line-clamp-2 leading-relaxed">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))
+                  </div>
+                </Link>
+              ))
               : [1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-surface-container-low rounded-xl h-72 border border-outline-variant/20 animate-pulse"
-                  ></div>
-                ))}
+                <div
+                  key={i}
+                  className="bg-surface-container-low rounded-xl h-72 border border-outline-variant/20 animate-pulse"
+                ></div>
+              ))}
           </div>
         </section>
 
@@ -724,9 +727,8 @@ export function HomePage() {
                   </span>
                   <ChevronDown
                     size={20}
-                    className={`text-on-surface-variant transition-transform ${
-                      faqOpen === idx ? "rotate-180 text-primary" : ""
-                    }`}
+                    className={`text-on-surface-variant transition-transform ${faqOpen === idx ? "rotate-180 text-primary" : ""
+                      }`}
                   />
                 </button>
                 {faqOpen === idx && (

@@ -190,11 +190,10 @@ const ProductDetail = () => {
                   <div
                     key={v.id || idx}
                     onClick={() => handleSelectVariant(idx)}
-                    className={`w-20 h-20 bg-white rounded-lg p-2 cursor-pointer shrink-0 border-2 transition-all flex flex-col items-center justify-between ${
-                      selectedVariantIndex === idx
+                    className={`w-20 h-20 bg-white rounded-lg p-2 cursor-pointer shrink-0 border-2 transition-all flex flex-col items-center justify-between ${selectedVariantIndex === idx
                         ? "border-primary ring-2 ring-primary/20 shadow-md"
                         : "border-outline-variant hover:border-primary/50"
-                    }`}
+                      }`}
                   >
                     <img
                       className="w-full h-12 object-contain"
@@ -294,7 +293,7 @@ const ProductDetail = () => {
 
             {/* Price Box Dynamic by Selected Variant */}
             <div className="p-4 bg-surface-container-low rounded-xl">
-              <div className="flex items-baseline gap-4 mb-1">
+              <div className="flex items-baseline gap-3 mb-1 flex-wrap">
                 <span className="text-3xl font-extrabold text-primary">
                   {displayedPrice}
                 </span>
@@ -303,15 +302,27 @@ const ProductDetail = () => {
                     <span className="text-lg text-on-surface-variant line-through">
                       {displayedOldPrice}
                     </span>
-                    <span className="bg-secondary text-white text-[12px] px-2 py-0.5 rounded-md font-bold">
-                      GIẢM GIÁ
+                    <span className="bg-gradient-to-r from-pink-600 to-rose-600 text-white text-[12px] px-2.5 py-0.5 rounded-md font-black shadow-xs">
+                      GIẢM 20%
                     </span>
                   </>
-                ) : null}
+                ) : (
+                  <span className="bg-gradient-to-r from-pink-600 to-rose-600 text-white text-[12px] px-2.5 py-0.5 rounded-md font-black shadow-xs">
+                    ƯU ĐÃI KHỦNG
+                  </span>
+                )}
               </div>
-              <p className="text-sm text-on-surface-variant">
+              <p className="text-xs text-on-surface-variant">
                 Giá đã bao gồm VAT và miễn phí giao hàng toàn quốc.
               </p>
+
+              {/* 1-Line Applied Voucher Note */}
+              <div className="mt-3 pt-2.5 border-t border-outline-variant/30 flex items-center gap-2 text-xs font-semibold text-pink-700 bg-pink-50/70 p-2.5 rounded-lg border border-pink-200/60">
+                <Tag size={15} className="text-pink-600 shrink-0" />
+                <span>
+                  Đã áp dụng mã <strong className="font-mono text-pink-800 bg-white px-1.5 py-0.5 rounded border border-pink-300">FLASHSALE20</strong>: Giảm 20% (Tối đa 1.000.000đ khi thêm vào giỏ hàng)
+                </span>
+              </div>
             </div>
 
             {/* Variations Selector */}
@@ -325,11 +336,10 @@ const ProductDetail = () => {
                     <button
                       key={v.id || idx}
                       onClick={() => handleSelectVariant(idx)}
-                      className={`flex flex-col items-start p-3 rounded-xl border transition-all text-left ${
-                        selectedVariantIndex === idx
+                      className={`flex flex-col items-start p-3 rounded-xl border transition-all text-left ${selectedVariantIndex === idx
                           ? "border-2 border-primary bg-primary-fixed-dim/30 shadow-md ring-2 ring-primary/20"
                           : "border-outline-variant hover:border-primary/50 bg-white"
-                      }`}
+                        }`}
                     >
                       <span className="text-xs font-extrabold text-primary mb-1">
                         {v.color || v.name}

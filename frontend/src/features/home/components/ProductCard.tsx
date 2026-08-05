@@ -2,6 +2,7 @@ import { Gift, Heart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import productStrip from "../../../assets/phone-product-strip.png";
+import { VoucherBadge } from "../../../components/common/VoucherBadge";
 
 export type Product = {
   name: string;
@@ -32,9 +33,9 @@ export function ProductCard({ product }: { product: Product }) {
           className="absolute inset-0 z-[1]"
           aria-label={`Xem chi tiết ${product.name}`}
         />
-        <span className="absolute left-2 top-2 z-[2] rounded-md bg-primary px-2 py-1 text-[9px] font-extrabold uppercase tracking-wide text-white">
-          {product.badge}
-        </span>
+        <div className="absolute left-2 top-2 z-[2]">
+          <VoucherBadge badgeText={product.badge} variant="flash" />
+        </div>
         <button
           type="button"
           onClick={() => setLiked((value) => !value)}

@@ -49,6 +49,58 @@ const crossSellProducts = [
   },
 ];
 
+interface AvailableVoucher {
+  id: string;
+  code: string;
+  name: string;
+  type: "PERCENT" | "AMOUNT";
+  discountValue: number;
+  maximumDiscountAmount?: number;
+  minimumOrderValue?: number;
+  description: string;
+}
+
+const USER_VOUCHERS_LIST: AvailableVoucher[] = [
+  {
+    id: "v1",
+    code: "WELCOME50",
+    name: "Voucher Chào Mới",
+    type: "AMOUNT",
+    discountValue: 50000,
+    minimumOrderValue: 200000,
+    description: "Giảm 50.000đ cho đơn hàng từ 200.000đ",
+  },
+  {
+    id: "v2",
+    code: "TECH10",
+    name: "Giảm 10% Smartphone",
+    type: "PERCENT",
+    discountValue: 10,
+    maximumDiscountAmount: 500000,
+    minimumOrderValue: 5000000,
+    description: "Giảm 10% tối đa 500.000đ cho đơn từ 5.000.000đ",
+  },
+  {
+    id: "v3",
+    code: "SAMSUNG300",
+    name: "Voucher 300k Samsung",
+    type: "AMOUNT",
+    discountValue: 300000,
+    minimumOrderValue: 8000000,
+    description: "Giảm 300.000đ cho sản phẩm Samsung",
+  },
+  {
+    id: "v4",
+    code: "FLASHSALE20",
+    name: "Flash Sale 20% Cuối Tuần",
+    type: "PERCENT",
+    discountValue: 20,
+    maximumDiscountAmount: 1000000,
+    minimumOrderValue: 10000000,
+    description: "Giảm 20% tối đa 1.000.000đ cho đơn từ 10.000.000đ",
+  },
+];
+
 // ─── Cart Component ───────────────────────────────────────────────────
 const Cart = () => {
   const { user, cart, removeFromCart, updateCartQuantity, addToCart } =
@@ -56,6 +108,11 @@ const Cart = () => {
   const navigate = useNavigate();
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
   const [selectAll, setSelectAll] = useState(true);
+
+  // Voucher Selection State
+  const [inputCouponCode, setInputCouponCode] = useState("FLASHSALE20");
+  const [selectedVoucherCode, setSelectedVoucherCode] = useState<string | null>("FLASHSALE20");
+  const [voucherError, setVoucherError] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalCart(cart.map((item) => ({ ...item, active: true })));
@@ -94,6 +151,7 @@ const Cart = () => {
     }
   };
 
+  // Subtotal Calculation (declared BEFORE hooks that depend on it)
   const activeItems = localCart.filter((item) => !item.outOfStock);
 
   const subtotal = activeItems.reduce((acc, item) => {
@@ -101,8 +159,99 @@ const Cart = () => {
     return acc + parseInt(priceStr.replace(/\D/g, "") || "0") * item.quantity;
   }, 0);
 
-  const discountAmount = subtotal > 10000000 ? 2000000 : 0;
-  const total = subtotal - discountAmount;
+  // Auto pre-select the Best Voucher (offering highest savings) when cart items are loaded or subtotal changes
+  useEffect(() => {
+    if (subtotal > 0) {
+      let maxSavings = 0;
+      let bestCode: string | null = null;
+
+      USER_VOUCHERS_LIST.forEach((v) => {
+        if (!v.minimumOrderValue || subtotal >= v.minimumOrderValue) {
+          let savings = 0;
+          if (v.type === "PERCENT") {
+            savings = (subtotal * v.discountValue) / 100;
+            if (v.maximumDiscountAmount && savings > v.maximumDiscountAmount) {
+              savings = v.maximumDiscountAmount;
+            }
+          } else {
+            savings = v.discountValue;
+          }
+          if (savings > maxSavings) {
+            maxSavings = savings;
+            bestCode = v.code;
+          }
+        }
+      });
+
+      if (bestCode) {
+        setSelectedVoucherCode(bestCode);
+        setInputCouponCode(bestCode);
+      }
+    }
+  }, [subtotal]);
+
+  // Dynamic Discount Calculation based on selected voucher
+  const discountAmount = React.useMemo(() => {
+    if (!selectedVoucherCode) return 0;
+    const voucher = USER_VOUCHERS_LIST.find(
+      (v) => v.code.toUpperCase() === selectedVoucherCode.toUpperCase()
+    );
+    if (!voucher) return 0;
+
+    if (voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
+      return 0;
+    }
+
+    let disc = 0;
+    if (voucher.type === "PERCENT") {
+      disc = (subtotal * voucher.discountValue) / 100;
+      if (voucher.maximumDiscountAmount && disc > voucher.maximumDiscountAmount) {
+        disc = voucher.maximumDiscountAmount;
+      }
+    } else {
+      disc = voucher.discountValue;
+    }
+    return Math.min(disc, subtotal);
+  }, [selectedVoucherCode, subtotal]);
+
+  // Auto revoke check when subtotal changes
+  useEffect(() => {
+    if (selectedVoucherCode) {
+      const voucher = USER_VOUCHERS_LIST.find(
+        (v) => v.code.toUpperCase() === selectedVoucherCode.toUpperCase()
+      );
+      if (voucher && voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
+        setVoucherError(
+          `Voucher "${voucher.code}" đã bị hủy vì đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đạt tối thiểu ${voucher.minimumOrderValue.toLocaleString("vi-VN")}đ.`
+        );
+        setSelectedVoucherCode(null);
+      }
+    }
+  }, [subtotal, selectedVoucherCode]);
+
+  const total = Math.max(subtotal - discountAmount, 0);
+
+  const handleApplyManualCode = (codeToApply: string) => {
+    const trimmed = codeToApply.trim().toUpperCase();
+    if (!trimmed) {
+      setVoucherError("Vui lòng nhập mã giảm giá");
+      return;
+    }
+    const voucher = USER_VOUCHERS_LIST.find((v) => v.code === trimmed);
+    if (!voucher) {
+      setVoucherError(`Mã giảm giá "${trimmed}" không tồn tại hoặc không hợp lệ`);
+      return;
+    }
+    if (voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
+      setVoucherError(
+        `Đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đủ điều kiện tối thiểu ${voucher.minimumOrderValue.toLocaleString("vi-VN")}đ để dùng mã "${trimmed}"`
+      );
+      return;
+    }
+
+    setSelectedVoucherCode(trimmed);
+    setVoucherError(null);
+  };
 
   const formatPrice = (num: number) => num.toLocaleString("vi-VN") + " ₫";
 
@@ -637,23 +786,135 @@ const Cart = () => {
             {/* Right Column (30%) — Sticky Summary */}
             <div className="col-span-3">
               <div className="sticky top-[100px] space-y-4">
-                {/* Voucher */}
-                <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/30">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Tag className="text-primary" size={20} />
-                    <h4 className="text-sm font-bold text-on-surface">
-                      Mã giảm giá / Voucher
-                    </h4>
+                {/* Voucher Selection & Application Block */}
+                <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/40 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Tag className="text-primary" size={20} />
+                      <h4 className="text-sm font-bold text-on-surface">
+                        Mã giảm giá / Voucher của bạn
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-primary bg-primary-fixed/30 px-2 py-0.5 rounded-full">
+                      {USER_VOUCHERS_LIST.length} mã khả dụng
+                    </span>
                   </div>
+
+                  {/* Manual Code Input */}
                   <div className="flex gap-2">
                     <input
-                      className="flex-grow border-outline-variant rounded-lg text-base focus:ring-primary focus:border-primary p-2 border outline-none"
-                      placeholder="Nhập mã..."
+                      className="flex-grow border border-outline-variant/80 rounded-lg text-sm font-mono font-bold uppercase focus:ring-2 focus:ring-primary/20 focus:border-primary p-2.5 outline-none bg-white"
+                      placeholder="Nhập mã giảm giá..."
                       type="text"
+                      value={inputCouponCode}
+                      onChange={(e) => {
+                        setInputCouponCode(e.target.value.toUpperCase());
+                        setVoucherError(null);
+                      }}
                     />
-                    <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary transition-all active:scale-95 whitespace-nowrap">
+                    <button
+                      onClick={() => handleApplyManualCode(inputCouponCode)}
+                      className="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-secondary transition-all active:scale-95 whitespace-nowrap shadow-sm"
+                    >
                       Áp dụng
                     </button>
+                  </div>
+
+                  {/* Error / Warning Alert */}
+                  {voucherError && (
+                    <div className="flex items-center gap-2 rounded-lg bg-rose-50 p-2.5 text-xs font-semibold text-rose-700 border border-rose-200">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+                      <span>{voucherError}</span>
+                    </div>
+                  )}
+
+                  {/* User's Available Vouchers List for Direct Selection */}
+                  <div className="space-y-2 pt-2 border-t border-outline-variant/20">
+                    <p className="text-[11px] font-extrabold text-on-surface-variant uppercase tracking-wider">
+                      Chọn mã để trừ tiền trực tiếp:
+                    </p>
+
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {USER_VOUCHERS_LIST.map((v) => {
+                        const isSelected = selectedVoucherCode === v.code;
+                        const isEligible = !v.minimumOrderValue || subtotal >= v.minimumOrderValue;
+
+                        let estimatedDisc = 0;
+                        if (v.type === "PERCENT") {
+                          estimatedDisc = (subtotal * v.discountValue) / 100;
+                          if (v.maximumDiscountAmount && estimatedDisc > v.maximumDiscountAmount) {
+                            estimatedDisc = v.maximumDiscountAmount;
+                          }
+                        } else {
+                          estimatedDisc = v.discountValue;
+                        }
+
+                        return (
+                          <div
+                            key={v.id}
+                            onClick={() => {
+                              if (isEligible) {
+                                if (isSelected) {
+                                  setSelectedVoucherCode(null);
+                                  setInputCouponCode("");
+                                } else {
+                                  setSelectedVoucherCode(v.code);
+                                  setInputCouponCode(v.code);
+                                }
+                                setVoucherError(null);
+                              }
+                            }}
+                            className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? "border-primary bg-pink-50/70 ring-2 ring-primary/20 shadow-sm"
+                                : !isEligible
+                                ? "border-outline-variant/30 bg-slate-50 opacity-50 cursor-not-allowed"
+                                : "border-outline-variant/60 bg-white hover:border-primary/60 hover:bg-pink-50/20"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <input
+                                type="radio"
+                                checked={isSelected}
+                                disabled={!isEligible}
+                                readOnly
+                                className="w-4 h-4 accent-primary shrink-0 cursor-pointer"
+                              />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-mono text-xs font-black text-primary bg-white px-2 py-0.5 rounded border border-primary/30 shrink-0">
+                                    {v.code}
+                                  </span>
+                                  <span className="text-xs font-bold text-on-surface truncate">{v.name}</span>
+                                </div>
+                                <p className="text-[11px] text-on-surface-variant mt-0.5 line-clamp-1">
+                                  {v.description}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="text-right shrink-0">
+                              <span className="text-xs font-black text-rose-600 block">
+                                -{estimatedDisc.toLocaleString("vi-VN")}đ
+                              </span>
+                              {isSelected ? (
+                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded inline-block mt-0.5">
+                                  Đã áp dụng
+                                </span>
+                              ) : !isEligible ? (
+                                <span className="text-[10px] font-semibold text-gray-400">
+                                  Chưa đủ điều kiện
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-primary hover:underline">
+                                  Chọn mã
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 

@@ -23,6 +23,7 @@ import { StorePageLayout } from "../../storefront/components/StorePageLayout";
 import { fetchProductBySlug } from "../../../api/productService";
 import { useStore } from "../../../context/StoreContext";
 import { Product } from "../../../types";
+import { ProductVoucherSection } from "../../../components/cart_and_pdp/ProductVoucherSection";
 
 export type ProductAvailability = "available" | "out-of-stock";
 
@@ -174,14 +175,29 @@ export function ProductDetailPage({
                 <p className="pb-1 text-sm text-muted line-through">
                   32.990.000đ
                 </p>
-                <span className="mb-1 rounded-md bg-primary px-2 py-1 text-[10px] font-bold text-white">
-                  -14%
+                <span className="mb-1 rounded-md bg-gradient-to-r from-pink-600 to-rose-600 px-2 py-1 text-[10px] font-black text-white">
+                  GIẢM 20%
                 </span>
               </div>
               <p className="mt-2 text-xs text-muted">
                 Giá đã gồm VAT và miễn phí giao hàng toàn quốc.
               </p>
+
+              {/* 1-Line Applied Voucher Note */}
+              <div className="mt-3 pt-2.5 border-t border-pink-200/50 flex items-center gap-2 text-xs font-semibold text-pink-700 bg-pink-50/70 p-2.5 rounded-xl border border-pink-200/60">
+                <span className="shrink-0 text-base">🎟️</span>
+                <span>
+                  Đã áp dụng mã <strong className="font-mono text-pink-800 bg-white px-1.5 py-0.5 rounded border border-pink-300">FLASHSALE20</strong>: Giảm 20% (Tối đa 1.000.000đ khi mua sản phẩm này)
+                </span>
+              </div>
             </div>
+
+            {/* Vouchers Section */}
+            {productData?.id && (
+              <div className="mt-4">
+                <ProductVoucherSection productId={productData.id} />
+              </div>
+            )}
 
             <OptionGroup label="Chọn bộ nhớ">
               {storageOptions.map((option) => (

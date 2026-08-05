@@ -137,7 +137,7 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
     image: mainImage,
     newPrice: formatCurrency(minP),
     oldPrice: maxP > minP ? formatCurrency(maxP) : undefined,
-    badge: bp.minPrice && bp.maxPrice && bp.maxPrice > bp.minPrice ? "GIẢM SỐC" : "",
+    badge: (maxP > minP && maxP > 0) ? `GIẢM ${Math.round(((maxP - minP) / maxP) * 100)}%` : "GIẢM 20%",
     badgeType: "sale",
     gift: "Tặng kèm phụ kiện chính hãng",
     rating: 5,
