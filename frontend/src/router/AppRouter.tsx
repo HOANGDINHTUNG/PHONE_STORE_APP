@@ -21,7 +21,6 @@ import { VouchersPage } from "../features/account/pages/VouchersPage";
 import { WishlistPage } from "../features/account/pages/WishlistPage";
 import { AccountProfilePage } from "../features/account/pages/AccountProfilePage";
 import { AccountAddressPage } from "../features/account/pages/AccountAddressPage";
-import { WarrantyDetailPage } from "../features/account/pages/WarrantyDetailPage";
 import { AccountSupportPage } from "../features/account/pages/AccountSupportPage";
 import { AccountTermsPage } from "../features/account/pages/AccountTermsPage";
 import { AccountReviewsPage } from "../features/account/pages/AccountReviewsPage";
@@ -93,17 +92,6 @@ export const router = createBrowserRouter([
       { path: "shipping", element: <AdminShipmentsPage /> },
       { path: "shipments/new", element: <AdminShipmentCreatePage /> },
       { path: "shipments/:shipmentId", element: <AdminShipmentDetailPage /> },
-<<<<<<< HEAD
-      {
-        path: "inventory",
-        element: (
-          <AdminPlaceholderPage
-            title="Kho hàng"
-            description="Theo dõi tồn kho và điều chuyển sản phẩm giữa các kho."
-          />
-        ),
-      },
-=======
       { path: "inventory", element: <AdminWarehouseManagementPage /> },
       { path: "inventory/new", element: <AdminWarehouseCreatePage /> },
       { path: "inventory/balances", element: <AdminInventoryEntitiesPage /> },
@@ -114,7 +102,6 @@ export const router = createBrowserRouter([
       { path: "inventory/unit-details", element: <AdminInventoryUnitDirectoryPage /> },
       { path: "inventory/unit-details/:warehouseId/:variantId", element: <AdminInventoryUnitDetailPage /> },
       { path: "suppliers", element: <AdminSuppliersPage /> },
->>>>>>> 0b41d2d (fix admin page)
       { path: "procurement", element: <ProcurementListPage /> },
       { path: "procurement/:poCode", element: <ProcurementDetailPage /> },
       { path: "after-sales", element: <AfterSalesPage /> },
@@ -179,14 +166,10 @@ export const router = createBrowserRouter([
     path: "/account/tier",
     element: customerRoute(<MembershipTierPage />),
   },
-<<<<<<< HEAD
-
-=======
   {
     path: "/account/reviews",
-    element: customerRoute(<MyReviewsPage />),
+    // element: customerRoute(<MyReviewsPage />),
   },
->>>>>>> 0b41d2d (fix admin page)
   {
     path: "/account/returns",
     element: customerRoute(<ReturnsPage />),
