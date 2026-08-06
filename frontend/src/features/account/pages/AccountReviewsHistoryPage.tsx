@@ -7,8 +7,11 @@ import {
   MessageSquare,
   Search,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getMyReviewsApi } from "../../../api/reviewService";
+import { getDefaultProductImage } from "../../../api/productService";
+import { Loader2 } from "lucide-react";
 
 interface ReviewHistoryItem {
   id: string;
@@ -26,8 +29,42 @@ export function AccountReviewsHistoryPage() {
   const [filter, setFilter] = useState<
     "ALL" | "APPROVED" | "PENDING" | "REJECTED"
   >("ALL");
+  const [reviews, setReviews] = useState<ReviewHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const reviews: ReviewHistoryItem[] = [];
+  useEffect(() => {
+    let active = true;
+    const loadReviews = async () => {
+      setLoading(true);
+      try {
+        const data = await getMyReviewsApi();
+        if (active && Array.isArray(data)) {
+          const mapped: ReviewHistoryItem[] = data.map((r) => ({
+            id: r.id,
+            name: r.productName || "Sản phẩm",
+            image: r.imageUrl && r.imageUrl.trim() !== ""
+              ? r.imageUrl
+              : getDefaultProductImage(undefined, r.productName || undefined),
+            rating: r.rating,
+            status: r.status,
+            title: r.title || "Đánh giá sản phẩm",
+            content: r.comment || "",
+            date: r.createdAt ? new Date(r.createdAt).toLocaleDateString("vi-VN") : "",
+            rejectionReason: r.rejectionReason || undefined,
+          }));
+          setReviews(mapped);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch my reviews:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    loadReviews();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredReviews = reviews.filter(
     (r) => filter === "ALL" || r.status === filter,

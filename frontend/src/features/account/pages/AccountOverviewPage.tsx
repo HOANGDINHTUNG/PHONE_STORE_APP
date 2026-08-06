@@ -66,12 +66,10 @@ export function AccountOverviewPage() {
     { name: "Thẻ Đen", minSpend: 500_000_000 },
   ];
 
-  // ── Only count COMPLETED / DELIVERED orders ──
-  const completedOrders = orders.filter(
-    (o) => o.status === "COMPLETED" || o.status === "DELIVERED",
-  );
-  const totalOrders = completedOrders.length;
-  const totalSpending = completedOrders.reduce(
+  // ── Count non-cancelled orders for Total Orders, and non-cancelled orders for total spending ──
+  const validOrders = orders.filter((o) => o.status !== "CANCELLED");
+  const totalOrders = validOrders.length;
+  const totalSpending = validOrders.reduce(
     (sum, o) => sum + (o.grandTotalAmount || o.totalAmount || o.subtotalAmount || 0),
     0,
   );

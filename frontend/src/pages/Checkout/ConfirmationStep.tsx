@@ -12,6 +12,7 @@ import { useStore } from "../../context/StoreContext";
 import { checkoutApi, createPaymentAttemptApi } from "../../api/orderService";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
 import { CheckoutData } from "./index";
 
 type ConfirmationStepProps = {
@@ -22,6 +23,7 @@ type ConfirmationStepProps = {
 const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
   const { cart, clearCart } = useStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = React.useState(false);
 
   const getPriceNum = (val?: string | number): number => {
@@ -100,6 +102,7 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
         );
       } else {
         clearCart();
+        queryClient.invalidateQueries({ queryKey: ["myOrders"] });
         if (
           checkoutData.paymentMethod === "VNPAY" &&
           paymentAttempt.redirectUrl

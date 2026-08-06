@@ -1,5 +1,5 @@
 import { AccountShell } from "../components/AccountShell";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
   Star,
@@ -11,9 +11,16 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  getReviewEligibilitiesApi,
+  createReviewApi,
+} from "../../../api/reviewService";
+import { getDefaultProductImage } from "../../../api/productService";
+import { message } from "antd";
 
 interface PendingReviewItem {
   id: string;
+  productId: string;
   name: string;
   image: string;
   attributes: string;
@@ -25,32 +32,80 @@ export function AccountReviewsPage() {
     useState<PendingReviewItem | null>(null);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [titleInput, setTitleInput] = useState("");
+  const [commentInput, setCommentInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingReviews, setPendingReviews] = useState<PendingReviewItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock pending reviews
-  const pendingReviews: PendingReviewItem[] = [];
+  const loadPending = async () => {
+    setLoading(true);
+    try {
+      const data = await getReviewEligibilitiesApi();
+      if (Array.isArray(data)) {
+        const eligible = data
+          .filter((e) => !e.hasReview)
+          .map((e) => ({
+            id: e.orderItemId,
+            productId: e.productId,
+            name: e.productName,
+            image: e.imageUrl && e.imageUrl.trim() !== ""
+              ? e.imageUrl
+              : getDefaultProductImage(undefined, e.productName),
+            attributes: e.orderCompletedAt
+              ? `Đã mua ngày ${new Date(e.orderCompletedAt).toLocaleDateString("vi-VN")}`
+              : "Đã hoàn thành",
+            purchaseDate: e.orderCompletedAt
+              ? new Date(e.orderCompletedAt).toLocaleDateString("vi-VN")
+              : "",
+          }));
+        setPendingReviews(eligible);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch review eligibilities:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadPending();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) {
-      alert("Vui lòng chọn mức đánh giá sao.");
+      message.warning("Vui lòng chọn mức đánh giá sao.");
       return;
     }
+    if (!selectedProduct) return;
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert("Cảm ơn bạn đã gửi đánh giá!");
+    try {
+      await createReviewApi(selectedProduct.productId, {
+        orderItemId: selectedProduct.id,
+        rating,
+        title: titleInput || undefined,
+        comment: commentInput || undefined,
+      });
+      message.success("Cảm ơn bạn đã gửi đánh giá! Đánh giá sẽ được hiển thị sau khi duyệt.");
       closeModal();
-    }, 1500);
+      loadPending();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Không thể gửi đánh giá. Vui lòng thử lại.";
+      message.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const closeModal = () => {
     setSelectedProduct(null);
     setRating(0);
     setHoverRating(0);
+    setTitleInput("");
+    setCommentInput("");
     setIsSubmitting(false);
   };
 
@@ -159,11 +214,11 @@ export function AccountReviewsPage() {
       {selectedProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-on-background/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={closeModal}
           ></div>
 
-          <div className="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] animate-[slideUp_0.3s_ease-out]">
+          <div className="bg-white text-slate-900 w-[92vw] sm:w-[520px] shrink-0 rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low rounded-t-2xl shrink-0">
               <div>
                 <h2 className="text-body-lg font-bold text-on-surface">
@@ -215,6 +270,8 @@ export function AccountReviewsPage() {
                   Tiêu đề đánh giá (Tùy chọn)
                 </label>
                 <input
+                  value={titleInput}
+                  onChange={(e) => setTitleInput(e.target.value)}
                   className="w-full bg-surface-variant/30 border border-outline-variant/50 rounded-xl px-4 py-3.5 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary-fixed-dim outline-none transition-all placeholder-outline-variant"
                   placeholder="Tóm tắt ngắn gọn trải nghiệm của bạn"
                   type="text"
@@ -226,6 +283,8 @@ export function AccountReviewsPage() {
                   Nhận xét chi tiết (Tùy chọn)
                 </label>
                 <textarea
+                  value={commentInput}
+                  onChange={(e) => setCommentInput(e.target.value)}
                   className="w-full bg-surface-variant/30 border border-outline-variant/50 rounded-xl px-4 py-3.5 text-body-md focus:ring-2 focus:ring-primary/40 focus:border-primary-fixed-dim outline-none transition-all resize-none placeholder-outline-variant"
                   placeholder="Chia sẻ thêm về hiệu năng, thiết kế hoặc dịch vụ giao hàng..."
                   rows={4}
