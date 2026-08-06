@@ -2,8 +2,6 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Search,
   Truck,
   Loader2,
@@ -11,14 +9,16 @@ import {
   Compass,
   ShieldCheck,
   RefreshCcw,
+  CreditCard,
+  ListFilter,
+  AlertCircle,
+  PackageOpen,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountShell, Panel } from "../components/AccountShell";
 import { useQuery } from "@tanstack/react-query";
 import { getMyOrdersApi, OrderResponse } from "../../../api/orderService";
-
-import { AlertCircle, PackageOpen } from "lucide-react";
 
 export function OrderHistoryPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -102,13 +102,11 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
     "Đang giao",
     "Hoàn thành",
     "Đã hủy",
+    "Trả hàng",
   ];
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(val);
+    new Intl.NumberFormat("vi-VN").format(val) + "₫";
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -129,7 +127,7 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
       case "PARTIALLY_RETURNED":
         return "Đổi trả một phần";
       case "RETURNED":
-        return "Đã đổi trả";
+        return "Trả hàng";
       default:
         return status;
     }
@@ -140,7 +138,8 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
       status === "DELIVERED" ||
       status === "COMPLETED" ||
       status === "CANCELLED" ||
-      status === "RETURNED"
+      status === "RETURNED" ||
+      status === "PARTIALLY_RETURNED"
     )
       return "completed";
     return "active";
@@ -148,8 +147,17 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
 
   const filteredOrders = orders.filter((o) => {
     // Tab filter
-    if (activeTab !== "Tất cả" && getStatusText(o.status) !== activeTab) {
-      return false;
+    if (activeTab !== "Tất cả") {
+      const text = getStatusText(o.status);
+      if (text !== activeTab) {
+        if (activeTab === "Chờ xác nhận" && text === "Đã xác nhận") {
+          // OK
+        } else if (activeTab === "Trả hàng" && text === "Đổi trả một phần") {
+          // OK
+        } else {
+          return false;
+        }
+      }
     }
     // Search filter
     if (searchTerm.trim()) {
@@ -169,14 +177,16 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
       const days = (now - orderDate) / (1000 * 3600 * 24);
       if (timeFilter === "30" && days > 30) return false;
       if (timeFilter === "180" && days > 180) return false;
+      if (timeFilter === "2024" && new Date(o.createdAt).getFullYear() !== 2024)
+        return false;
     }
     return true;
   });
 
   return (
-    <>
+    <div className="flex-1 min-w-0">
       <header className="mb-lg">
-        <h1 className="font-headline-md text-headline-md text-on-surface mb-2">
+        <h1 className="font-headline-md text-2xl md:text-headline-md text-on-surface mb-2 font-bold">
           Lịch sử mua hàng
         </h1>
         <p className="font-body-md text-body-md text-on-surface-variant">
@@ -190,7 +200,7 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`whitespace-nowrap px-4 py-3 transition-colors ${
+            className={`whitespace-nowrap px-4 py-3 transition-all ${
               activeTab === tab
                 ? "text-primary font-bold border-b-2 border-primary"
                 : "text-on-surface-variant font-medium hover:text-primary"
@@ -202,24 +212,45 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
         <div className="md:col-span-2 relative">
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
-            size={18}
+            size={20}
           />
           <input
-            type="search"
+            className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-xl focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 outline-none transition-all"
+            placeholder="Tìm kiếm theo mã đơn (vd: #PKP-123456)..."
+            type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-xl focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 outline-none transition-all"
-            placeholder="Tìm kiếm theo mã đơn hoặc tên sản phẩm..."
           />
         </div>
-        <div className="relative flex items-center">
+        <div className="relative">
+          <ListFilter
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
+            size={20}
+          />
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-xl focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 outline-none appearance-none transition-all cursor-pointer"
+          >
+            {tabs.map((tab) => (
+              <option key={tab} value={tab}>
+                {tab === "Tất cả" ? "Tất cả trạng thái" : tab}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none"
+            size={16}
+          />
+        </div>
+        <div className="relative">
           <CalendarDays
-            className="absolute left-4 z-10 text-on-surface-variant pointer-events-none"
-            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
+            size={20}
           />
           <select
             value={timeFilter}
@@ -229,10 +260,11 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
             <option value="ALL">Tất cả thời gian</option>
             <option value="30">30 ngày qua</option>
             <option value="180">6 tháng qua</option>
+            <option value="2024">Năm 2024</option>
           </select>
           <ChevronDown
-            className="absolute right-4 z-10 text-on-surface-variant pointer-events-none"
-            size={18}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none"
+            size={16}
           />
         </div>
       </div>
@@ -240,139 +272,164 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
       {/* Order List */}
       <div className="flex flex-col gap-lg">
         {filteredOrders.length === 0 ? (
-          <div className="text-center py-10 text-muted">
-            Không tìm thấy đơn hàng nào phù hợp.
+          <div className="text-center py-20 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+            <PackageOpen
+              size={48}
+              className="mx-auto text-outline-variant mb-4"
+            />
+            <h3 className="font-headline-md text-on-surface mb-2 font-bold">
+              Không tìm thấy đơn hàng nào phù hợp
+            </h3>
+            <p className="text-muted">
+              Vui lòng thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.
+            </p>
           </div>
         ) : (
           filteredOrders.map((order) => {
-            const firstItem = order.items && order.items[0];
-            const extraCount = order.items ? order.items.length - 1 : 0;
-            const statusType = getStatusType(order.status);
-            const totalAmount = order.grandTotalAmount ?? order.total ?? 0;
             const formattedDate = order.createdAt
-              ? new Date(order.createdAt).toLocaleDateString("vi-VN", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : null;
+              ? new Date(order.createdAt).toLocaleDateString("vi-VN")
+              : "";
+
+            const itemsCount = order.items?.length || 0;
+            const hasMultipleItems = itemsCount > 1;
+            const mainItem = order.items?.[0];
+            const secondItem = order.items?.[1];
+
+            const statusType = getStatusType(order.status);
+            const isCompleted = statusType === "completed";
+
+            const badgeColor =
+              order.status === "CANCELLED"
+                ? "bg-error-container text-error"
+                : isCompleted
+                  ? "bg-outline-variant text-on-surface"
+                  : "bg-secondary-container text-on-secondary-container";
 
             return (
-              <article
+              <div
                 key={order.orderCode}
                 className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden hover:shadow-md transition-all"
               >
-                <div className="flex items-center justify-between p-4 bg-surface-container-low border-b border-outline-variant/20">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-container-low border-b border-outline-variant/20 gap-3">
+                  <div className="flex flex-wrap items-center gap-x-lg gap-y-2">
                     <span className="font-bold text-primary">
                       #{order.orderCode}
                     </span>
-                    {formattedDate && (
-                      <span className="text-xs text-muted">
-                        ({formattedDate})
-                      </span>
-                    )}
+                    <span className="text-on-surface-variant text-sm flex items-center gap-1">
+                      <CalendarDays size={16} /> {formattedDate}
+                    </span>
                   </div>
-                  <div
-                    className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      statusType === "active"
-                        ? "bg-secondary-container text-on-secondary-container"
-                        : "bg-outline-variant text-on-surface"
-                    }`}
-                  >
-                    {statusType === "active" ? (
-                      <Truck size={16} />
-                    ) : (
-                      <CheckCircle2 size={16} />
-                    )}{" "}
-                    {getStatusText(order.status)}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-surface border border-outline-variant text-on-surface rounded-full text-xs font-bold uppercase tracking-wider">
+                      <CreditCard size={14} />
+                      Đã thanh toán
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeColor}`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle2 size={14} />
+                      ) : (
+                        <Truck size={14} />
+                      )}
+                      {getStatusText(order.status)}
+                    </div>
                   </div>
                 </div>
 
                 <div className="p-6 flex flex-col md:flex-row gap-lg">
-                  <div className="w-24 h-24 bg-surface-container rounded-lg p-2 flex items-center justify-center shrink-0 border border-outline-variant/20 overflow-hidden">
-                    {firstItem?.imageUrl ? (
-                      <img
-                        src={firstItem.imageUrl}
-                        alt={firstItem.productName}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <PackageOpen size={40} className="text-muted" />
+                  <div className="flex gap-2 shrink-0 overflow-hidden relative">
+                    {mainItem && (
+                      <div className="w-24 h-24 bg-surface-container rounded-lg p-2 flex items-center justify-center shrink-0 border border-outline-variant/20">
+                        <img
+                          src={mainItem.imageUrl || ""}
+                          alt={mainItem.productName}
+                          className="max-w-full max-h-full object-contain mix-blend-multiply"
+                        />
+                      </div>
+                    )}
+                    {secondItem && (
+                      <div className="w-24 h-24 bg-surface-container rounded-lg p-2 flex items-center justify-center shrink-0 relative border border-outline-variant/20 hidden sm:flex">
+                        <img
+                          src={secondItem.imageUrl || ""}
+                          alt={secondItem.productName}
+                          className="max-w-full max-h-full object-contain opacity-40 mix-blend-multiply"
+                        />
+                        {itemsCount > 2 && (
+                          <div className="absolute inset-0 flex items-center justify-center font-bold text-on-surface-variant bg-surface-container/30 backdrop-blur-sm rounded-lg">
+                            +{itemsCount - 2}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  <div className="flex-1 flex flex-col md:flex-row justify-between gap-lg min-w-0">
-                    <div className="min-w-0">
-                      {firstItem && (
-                        <>
-                          <h4
-                            className="font-headline-md text-headline-md text-on-surface mb-1 truncate"
-                            title={firstItem.productName}
-                          >
-                            {firstItem.productName}
-                          </h4>
-                          <p className="text-on-surface-variant text-sm mb-2">
-                            {firstItem.ram ||
-                            firstItem.storage ||
-                            firstItem.color ? (
-                              <span className="inline-block bg-surface-soft px-2 py-0.5 rounded text-xs text-on-surface font-medium mr-2">
-                                {[
-                                  firstItem.ram,
-                                  firstItem.storage,
-                                  firstItem.color,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" - ")}
-                              </span>
-                            ) : null}
-                            Số lượng: x{firstItem.quantity}
-                          </p>
-                          {extraCount > 0 && (
-                            <p className="text-xs text-secondary italic mb-2">
-                              (Và {extraCount} sản phẩm khác...)
-                            </p>
-                          )}
-                        </>
-                      )}
-
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-muted">
-                          Tổng thanh toán:
+                  <div className="flex-1 flex flex-col md:flex-row justify-between gap-lg">
+                    <div>
+                      <h4 className="font-headline-md text-lg text-on-surface mb-1 font-bold">
+                        Đơn hàng gồm {itemsCount} sản phẩm
+                      </h4>
+                      <p className="text-on-surface-variant font-body-md mb-2 truncate max-w-sm">
+                        {mainItem?.productName}{" "}
+                        {hasMultipleItems &&
+                          `, ${secondItem?.productName}${
+                            itemsCount > 2 ? " ..." : ""
+                          }`}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-on-surface-variant font-medium text-sm">
+                          Tổng cộng:
                         </span>
                         <span className="font-bold text-lg text-primary">
-                          {formatCurrency(totalAmount)}
+                          {formatCurrency(
+                            order.grandTotalAmount ?? order.total ?? 0,
+                          )}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex flex-wrap md:flex-col justify-end gap-2 md:min-w-[140px]">
-                      <Link
-                        to={`/account/tracking?orderCode=${order.orderCode}`}
-                        className="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-center transition-colors active:scale-95 bg-secondary-container text-on-secondary-container hover:bg-secondary"
-                      >
-                        Theo dõi
-                      </Link>
-                      {(order.status === "DELIVERED" ||
-                        order.status === "COMPLETED") && (
+                      {isCompleted ? (
+                        <>
+                          {order.status === "COMPLETED" ||
+                          order.status === "DELIVERED" ? (
+                            <Link
+                              to="/account/reviews"
+                              className="flex-1 md:flex-none flex items-center justify-center px-6 py-2.5 bg-surface text-on-surface border border-outline rounded-lg font-bold hover:bg-surface-container transition-colors active:scale-95"
+                            >
+                              Đánh giá
+                            </Link>
+                          ) : null}
+                          <Link
+                            to={`/home`}
+                            className="flex-1 md:flex-none flex items-center justify-center px-6 py-2.5 bg-secondary-container text-on-secondary-container rounded-lg font-bold hover:bg-secondary transition-colors active:scale-95"
+                          >
+                            Mua lại
+                          </Link>
+                        </>
+                      ) : (
                         <Link
-                          to="/account/reviews"
-                          className="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-center transition-colors active:scale-95 bg-surface text-on-surface border border-outline hover:bg-surface-container"
+                          to={`/account/tracking?orderCode=${order.orderCode}`}
+                          className="flex-1 md:flex-none flex items-center justify-center px-6 py-2.5 bg-primary text-on-primary rounded-lg font-bold hover:bg-secondary transition-colors active:scale-95"
                         >
-                          Đánh giá
+                          Theo dõi
                         </Link>
                       )}
+                      <Link
+                        to={`/account/orders/${order.orderCode}`}
+                        className="flex-1 md:flex-none flex items-center justify-center px-6 py-2.5 border border-primary text-primary rounded-lg font-bold hover:bg-primary-fixed-dim/20 transition-colors active:scale-95"
+                      >
+                        Xem chi tiết
+                      </Link>{" "}
                     </div>
                   </div>
                 </div>
-              </article>
+              </div>
             );
           })
         )}
       </div>
-    </>
+    </div>
   );
 }
 

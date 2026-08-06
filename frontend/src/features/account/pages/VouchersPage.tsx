@@ -181,7 +181,7 @@ export function VouchersPage() {
   };
 
   return (
-    <AccountShell>
+    <AccountShell title="Kho mã giảm giá">
       {/* Dynamic Scoped Styles for the Coupon rendering */}
       <style>{`
         .bento-grid {
