@@ -246,7 +246,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     
     private User getUser(String username) {
-        return userRepository.findByUsername(username)
+        return userRepository.findByLoginIdentifier(username)
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User not found"));
     }
     

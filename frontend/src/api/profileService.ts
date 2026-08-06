@@ -24,10 +24,13 @@ export const fetchProfile = async (): Promise<User | null> => {
 
 export const fetchMyOrders = async (): Promise<any[]> => {
   try {
-    const response = await apiClient.get("/me/orders");
+    const response = await apiClient.get("/me/orders?page=1&size=100");
     if (response.data) {
       if (Array.isArray(response.data.items)) {
         return response.data.items;
+      }
+      if (Array.isArray(response.data.content)) {
+        return response.data.content;
       }
       if (Array.isArray(response.data)) {
         return response.data;
