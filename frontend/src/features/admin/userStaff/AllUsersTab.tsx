@@ -211,7 +211,17 @@ export function AllUsersTab() {
                 key: "status",
                 label: record.status === "BỊ KHÓA" ? "Mở khóa tài khoản" : "Khóa tài khoản",
                 danger: record.status !== "BỊ KHÓA",
-                onClick: () => message.success(`Đã cập nhật trạng thái tài khoản ${record.name}`),
+                onClick: async () => {
+                  try {
+                    const nextStatus = record.status === "BỊ KHÓA" ? "ACTIVE" : "LOCKED";
+                    await userStaffService.changeUserAccountStatus(String(record.id), nextStatus);
+                    await userStaffService.fetchUsersFromBackend();
+                    setReloadKey((value) => value + 1);
+                    message.success(nextStatus === "ACTIVE" ? "Đã mở khóa tài khoản." : "Đã khóa tài khoản.");
+                  } catch {
+                    message.error("Không thể cập nhật trạng thái tài khoản.");
+                  }
+                },
               },
             ],
           }}

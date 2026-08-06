@@ -28,7 +28,7 @@ import java.util.UUID;
 @Tag(name = "8. Coupons Admin")
 @RestController
 @RequestMapping("/api/v1/admin/coupons")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyAuthority('PROMOTION_VIEW', 'PROMOTION_MANAGE') or hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminCouponController {
@@ -36,6 +36,7 @@ public class AdminCouponController {
     private final CouponService couponService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('PROMOTION_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<CouponResponse> createCoupon(@Valid @RequestBody CouponCreateRequest request) {
         CouponResponse response = couponService.createCoupon(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -47,6 +48,7 @@ public class AdminCouponController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAuthority('PROMOTION_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<CouponResponse> updateCoupon(@PathVariable UUID id, @Valid @RequestBody CouponUpdateRequest request) {
         return ResponseEntity.ok(couponService.updateCoupon(id, request));
     }
@@ -60,6 +62,7 @@ public class AdminCouponController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PROMOTION_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<CouponResponse> updateStatus(
             @PathVariable UUID id,
             @RequestParam CouponStatus status) {
@@ -67,6 +70,7 @@ public class AdminCouponController {
     }
 
     @PostMapping("/{id}/targets")
+    @PreAuthorize("hasAuthority('PROMOTION_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<CouponResponse> assignTargets(
             @PathVariable UUID id,
             @Valid @RequestBody CouponTargetsRequest request) {

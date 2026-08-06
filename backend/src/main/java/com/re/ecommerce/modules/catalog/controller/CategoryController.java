@@ -37,7 +37,7 @@ public class CategoryController {
     // --- ADMIN ENDPOINTS ---
 
     @GetMapping("/admin/categories")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasRole('ADMIN')")
     public ResponseEntity<List<CategoryResponse>> adminListCategories(
             @RequestParam(required = false) CategoryStatus status,
             @RequestParam(required = false) String keyword) {
@@ -46,7 +46,7 @@ public class CategoryController {
     }
 
     @PostMapping("/admin/categories")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request) {
 
         CategoryResponse response = categoryService.createCategory(request);
@@ -54,14 +54,14 @@ public class CategoryController {
     }
 
     @GetMapping("/admin/categories/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable UUID categoryId) {
 
         return ResponseEntity.ok(categoryService.getCategoryById(categoryId));
     }
 
     @PatchMapping("/admin/categories/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('PRODUCT_UPDATE') or hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable UUID categoryId,
             @Valid @RequestBody CategoryRequest request) {
@@ -70,7 +70,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/admin/categories/{categoryId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('PRODUCT_UPDATE') or hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> changeCategoryStatus(
             @PathVariable UUID categoryId,
             @RequestParam CategoryStatus status) {

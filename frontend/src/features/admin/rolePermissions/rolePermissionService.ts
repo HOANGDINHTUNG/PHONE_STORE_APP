@@ -529,4 +529,10 @@ export const rolePermissionService = {
     localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify([record, ...this.getAssignments()]));
     return record;
   },
+
+  async revokeRole(assignment: Pick<RoleAssignmentRecord, "id" | "userId">, reason: string) {
+    await apiClient.post(`/admin/users/${assignment.userId}/role-assignments/${assignment.id}/revoke`, null, {
+      params: { reason },
+    });
+  },
 };

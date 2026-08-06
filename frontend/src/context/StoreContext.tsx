@@ -137,6 +137,11 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
       }
 
       try {
+      // if (token) {
+      //   let profile = await fetchProfile();
+      //   if (profile) {
+      //     setUser((currentUser) => ({ ...profile, role: currentUser?.role || profile?.role || "USER", permissions: currentUser?.permissions || [], adminPortal: currentUser?.adminPortal || false }));
+      //   }
         const dbWishlist = await fetchWishlist();
         if (dbWishlist && dbWishlist.length > 0) {
           setWishlist(dbWishlist);

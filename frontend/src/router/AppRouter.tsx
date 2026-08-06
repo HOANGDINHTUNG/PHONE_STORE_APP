@@ -1,5 +1,5 @@
 import React from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
 import { HomePage } from "../features/home/pages/HomePage";
 import Login from "../pages/Login";
@@ -38,7 +38,8 @@ import { AdminLoginPage } from "../features/admin/AdminLoginPage";
 import { AdminRouteGuard } from "../features/admin/AdminRouteGuard";
 import { AdminLayout } from "../features/admin/AdminLayout";
 import { AdminDashboardPage } from "../features/admin/AdminDashboardPage";
-import { AdminPlaceholderPage } from "../features/admin/AdminPlaceholderPage";
+import { AdminSettingsPage } from "../features/admin/AdminSettingsPage";
+import { AdminSupportArticlePage, AdminSupportPage } from "../features/admin/AdminSupportPages";
 import { ProcurementListPage } from "../features/admin/procurement/ProcurementListPage";
 import { ProcurementDetailPage } from "../features/admin/procurement/ProcurementDetailPage";
 import { AfterSalesPage } from "../features/admin/afterSales/AfterSalesPage";
@@ -118,11 +119,13 @@ export const router = createBrowserRouter([
       { path: "payments/:paymentId", element: <AdminPaymentDetailPage /> },
       { path: "refunds", element: <AdminRefundQueuePage /> },
       { path: "shipping", element: <AdminShipmentsPage /> },
+      // Legacy redirect: detail/create pages previously navigated to /admin/shipments.
+      { path: "shipments", element: <Navigate to="/admin/shipping" replace /> },
       { path: "shipments/new", element: <AdminShipmentCreatePage /> },
       { path: "shipments/:shipmentId", element: <AdminShipmentDetailPage /> },
       { path: "inventory", element: <AdminWarehouseManagementPage /> },
       { path: "inventory/new", element: <AdminWarehouseCreatePage /> },
-      { path: "inventory/balances", element: <AdminInventoryEntitiesPage /> },
+      { path: "inventory/balances", element: <AdminInventoryBalancesPage /> },
       { path: "inventory/alerts", element: <AdminReorderAlertsPage /> },
       { path: "inventory/history", element: <AdminStockLedgerPage /> },
       { path: "inventory/ledger", element: <AdminStockLedgerPage /> },
@@ -149,16 +152,17 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         element: (
-          <AdminPlaceholderPage
+          <AdminSettingsPage
             title="Settings"
             description="Cấu hình vận hành cho hệ thống quản trị PinkPhone."
           />
         ),
       },
+      { path: "support/:slug", element: <AdminSupportArticlePage /> },
       {
         path: "support",
         element: (
-          <AdminPlaceholderPage
+          <AdminSupportPage
             title="Support"
             description="Kênh hỗ trợ dành cho nhân sự quản trị."
           />

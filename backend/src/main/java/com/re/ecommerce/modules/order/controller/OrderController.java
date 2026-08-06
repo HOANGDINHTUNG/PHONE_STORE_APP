@@ -86,7 +86,7 @@ public class OrderController {
     }
 
     @GetMapping("/admin/orders")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ORDER_VIEW', 'ORDER_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<PagedResponse<OrderResponse>> getAdminOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
@@ -94,7 +94,7 @@ public class OrderController {
     }
 
     @PostMapping("/admin/orders/{orderId}/confirm")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> confirmOrder(
             Authentication auth,
             @PathVariable UUID orderId) {
@@ -103,13 +103,13 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/admin/orders/{orderId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ORDER_VIEW', 'ORDER_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> getAdminOrder(@PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.getAdminOrder(orderId));
     }
 
     @PostMapping("/admin/orders/{orderId}/cancel")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> cancelAdminOrder(
             @PathVariable UUID orderId,
             @RequestParam String reason) {
@@ -117,7 +117,7 @@ public class OrderController {
     }
 
     @PostMapping("/admin/orders/{orderId}/start-processing")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> startProcessing(@PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.startProcessing(orderId));
     }

@@ -14,6 +14,7 @@ import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
 import { adminCatalogService } from "../../api/adminCatalogService";
+import { useStore } from "../../context/StoreContext";
 
 type OrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPING" | "COMPLETED" | "CANCELLED" | "PARTIALLY_RETURNED" | "RETURNED";
 type TimeRange = "today" | "month" | "all";
@@ -50,6 +51,8 @@ function startsAt(range: TimeRange) {
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
+  const { user } = useStore();
+  const canViewAudit = user?.role === "ADMIN" || user?.permissions?.includes("AUDIT_VIEW");
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [totalOrders, setTotalOrders] = useState(0);
   const [productCount, setProductCount] = useState(0);
@@ -59,9 +62,14 @@ export function AdminDashboardPage() {
   const loadDashboard = async () => {
     setLoading(true);
     try {
+      const isAdmin = user?.role === "ADMIN";
+      const canViewOrders = isAdmin || user?.permissions?.some((permission) => ["ORDER_VIEW", "ORDER_MANAGE"].includes(permission));
+      const canViewProducts = isAdmin || user?.permissions?.some((permission) => ["PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_UPDATE"].includes(permission));
       const [orderResponse, products] = await Promise.all([
-        apiClient.get<PagedResponse<AdminOrder>>("/admin/orders", { params: { page: 1, size: 100 } }).then((response) => response.data),
-        adminCatalogService.getProducts(),
+        canViewOrders
+          ? apiClient.get<PagedResponse<AdminOrder>>("/admin/orders", { params: { page: 1, size: 100 } }).then((response) => response.data)
+          : Promise.resolve({ items: [], page: { totalElements: 0 } } as PagedResponse<AdminOrder>),
+        canViewProducts ? adminCatalogService.getProducts() : Promise.resolve([]),
       ]);
       setOrders(orderResponse.items || []);
       setTotalOrders(orderResponse.page?.totalElements || 0);
@@ -123,7 +131,7 @@ export function AdminDashboardPage() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[0.9fr_1.9fr]">
-        <article className="overflow-hidden rounded-xl border border-[#eed2db] bg-white"><div className="flex items-center justify-between border-b border-[#f3dce4] px-5 py-4"><h2 className="text-lg font-black text-slate-950">Hoạt động vận hành</h2><button onClick={() => navigate("/admin/audit-logs")} className="text-sm font-bold text-[#d92e70]">Tất cả</button></div><div className="space-y-5 p-5 text-sm">{recentOrders.length ? recentOrders.slice(0, 3).map((order) => <button key={order.id} onClick={() => navigate("/admin/orders")} className="relative block w-full border-l-2 border-[#f0cad7] pl-5 text-left"><span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-[#d92e70] ring-4 ring-white" /><div className="flex justify-between gap-3"><b>{statusLabel[order.status]}</b><span className="text-xs text-slate-400">{new Date(order.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span></div><p className="mt-1 leading-5 text-slate-600">Đơn hàng <b>{order.orderCode}</b> của {order.receiverName || order.contactName || "khách hàng"}.</p></button>) : <p className="text-slate-500">Chưa có hoạt động đơn hàng.</p>}</div></article>
+        <article className="overflow-hidden rounded-xl border border-[#eed2db] bg-white"><div className="flex items-center justify-between border-b border-[#f3dce4] px-5 py-4"><h2 className="text-lg font-black text-slate-950">Hoạt động vận hành</h2>{canViewAudit && <button onClick={() => navigate("/admin/audit-logs")} className="text-sm font-bold text-[#d92e70]">Tất cả</button>}</div><div className="space-y-5 p-5 text-sm">{recentOrders.length ? recentOrders.slice(0, 3).map((order) => <button key={order.id} onClick={() => navigate("/admin/orders")} className="relative block w-full border-l-2 border-[#f0cad7] pl-5 text-left"><span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-[#d92e70] ring-4 ring-white" /><div className="flex justify-between gap-3"><b>{statusLabel[order.status]}</b><span className="text-xs text-slate-400">{new Date(order.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span></div><p className="mt-1 leading-5 text-slate-600">Đơn hàng <b>{order.orderCode}</b> của {order.receiverName || order.contactName || "khách hàng"}.</p></button>) : <p className="text-slate-500">Chưa có hoạt động đơn hàng.</p>}</div></article>
         <article className="overflow-hidden rounded-xl border border-[#eed2db] bg-white"><div className="flex items-center justify-between border-b border-[#f3dce4] px-5 py-4"><h2 className="text-lg font-black text-slate-950">Đơn hàng mới nhất</h2><button onClick={() => navigate("/admin/orders")} className="rounded-xl bg-[#d92e70] px-3 py-2 text-sm font-bold text-white">Xem chi tiết</button></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-[#fffafb] text-[11px] uppercase tracking-wide text-slate-600"><tr><th className="px-5 py-3">Mã đơn</th><th className="px-5 py-3">Khách hàng</th><th className="px-5 py-3">Tổng tiền</th><th className="px-5 py-3">Trạng thái</th><th className="px-5 py-3">Thao tác</th></tr></thead><tbody>{recentOrders.length ? recentOrders.map((order) => <tr key={order.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4 font-bold text-[#d92e70]">{order.orderCode}</td><td className="px-5 py-4">{order.receiverName || order.contactName || "Khách vãng lai"}</td><td className="px-5 py-4 font-medium">{money(Number(order.grandTotalAmount || 0))}</td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${statusTone(order.status)}`}>{statusLabel[order.status]}</span></td><td className="px-5 py-4"><button onClick={() => navigate("/admin/orders")} aria-label="Xem đơn hàng"><Eye size={19} className="text-[#9c4e68]" /></button></td></tr>) : <tr><td colSpan={5} className="px-5 py-10 text-center text-slate-500">Chưa có đơn hàng.</td></tr>}</tbody></table></div></article>
       </section>
     </>}

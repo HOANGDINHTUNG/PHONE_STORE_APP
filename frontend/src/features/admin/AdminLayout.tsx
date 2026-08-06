@@ -55,6 +55,35 @@ const secondaryNavigation = [
   { label: "Support", to: "/admin/support", icon: CircleHelp },
 ];
 
+const permissionsByRoute: Record<string, string[]> = {
+  "/admin": ["DASHBOARD_VIEW"],
+  "/admin": ["DASHBOARD_VIEW"],
+  "/admin/categories": ["PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_UPDATE"],
+  "/admin/inventory": ["SCOPE_WAREHOUSE_VIEW", "SCOPE_WAREHOUSE_MANAGE", "SCOPE_INVENTORY_VIEW", "SCOPE_INVENTORY_MANAGE"],
+  "/admin/inventory/balances": ["SCOPE_INVENTORY_VIEW", "SCOPE_INVENTORY_MANAGE"],
+  "/admin/inventory/unit-details": ["SCOPE_INVENTORY_VIEW", "SCOPE_INVENTORY_MANAGE"],
+  "/admin/inventory/alerts": ["SCOPE_INVENTORY_VIEW", "SCOPE_INVENTORY_MANAGE"],
+  "/admin/inventory/history": ["SCOPE_INVENTORY_VIEW", "SCOPE_INVENTORY_MANAGE"],
+  "/admin/suppliers": ["SCOPE_SUPPLIER_VIEW", "SCOPE_SUPPLIER_MANAGE"],
+  "/admin/procurement": ["SCOPE_PO_VIEW", "SCOPE_PO_MANAGE", "SCOPE_PO_APPROVE"],
+  "/admin/products": ["PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_UPDATE"],
+  "/admin/variants": ["PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_UPDATE"],
+  "/admin/brands": ["PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_UPDATE"],
+  "/admin/users": ["USER_VIEW", "STAFF_CREATE"],
+  "/admin/roles": ["ROLE_MANAGE", "ASSIGN_MANAGE"],
+  "/admin/notifications": ["NOTIFICATION_VIEW"],
+  "/admin/banners": ["CONTENT_MANAGE"],
+  "/admin/news": ["CONTENT_MANAGE"],
+  "/admin/promotions": ["PROMOTION_MANAGE"],
+  "/admin/orders": ["ORDER_VIEW", "ORDER_MANAGE"],
+  "/admin/payments": ["PAYMENT_VIEW", "PAYMENT_MANAGE"],
+  "/admin/shipping": ["SHIPMENT_VIEW", "SHIPMENT_MANAGE"],
+  "/admin/after-sales": ["AFTER_SALES_VIEW", "AFTER_SALES_MANAGE"],
+  "/admin/audit-logs": ["AUDIT_VIEW"],
+  "/admin/settings": ["SETTINGS_MANAGE"],
+  "/admin/support": ["SUPPORT_VIEW", "SUPPORT_MANAGE"],
+};
+
 function NavigationLink({ item }: { item: (typeof navigation)[number] }) {
   const Icon = item.icon;
   return (
@@ -76,6 +105,15 @@ function NavigationLink({ item }: { item: (typeof navigation)[number] }) {
 export function AdminLayout() {
   const { user, logout } = useStore();
   const navigate = useNavigate();
+  const isAdmin = user?.role === "ADMIN";
+  const allowedNavigation = navigation.filter((item) => {
+    const required = permissionsByRoute[item.to];
+    return isAdmin || !required || required.some((permission) => user?.permissions?.includes(permission));
+  });
+  const allowedSecondaryNavigation = secondaryNavigation.filter((item) => {
+    const required = permissionsByRoute[item.to];
+    return isAdmin || !required || required.some((permission) => user?.permissions?.includes(permission));
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -99,7 +137,7 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
-          {navigation.map((item) => <NavigationLink key={item.to} item={item} />)}
+          {allowedNavigation.map((item) => <NavigationLink key={item.to} item={item} />)}
         </nav>
 
         <div className="border-t border-[#f2d1dc] p-3">
@@ -110,7 +148,7 @@ export function AdminLayout() {
             <FileDown size={17} /> Export Report
           </button>
           <div className="mt-3 space-y-1">
-            {secondaryNavigation.map((item) => <NavigationLink key={item.to} item={item} />)}
+            {allowedSecondaryNavigation.map((item) => <NavigationLink key={item.to} item={item} />)}
           </div>
         </div>
       </aside>

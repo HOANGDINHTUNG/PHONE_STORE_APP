@@ -28,7 +28,7 @@ public class BannerController {
     }
 
     @GetMapping("/admin/banners")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('CONTENT_VIEW', 'CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<List<BannerResponse>> getAdminBanners(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status) {
@@ -36,19 +36,19 @@ public class BannerController {
     }
 
     @PostMapping("/admin/banners")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<BannerResponse> createBanner(@Valid @RequestBody BannerRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bannerService.createBanner(request));
     }
 
     @PatchMapping("/admin/banners/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<BannerResponse> updateBanner(@PathVariable UUID id, @Valid @RequestBody BannerRequest request) {
         return ResponseEntity.ok(bannerService.updateBanner(id, request));
     }
 
     @PatchMapping("/admin/banners/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<BannerResponse> changeStatus(@PathVariable UUID id, @RequestParam String status) {
         return ResponseEntity.ok(bannerService.changeStatus(id, status));
     }

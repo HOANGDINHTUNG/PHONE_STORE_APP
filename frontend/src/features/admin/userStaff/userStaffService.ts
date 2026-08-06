@@ -227,6 +227,10 @@ export const userStaffService = {
     return this.getUsers();
   },
 
+  async changeUserAccountStatus(userId: string, status: "ACTIVE" | "LOCKED") {
+    await apiClient.patch(`/admin/users/${userId}/status`, null, { params: { status } });
+  },
+
   // Staff
   getStaff(): StaffMemberItem[] {
     try {
@@ -262,9 +266,9 @@ export const userStaffService = {
         return mapped;
       }
     } catch (e) {
-      console.warn("Backend API /admin/staff failed, using local database fallback", e);
+      console.warn("Backend API /admin/staff failed", e);
     }
-    return this.getStaff();
+    return [];
   },
 
   createStaff(payload: CreateStaffPayload): StaffMemberItem {

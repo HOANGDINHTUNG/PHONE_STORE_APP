@@ -36,7 +36,7 @@ public class SystemOperationsController {
 
     // --- Audit Logs ---
     @GetMapping("/admin/audit-logs")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AUDIT_VIEW') or hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public ResponseEntity<List<AuditLogResponse>> getAuditLogs() {
         return ResponseEntity.ok(auditLogRepository.findAll().stream()
@@ -46,7 +46,7 @@ public class SystemOperationsController {
     }
 
     @GetMapping("/admin/audit-logs/{logId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AUDIT_VIEW') or hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public ResponseEntity<AuditLogResponse> getAuditLog(@PathVariable UUID logId) {
         AuditLog auditLog = auditLogRepository.findById(logId).orElseThrow();
@@ -54,7 +54,7 @@ public class SystemOperationsController {
     }
 
     @PostMapping("/admin/audit-logs/export")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AUDIT_VIEW') or hasRole('ADMIN')")
     public ResponseEntity<?> exportAuditLogs() {
         return ResponseEntity.ok("file-link");
     }

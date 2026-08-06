@@ -13,7 +13,7 @@ export function AdminRouteGuard({ children }: AdminRouteGuardProps) {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (user.role !== "ADMIN") {
+  if (!user.adminPortal && user.role !== "ADMIN") {
     return <Navigate to="/" replace />;
   }
 

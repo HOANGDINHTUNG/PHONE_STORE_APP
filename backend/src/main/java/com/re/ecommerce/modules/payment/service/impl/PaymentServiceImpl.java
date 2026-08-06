@@ -16,6 +16,8 @@ import com.re.ecommerce.modules.payment.service.PaymentService;
 import com.re.ecommerce.modules.payment.utils.VNPayUtils;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.auth.entity.User;
+import com.re.ecommerce.modules.inventory.service.StockReservationService;
+import com.re.ecommerce.modules.order.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentWebhookEventRepository webhookEventRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final StockReservationService stockReservationService;
     
     private final VNPayConfig vnPayConfig;
 
@@ -270,9 +273,18 @@ public class PaymentServiceImpl implements PaymentService {
                                 attempt.setProviderMessage(vnp_TransactionNo);
                                 BigDecimal amount = new BigDecimal(vnp_Amount).divide(new BigDecimal(100));
                                 updatePaymentAggregate(attempt.getPayment(), amount);
+                                stockReservationService.confirmForFulfillment(attempt.getPayment().getOrder().getId());
                             } else {
                                 attempt.setStatus(PaymentAttemptStatus.FAILED);
                                 attempt.setProviderMessage("Response Code: " + vnp_ResponseCode);
+                                Order failedOrder = attempt.getPayment().getOrder();
+                                if (failedOrder.getStatus() == OrderStatus.PENDING) {
+                                    failedOrder.setStatus(OrderStatus.CANCELLED);
+                                    failedOrder.setCancelledAt(LocalDateTime.now());
+                                    failedOrder.setNote((failedOrder.getNote() == null ? "" : failedOrder.getNote() + " | ") + "Thanh toán thất bại");
+                                    stockReservationService.releaseForOrder(failedOrder.getId(), "Thanh toán thất bại");
+                                    orderRepository.save(failedOrder);
+                                }
                             }
                             paymentAttemptRepository.save(attempt);
                             paymentRepository.save(attempt.getPayment());

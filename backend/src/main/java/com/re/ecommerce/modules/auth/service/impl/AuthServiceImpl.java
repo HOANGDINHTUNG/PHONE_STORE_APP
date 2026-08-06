@@ -10,6 +10,7 @@ import com.re.ecommerce.modules.auth.entity.*;
 import com.re.ecommerce.modules.auth.repository.*;
 import com.re.ecommerce.modules.auth.service.AuthService;
 import com.re.ecommerce.security.JwtUtils;
+import com.re.ecommerce.security.EffectiveAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final EffectiveAccessService effectiveAccessService;
     private final com.re.ecommerce.common.service.impl.MailServiceImpl mailService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
@@ -79,7 +81,6 @@ public class AuthServiceImpl implements AuthService {
         // Generate email verification token conceptually (email sending would be async)
         createEmailVerificationToken(user);
 
-        String accessToken = jwtUtils.generateToken(user.getUsername(), user.getRole());
         String rawRefreshToken = UUID.randomUUID().toString();
         
         TokenFamily family = new TokenFamily(user, "Unknown Device", null, null);
@@ -87,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
         
         createRefreshToken(user, rawRefreshToken, family.getId(), null, null);
 
-        return new AuthResponse(accessToken, rawRefreshToken, user.getUsername(), user.getRole());
+        return issueResponse(user, rawRefreshToken, null);
     }
 
     @Override
@@ -109,7 +110,6 @@ public class AuthServiceImpl implements AuthService {
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
-        String token = jwtUtils.generateToken(user.getUsername(), user.getRole());
         String rawRefreshToken = UUID.randomUUID().toString();
         
         TokenFamily family = new TokenFamily(user, "Unknown Device", ipAddress, userAgent);
@@ -117,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
         
         createRefreshToken(user, rawRefreshToken, family.getId(), ipAddress, userAgent);
 
-        return new AuthResponse(token, rawRefreshToken, user.getUsername(), user.getRole());
+        return issueResponse(user, rawRefreshToken, null);
     }
 
     @Override
@@ -144,14 +144,13 @@ public class AuthServiceImpl implements AuthService {
         existingToken.setRevokedAt(LocalDateTime.now());
         existingToken.setRevokedReason("ROTATED");
         
-        String accessToken = jwtUtils.generateToken(user.getUsername(), user.getRole());
         String newRawRefreshToken = UUID.randomUUID().toString();
         
         RefreshToken newRefreshToken = createRefreshToken(user, newRawRefreshToken, existingToken.getTokenFamilyId(), ipAddress, userAgent);
         existingToken.setReplacedByToken(newRefreshToken);
         refreshTokenRepository.save(existingToken);
 
-        return new AuthResponse(accessToken, newRawRefreshToken, user.getUsername(), user.getRole());
+        return issueResponse(user, newRawRefreshToken, existingToken.getTokenFamilyId().toString());
     }
 
     @Override
@@ -301,6 +300,13 @@ public class AuthServiceImpl implements AuthService {
                 userAgent
         );
         return refreshTokenRepository.save(token);
+    }
+
+    private AuthResponse issueResponse(User user, String refreshToken, String familyId) {
+        var permissions = effectiveAccessService.permissionsOf(user);
+        boolean adminPortal = effectiveAccessService.canAccessAdmin(user, permissions);
+        String accessToken = jwtUtils.generateToken(user.getUsername(), user.getRole(), familyId, permissions, adminPortal);
+        return new AuthResponse(accessToken, refreshToken, "Bearer", user.getUsername(), user.getRole(), permissions, adminPortal);
     }
 
     private void createEmailVerificationToken(User user) {

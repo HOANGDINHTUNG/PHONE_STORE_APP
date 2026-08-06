@@ -119,3 +119,27 @@
   font-weight: 400 !important;
   letter-spacing: 0;
 }
+
+/* The employee form Modal is also rendered in an Ant Design portal. */
+.admin-staff-modal,
+.admin-staff-modal .ant-modal-content,
+.admin-staff-modal .ant-modal-header,
+.admin-staff-modal .ant-modal-body,
+.admin-staff-modal button,
+.admin-staff-modal input,
+.admin-staff-modal .ant-select,
+.admin-staff-table,
+.admin-staff-table .ant-table,
+.admin-staff-table .ant-pagination {
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, Arial, sans-serif !important;
+  font-synthesis: none;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.admin-staff-modal .ant-modal-title,
+.admin-staff-modal .ant-form-item-label > label,
+.admin-staff-table th {
+  font-weight: 600 !important;
+}

@@ -31,7 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/refunds")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyAuthority('PAYMENT_VIEW', 'REFUND_MANAGE') or hasRole('ADMIN')")
 public class RefundController {
 
     private final RefundRepository refundRepository;
@@ -78,6 +78,7 @@ public class RefundController {
     }
 
     @PostMapping("/{refundId}/execute")
+    @PreAuthorize("hasAuthority('REFUND_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> executeRefund(
             @PathVariable Long refundId,
             @AuthenticationPrincipal User currentUser) {

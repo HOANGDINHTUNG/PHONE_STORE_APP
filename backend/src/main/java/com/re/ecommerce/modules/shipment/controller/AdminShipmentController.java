@@ -12,6 +12,7 @@ import com.re.ecommerce.modules.shipment.dto.request.UpdateShipmentTrackingReque
 import com.re.ecommerce.modules.shipment.dto.response.AdminShipmentDetailResponse;
 import com.re.ecommerce.modules.shipment.dto.response.AdminShipmentItemResponse;
 import com.re.ecommerce.modules.shipment.dto.response.AdminShipmentResponse;
+import com.re.ecommerce.modules.shipment.dto.response.ShipmentWarehouseRecommendationResponse;
 import com.re.ecommerce.modules.shipment.entity.Shipment;
 import com.re.ecommerce.modules.shipment.entity.ShipmentItem;
 import com.re.ecommerce.modules.shipment.repository.ShipmentItemRepository;
@@ -36,7 +37,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/shipments")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyAuthority('SHIPMENT_VIEW', 'SHIPMENT_MANAGE') or hasRole('ADMIN')")
 public class AdminShipmentController {
     private final ShipmentRepository shipmentRepository;
     private final ShipmentItemRepository shipmentItemRepository;
@@ -60,6 +61,12 @@ public class AdminShipmentController {
                 .map(this::toWarehouseResponse).toList());
     }
 
+    @GetMapping("/orders/{orderId}/warehouse-recommendations")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<ShipmentWarehouseRecommendationResponse>> warehouseRecommendations(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(shipmentService.recommendWarehouses(orderId));
+    }
+
     @GetMapping("/{shipmentId}")
     @Transactional(readOnly = true)
     public ResponseEntity<AdminShipmentDetailResponse> get(@PathVariable Long shipmentId) {
@@ -67,6 +74,7 @@ public class AdminShipmentController {
     }
 
     @PostMapping("/orders/{orderId}")
+    @PreAuthorize("hasAuthority('SHIPMENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<AdminShipmentDetailResponse> create(
             @PathVariable UUID orderId,
             @Valid @RequestBody CreateShipmentRequest request,
@@ -76,6 +84,7 @@ public class AdminShipmentController {
     }
 
     @PatchMapping("/{shipmentId}/tracking")
+    @PreAuthorize("hasAuthority('SHIPMENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<AdminShipmentDetailResponse> updateTracking(
             @PathVariable Long shipmentId, @Valid @RequestBody UpdateShipmentTrackingRequest request) {
         shipmentService.updateTracking(shipmentId, request);
@@ -83,6 +92,7 @@ public class AdminShipmentController {
     }
 
     @PatchMapping("/{shipmentId}/status")
+    @PreAuthorize("hasAuthority('SHIPMENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<AdminShipmentDetailResponse> updateStatus(
             @PathVariable Long shipmentId, @Valid @RequestBody ChangeShipmentStatusRequest request) {
         shipmentService.changeStatus(shipmentId, request);

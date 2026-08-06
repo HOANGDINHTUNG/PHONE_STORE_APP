@@ -5,6 +5,8 @@ export interface User {
   email: string;
   token?: string;
   role?: string;
+  permissions?: string[];
+  adminPortal?: boolean;
   customerCode?: string;
   avatarUrl?: string;
 }

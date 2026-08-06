@@ -5,6 +5,11 @@ import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.auth.entity.User;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.inventory.repository.WarehouseRepository;
+import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
+import com.re.ecommerce.modules.inventory.repository.StockReservationRepository;
+import com.re.ecommerce.modules.inventory.entity.WarehouseInventoryId;
+import com.re.ecommerce.modules.inventory.entity.enums.WarehouseStatus;
+import com.re.ecommerce.modules.inventory.entity.enums.ReservationStatus;
 import com.re.ecommerce.modules.inventory.entity.InventoryUnit;
 import com.re.ecommerce.modules.inventory.repository.InventoryUnitRepository;
 import com.re.ecommerce.modules.order.entity.Order;
@@ -15,6 +20,7 @@ import com.re.ecommerce.modules.shipment.dto.request.AssignShipmentUnitsRequest;
 import com.re.ecommerce.modules.shipment.dto.request.ChangeShipmentStatusRequest;
 import com.re.ecommerce.modules.shipment.dto.request.CreateShipmentRequest;
 import com.re.ecommerce.modules.shipment.dto.request.UpdateShipmentTrackingRequest;
+import com.re.ecommerce.modules.shipment.dto.response.ShipmentWarehouseRecommendationResponse;
 import com.re.ecommerce.modules.shipment.entity.Shipment;
 import com.re.ecommerce.modules.shipment.entity.ShipmentItem;
 import com.re.ecommerce.modules.shipment.entity.ShipmentItemUnit;
@@ -29,6 +35,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.text.Normalizer;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -43,6 +52,8 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
     private final WarehouseRepository warehouseRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
+    private final StockReservationRepository stockReservationRepository;
     private final InventoryUnitRepository inventoryUnitRepository;
 
     @Override
@@ -53,6 +64,9 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         var warehouse = warehouseRepository.findById(request.getWarehouseId())
                 .orElseThrow(() -> new ResourceNotFoundException("WAREHOUSE_NOT_FOUND", "Warehouse not found with id: " + request.getWarehouseId()));
+        if (warehouse.getStatus() != WarehouseStatus.ACTIVE) {
+            throw new BusinessConflictException("WAREHOUSE_INACTIVE", "The selected warehouse is inactive.");
+        }
 
         User staff = userRepository.findById(staffId).orElse(null);
 
@@ -86,6 +100,17 @@ public class ShipmentServiceImpl implements ShipmentService {
             long remaining = orderItem.getQuantity() - alreadyShipped;
             if (itemReq.getQuantity() <= 0 || itemReq.getQuantity() > remaining) {
                 throw new BusinessConflictException("SHIPMENT_QUANTITY_EXCEEDED", "Quantity to ship exceeds the remaining quantity.");
+            }
+            int available = warehouseInventoryRepository
+                    .findById(new WarehouseInventoryId(warehouse.getId(), orderItem.getProductVariant().getId()))
+                    .map(inventory -> inventory.getAvailableQuantity() == null
+                            ? inventory.getOnHandQuantity() - inventory.getReservedQuantity()
+                            : inventory.getAvailableQuantity())
+                    .orElse(0);
+            available += reservedForOrder(order.getId(), orderItem.getId(), warehouse.getId());
+            if (itemReq.getQuantity() > available) {
+                throw new BusinessConflictException("WAREHOUSE_STOCK_INSUFFICIENT",
+                        "The selected warehouse does not have enough stock for SKU " + orderItem.getSku() + ".");
             }
 
             ShipmentItem shipmentItem = ShipmentItem.builder()
@@ -163,4 +188,87 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         shipmentRepository.save(shipment);
     }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ShipmentWarehouseRecommendationResponse> recommendWarehouses(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found with id: " + orderId));
+        var remainingItems = orderItemRepository.findByOrderId(orderId).stream()
+                .map(item -> new RemainingOrderItem(item, Math.max(0, item.getQuantity() - java.util.Optional
+                        .ofNullable(shipmentItemRepository.totalShippedQuantityByOrderItemId(item.getId())).orElse(0L).intValue())))
+                .filter(item -> item.quantity() > 0)
+                .toList();
+
+        return warehouseRepository.findAll().stream()
+                .filter(warehouse -> warehouse.getStatus() == WarehouseStatus.ACTIVE)
+                .map(warehouse -> recommendationFor(warehouse, order, remainingItems))
+                .sorted(Comparator
+                        .comparing(ShipmentWarehouseRecommendationResponse::canFulfill).reversed()
+                        .thenComparing(ShipmentWarehouseRecommendationResponse::locationScore).reversed()
+                        .thenComparing(ShipmentWarehouseRecommendationResponse::fulfilledItemCount).reversed()
+                        .thenComparing(ShipmentWarehouseRecommendationResponse::warehouseName))
+                .toList();
+    }
+
+    private ShipmentWarehouseRecommendationResponse recommendationFor(
+            com.re.ecommerce.modules.inventory.entity.Warehouse warehouse,
+            Order order,
+            List<RemainingOrderItem> remainingItems) {
+        int fulfilled = 0;
+        List<String> unavailableSkus = new java.util.ArrayList<>();
+        for (RemainingOrderItem remaining : remainingItems) {
+            int available = warehouseInventoryRepository.findById(new WarehouseInventoryId(warehouse.getId(), remaining.item().getProductVariant().getId()))
+                    .map(inventory -> inventory.getAvailableQuantity() == null
+                            ? inventory.getOnHandQuantity() - inventory.getReservedQuantity()
+                            : inventory.getAvailableQuantity())
+                    .orElse(0);
+            available += reservedForOrder(order.getId(), remaining.item().getId(), warehouse.getId());
+            if (available >= remaining.quantity()) fulfilled++;
+            else unavailableSkus.add(remaining.item().getSku());
+        }
+        int required = remainingItems.size();
+        boolean canFulfill = required > 0 && fulfilled == required;
+        int locationScore = locationScore(warehouse, order);
+        String reason = canFulfill
+                ? (locationScore >= 100 ? "Đủ hàng và cùng khu vực nhận" : "Đủ toàn bộ hàng")
+                : "Thiếu tồn: " + String.join(", ", unavailableSkus);
+        return new ShipmentWarehouseRecommendationResponse(warehouse.getId(), warehouse.getCode(), warehouse.getName(),
+                warehouse.getAddress(), canFulfill, fulfilled, required, locationScore, reason);
+    }
+
+    private int locationScore(com.re.ecommerce.modules.inventory.entity.Warehouse warehouse, Order order) {
+        String warehouseText = normalise(warehouse.getName() + " " + warehouse.getAddress());
+        String province = normalise(order.getShippingProvinceName());
+        String district = normalise(order.getShippingDistrictName());
+        int score = 0;
+        if (!province.isBlank() && containsLocation(warehouseText, province)) score += 100;
+        if (!district.isBlank() && containsLocation(warehouseText, district)) score += 25;
+        return score;
+    }
+
+    private boolean containsLocation(String warehouseText, String location) {
+        if (warehouseText.contains(location)) return true;
+        return (location.contains("ho chi minh") && (warehouseText.contains("hcm") || warehouseText.contains("thanh pho ho chi minh")))
+                || (location.contains("ha noi") && warehouseText.contains("hn"));
+    }
+
+    private String normalise(String value) {
+        if (value == null) return "";
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(java.util.Locale.ROOT)
+                .replaceAll("[^a-z0-9 ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    private int reservedForOrder(UUID orderId, UUID orderItemId, UUID warehouseId) {
+        return stockReservationRepository.findByOrderItemIdAndStatus(orderItemId, ReservationStatus.ACTIVE).stream()
+                .filter(reservation -> reservation.getOrderId().equals(orderId)
+                        && reservation.getWarehouse().getId().equals(warehouseId))
+                .mapToInt(reservation -> reservation.getQuantity() == null ? 0 : reservation.getQuantity())
+                .sum();
+    }
+
+    private record RemainingOrderItem(OrderItem item, int quantity) { }
 }

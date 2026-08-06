@@ -23,7 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/notifications")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyAuthority('NOTIFICATION_VIEW', 'NOTIFICATION_RETRY') or hasRole('ADMIN')")
 public class AdminNotificationController {
 
     private final NotificationRepository notificationRepository;
@@ -74,6 +74,7 @@ public class AdminNotificationController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('NOTIFICATION_RETRY') or hasRole('ADMIN')")
     @Transactional
     public ResponseEntity<NotificationResponse> create(@Valid @RequestBody NotificationRequest request) {
         if (request.userId() == null) {
@@ -85,6 +86,7 @@ public class AdminNotificationController {
     }
 
     @PostMapping("/broadcast")
+    @PreAuthorize("hasAuthority('NOTIFICATION_RETRY') or hasRole('ADMIN')")
     @Transactional
     public ResponseEntity<List<NotificationResponse>> broadcast(@Valid @RequestBody BroadcastRequest request) {
         List<User> recipients = request.userIds() == null || request.userIds().isEmpty()

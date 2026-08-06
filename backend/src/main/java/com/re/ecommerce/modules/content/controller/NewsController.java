@@ -28,7 +28,7 @@ public class NewsController {
     }
 
     @GetMapping("/admin/news")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('CONTENT_VIEW', 'CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<List<NewsResponse>> getAdminNews(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status) {
@@ -36,19 +36,19 @@ public class NewsController {
     }
 
     @PostMapping("/admin/news")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<NewsResponse> createNews(@Valid @RequestBody NewsRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(newsService.createNews(request));
     }
 
     @PatchMapping("/admin/news/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<NewsResponse> updateNews(@PathVariable UUID id, @Valid @RequestBody NewsRequest request) {
         return ResponseEntity.ok(newsService.updateNews(id, request));
     }
 
     @PatchMapping("/admin/news/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONTENT_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<NewsResponse> changeStatus(@PathVariable UUID id, @RequestParam String status) {
         return ResponseEntity.ok(newsService.changeStatus(id, status));
     }

@@ -26,7 +26,7 @@ import java.util.UUID;
 @Tag(name = "15. Admin Return")
 @RestController
 @RequestMapping("/api/v1/admin/return-requests")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyAuthority('AFTER_SALES_VIEW', 'AFTER_SALES_MANAGE') or hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminReturnRequestController {
@@ -40,6 +40,7 @@ public class AdminReturnRequestController {
             BigDecimal totalRefundAmount, LocalDateTime createdAt) {}
 
     @PostMapping("/{returnId}/approve")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> approveReturnRequest(
             @PathVariable Long returnId,
             Authentication authentication) {
@@ -49,6 +50,7 @@ public class AdminReturnRequestController {
     }
     
     @PostMapping("/{returnId}/reject")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> rejectReturnRequest(
             @PathVariable Long returnId,
             @RequestParam String reason,
@@ -59,6 +61,7 @@ public class AdminReturnRequestController {
     }
     
     @PostMapping("/{returnId}/receive")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> receiveReturnItems(
             @PathVariable Long returnId,
             Authentication authentication) {
@@ -68,6 +71,7 @@ public class AdminReturnRequestController {
     }
     
     @PostMapping("/{returnId}/inspect")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> inspectReturnRequest(
             @PathVariable Long returnId,
             @Valid @RequestBody InspectReturnRequest request,
@@ -78,6 +82,7 @@ public class AdminReturnRequestController {
     }
     
     @PostMapping("/{returnId}/complete")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> completeReturn(
             @PathVariable Long returnId,
             Authentication authentication) {

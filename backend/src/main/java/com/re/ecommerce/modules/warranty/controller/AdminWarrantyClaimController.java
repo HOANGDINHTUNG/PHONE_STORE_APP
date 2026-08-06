@@ -36,6 +36,7 @@ public class AdminWarrantyClaimController {
             String serialImei, String issueDescription, String resolution, LocalDateTime createdAt) {}
 
     @PatchMapping("/{claimId}/status")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<Void> changeClaimStatus(
             @PathVariable Long claimId,
             @Valid @RequestBody ChangeClaimStatusRequest request,
@@ -51,27 +52,27 @@ public class AdminWarrantyClaimController {
     }
     
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('AFTER_SALES_VIEW', 'AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminWarrantyClaimResponse>> getAdminWarrantyClaims() {
         return ResponseEntity.ok(warrantyClaimRepository.findAll().stream().map(this::toResponse).toList());
     }
 
     @GetMapping("/{claimId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('AFTER_SALES_VIEW', 'AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<AdminWarrantyClaimResponse> getAdminWarrantyClaim(@PathVariable Long claimId) {
         return ResponseEntity.ok(toResponse(warrantyClaimRepository.findById(claimId).orElseThrow()));
     }
 
     @PostMapping("/{claimId}/process")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<?> processClaim(@PathVariable Long claimId) {
         return ResponseEntity.ok(Collections.emptyMap());
     }
 
     @PostMapping("/{claimId}/complete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AFTER_SALES_MANAGE') or hasRole('ADMIN')")
     public ResponseEntity<?> completeClaim(@PathVariable Long claimId) {
         return ResponseEntity.ok(Collections.emptyMap());
     }

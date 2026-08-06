@@ -7,6 +7,8 @@ export interface AuthResponse {
   tokenType?: string;
   username?: string;
   role?: string;
+  permissions?: string[];
+  adminPortal?: boolean;
   user?: {
     id: string;
     fullName: string;
@@ -43,6 +45,8 @@ export const loginApi = async (
           (!emailOrPhone.includes("@") ? emailOrPhone : "0901234567"),
         token: token,
         role: u?.role || response.data.role,
+        permissions: response.data.permissions || [],
+        adminPortal: Boolean(response.data.adminPortal || (u?.role || response.data.role) === "ADMIN"),
       };
 
       if (remember) {
@@ -116,6 +120,8 @@ export const registerApi = async (details: {
         phone: u?.phone || details.phone,
         token: response.data.accessToken,
         role: u?.role || response.data.role,
+        permissions: response.data.permissions || [],
+        adminPortal: Boolean(response.data.adminPortal || (u?.role || response.data.role) === "ADMIN"),
       };
       sessionStorage.setItem("pinkphone_user", JSON.stringify(parsedUser));
       return parsedUser;

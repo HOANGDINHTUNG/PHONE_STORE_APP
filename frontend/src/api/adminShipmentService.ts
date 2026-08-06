@@ -16,12 +16,18 @@ export interface ShipmentDetail extends Omit<ShipmentSummary, "warehouseId" | "w
   receiverName?: string; receiverPhone?: string; destinationAddress?: string; items: ShipmentItem[];
 }
 export interface Warehouse { id: string; code: string; name: string; phone?: string; address?: string; status: string; }
+export interface WarehouseRecommendation {
+  warehouseId: string; warehouseCode: string; warehouseName: string; warehouseAddress?: string;
+  canFulfill: boolean; fulfilledItemCount: number; requiredItemCount: number;
+  locationScore: number; recommendationReason: string;
+}
 interface Paged<T> { items: T[]; page: { totalElements: number; totalPages: number; number: number; size: number }; }
 
 export const adminShipmentService = {
   getShipments: (page = 1, size = 100) => apiClient.get<Paged<ShipmentSummary>>("/admin/shipments", { params: { page, size } }).then((response) => response.data),
   getShipment: (id: number | string) => apiClient.get<ShipmentDetail>(`/admin/shipments/${id}`).then((response) => response.data),
   getWarehouses: () => apiClient.get<Warehouse[]>("/admin/shipments/warehouses").then((response) => response.data),
+  getWarehouseRecommendations: (orderId: string) => apiClient.get<WarehouseRecommendation[]>(`/admin/shipments/orders/${orderId}/warehouse-recommendations`).then((response) => response.data),
   createShipment: (orderId: string, payload: { warehouseId: string; shippingProvider: string; trackingCode?: string; shippingFee?: number; estimatedDeliveryAt?: string; items: { orderItemId: string; quantity: number }[] }) => apiClient.post<ShipmentDetail>(`/admin/shipments/orders/${orderId}`, payload).then((response) => response.data),
   updateStatus: (id: number, status: ShipmentStatus) => apiClient.patch<ShipmentDetail>(`/admin/shipments/${id}/status`, { status }).then((response) => response.data),
   updateTracking: (id: number, shippingProvider: string, trackingCode: string) => apiClient.patch<ShipmentDetail>(`/admin/shipments/${id}/tracking`, { shippingProvider, trackingCode }).then((response) => response.data),

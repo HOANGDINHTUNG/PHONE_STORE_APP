@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 @Component
@@ -25,14 +26,20 @@ public class JwtUtils {
     }
 
     public String generateToken(String username, String role) {
-        return generateToken(username, role, null);
+        return generateToken(username, role, null, List.of(), "ADMIN".equalsIgnoreCase(role));
     }
 
     public String generateToken(String username, String role, String familyId) {
+        return generateToken(username, role, familyId, List.of(), "ADMIN".equalsIgnoreCase(role));
+    }
+
+    public String generateToken(String username, String role, String familyId, List<String> permissions, boolean adminPortal) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
                 .claim("familyId", familyId)
+                .claim("permissions", permissions)
+                .claim("adminPortal", adminPortal)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey())
@@ -49,6 +56,17 @@ public class JwtUtils {
 
     public String getFamilyIdFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("familyId", String.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getPermissionsFromToken(String token) {
+        List<?> values = getClaimFromToken(token, claims -> claims.get("permissions", List.class));
+        return values == null ? List.of() : values.stream().filter(String.class::isInstance).map(String.class::cast).toList();
+    }
+
+    public boolean hasAdminPortalAccess(String token) {
+        Boolean value = getClaimFromToken(token, claims -> claims.get("adminPortal", Boolean.class));
+        return Boolean.TRUE.equals(value);
     }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {

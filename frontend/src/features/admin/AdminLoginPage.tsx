@@ -20,7 +20,7 @@ export function AdminLoginPage() {
       return;
     }
 
-    if (loggedUser.role !== "ADMIN") {
+    if (!loggedUser.adminPortal && loggedUser.role !== "ADMIN") {
       await logout();
       message.error("Tài khoản này không có quyền truy cập khu vực quản trị.");
       return;

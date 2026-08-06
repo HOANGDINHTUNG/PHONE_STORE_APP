@@ -40,6 +40,9 @@ import com.re.ecommerce.modules.order.service.OrderService;
 import com.re.ecommerce.modules.cart.service.CartService;
 import com.re.ecommerce.modules.payment.entity.Payment;
 import com.re.ecommerce.modules.payment.repository.PaymentRepository;
+import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
+import com.re.ecommerce.modules.inventory.entity.enums.WarehouseStatus;
+import com.re.ecommerce.modules.inventory.service.StockReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,6 +77,8 @@ public class OrderServiceImpl implements OrderService {
     private final ShippingAddressRepository shippingAddressRepository;
     private final CartService cartService;
     private final PaymentRepository paymentRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
+    private final StockReservationService stockReservationService;
     private final com.re.ecommerce.modules.cart.repository.UserVoucherRepository userVoucherRepository;
     
 
@@ -217,6 +222,7 @@ public class OrderServiceImpl implements OrderService {
         // Save Order hierarchy
         orderRepository.save(order);
         orderItemRepository.saveAll(orderItems);
+        stockReservationService.reserveForOrder(order, orderItems);
         paymentRepository.save(Payment.builder()
                 .order(order)
                 .expectedAmount(order.getGrandTotalAmount())
@@ -254,7 +260,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Checkout successful. Order ID: {}", order.getId());
         return toResponse(order, orderItems);
     }
-    
+
     private Order buildOrderSnapshot(User currentUser, CheckoutRequest r) {
         Order.OrderBuilder builder = Order.builder()
                 .customer(currentUser)
@@ -368,6 +374,7 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(OrderStatus.CONFIRMED);
         order.setConfirmedAt(LocalDateTime.now());
+        stockReservationService.confirmForFulfillment(orderId);
         
         OrderStatusHistory history = OrderStatusHistory.builder()
                 .order(order)
@@ -483,6 +490,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelledAt(LocalDateTime.now());
         order.setNote((order.getNote() != null ? order.getNote() + " | " : "") + "Cancelled: " + reason);
+        stockReservationService.releaseForOrder(orderId, "Đơn hàng bị hủy: " + reason);
         return toResponse(orderRepository.save(order), orderItemRepository.findByOrderId(order.getId()));
     }
 

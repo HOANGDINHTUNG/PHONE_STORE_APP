@@ -26,7 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/payments")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyAuthority('PAYMENT_VIEW', 'PAYMENT_MANAGE', 'REFUND_MANAGE') or hasRole('ADMIN')")
 public class AdminPaymentQueryController {
 
     private final PaymentRepository paymentRepository;

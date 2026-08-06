@@ -151,6 +151,7 @@ public class RoleService {
         assignment.setUser(user);
         assignment.setRole(role);
         assignment.setStatus("ACTIVE");
+        assignment.setActiveAssignmentKey(userId + ":" + role.getId());
         assignment.setExpiresAt(request.getExpiresAt());
         assignment.setAssignedBy(assignedBy);
         assignment.setAssignmentReason(request.getReason());
@@ -166,7 +167,12 @@ public class RoleService {
             throw new BusinessConflictException("INVALID_ASSIGNMENT", "Assignment không thuộc về user này");
         }
 
+        if (!"ACTIVE".equals(assignment.getStatus())) {
+            throw new BusinessConflictException("ASSIGNMENT_NOT_ACTIVE", "Vai trò này đã được thu hồi hoặc không còn hiệu lực");
+        }
+
         assignment.setStatus("REVOKED");
+        assignment.setActiveAssignmentKey(null);
         assignment.setRevokedAt(Instant.now());
         assignment.setRevokedBy(revokedBy);
         assignment.setRevokedReason(reason);

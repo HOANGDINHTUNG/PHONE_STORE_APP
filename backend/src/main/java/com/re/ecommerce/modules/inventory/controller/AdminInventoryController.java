@@ -42,7 +42,7 @@ import org.springframework.data.domain.Sort;
 @RestController
 @RequestMapping("/api/v1/admin/inventory")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('SCOPE_WAREHOUSE_VIEW', 'SCOPE_WAREHOUSE_MANAGE', 'SCOPE_INVENTORY_VIEW', 'SCOPE_INVENTORY_MANAGE')")
 public class AdminInventoryController {
     private final WarehouseService warehouseService;
     private final SupplierService supplierService;

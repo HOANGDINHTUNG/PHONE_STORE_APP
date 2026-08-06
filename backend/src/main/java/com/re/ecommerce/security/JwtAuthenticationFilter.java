@@ -13,8 +13,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import com.re.ecommerce.modules.auth.repository.UserRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
+    private final EffectiveAccessService effectiveAccessService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -39,16 +43,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (jwtUtils.validateToken(jwt)) {
                 String username = jwtUtils.getUsernameFromToken(jwt);
-                String role = jwtUtils.getRoleFromToken(jwt);
                 String familyId = jwtUtils.getFamilyIdFromToken(jwt);
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+                    var user = userRepository.findByUsername(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User no longer exists"));
+                    String role = user.getRole();
+                    var effectivePermissions = effectiveAccessService.permissionsOf(user);
+                    List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                    effectivePermissions.forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission)));
+                    if (effectiveAccessService.canAccessAdmin(user, effectivePermissions)) authorities.add(new SimpleGrantedAuthority("ADMIN_PORTAL_ACCESS"));
                     CustomUserDetails userDetails = new CustomUserDetails(username, role, familyId, authorities);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                            authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);

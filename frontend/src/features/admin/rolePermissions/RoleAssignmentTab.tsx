@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, DatePicker, Form, Input, Select, Table, Tag, message } from "antd";
+import { Button, DatePicker, Form, Input, Popconfirm, Select, Table, Tag, message } from "antd";
 import { History, Info, RefreshCw, UserCheck } from "lucide-react";
 import { apiClient } from "../../../api/client";
 import { rolePermissionService } from "./rolePermissionService";
@@ -73,6 +73,29 @@ export function RoleAssignmentTab() {
     { title: "Thời hạn", dataIndex: "expiryText", key: "expiry", width: 175, render: (text: string) => <span className="text-sm text-slate-600">{text}</span> },
     { title: "Người cấp / thời gian", key: "audit", width: 200, render: (_: unknown, record: RoleAssignmentRecord) => <div className="text-xs text-slate-600"><p>Bởi: <b>{record.assignedBy}</b></p><p className="mt-1 text-slate-400">{record.assignedAt}</p></div> },
     { title: "Lý do", dataIndex: "reason", key: "reason", render: (text: string) => <span className="line-clamp-2 text-sm text-slate-600">{text}</span> },
+    {
+      title: "Thao tác", key: "actions", width: 130,
+      render: (_: unknown, record: RoleAssignmentRecord) => record.status !== "ACTIVE" ? <span className="text-xs text-slate-400">Đã thu hồi</span> : (
+        <Popconfirm
+          title="Thu hồi vai trò?"
+          description={`Tài khoản sẽ mất quyền của vai trò ${record.roleName || record.roleCode} sau lần làm mới token tiếp theo.`}
+          okText="Thu hồi"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true }}
+          onConfirm={async () => {
+            try {
+              await rolePermissionService.revokeRole(record, "Thu hồi từ màn hình phân quyền");
+              await load();
+              message.success("Đã thu hồi vai trò. Tài khoản cần đăng nhập lại để token cũ hết hiệu lực.");
+            } catch (error: any) {
+              message.error(error?.response?.data?.message || "Không thể thu hồi vai trò.");
+            }
+          }}
+        >
+          <Button danger size="small">Thu hồi</Button>
+        </Popconfirm>
+      ),
+    },
   ];
 
   return (
