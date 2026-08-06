@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { fetchProducts } from "../../api/productService";
 import { Product } from "../../types";
 import { useStore } from "../../context/StoreContext";
+import { StockBadge } from "../common/StockBadge";
+import { resolveProductStock } from "../../utils/stock";
 
 const EmptyCartState = () => {
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
@@ -23,7 +25,9 @@ const EmptyCartState = () => {
   }, []);
 
   const handleAdd = (prod: Product) => {
-    addToCart({ ...prod, quantity: 1, active: true } as any);
+    const stock = resolveProductStock(prod);
+    if (stock <= 0) return;
+    addToCart({ ...prod, quantity: 1, active: true, stock, outOfStock: false } as any);
   };
 
   return (
@@ -142,6 +146,8 @@ const EmptyCartState = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter">
               {suggestedProducts.map((p, idx) => {
                 const added = cart.some((item) => item.id === p.id);
+                const stock = resolveProductStock(p);
+                const oos = stock <= 0;
                 return (
                   <div
                     key={p.id}
@@ -152,27 +158,28 @@ const EmptyCartState = () => {
                       onClick={() => navigate(`/product/${p.slug || p.id}`)}
                     >
                       <img
-                        className="w-full h-full object-contain mix-blend-multiply"
+                        className={`w-full h-full object-contain mix-blend-multiply ${oos ? "opacity-55 grayscale-[0.3]" : ""}`}
                         src={p.image}
                         alt={p.name}
                       />
                     </div>
                     <div className="flex-grow">
-                      {idx === 0 && (
-                        <span className="text-secondary font-label-sm text-[12px] uppercase font-bold tracking-wider mb-xs block">
-                          Best Seller
-                        </span>
-                      )}
-                      {idx === 1 && (
-                        <span className="text-secondary font-label-sm text-[12px] uppercase font-bold tracking-wider mb-xs block">
-                          Mới về
-                        </span>
-                      )}
-                      {idx > 1 && (
-                        <span className="invisible font-label-sm text-[12px] block mb-xs">
-                          Spacer
-                        </span>
-                      )}
+                      <div className="flex items-center justify-between gap-2 mb-xs">
+                        {idx === 0 ? (
+                          <span className="text-secondary font-label-sm text-[12px] uppercase font-bold tracking-wider">
+                            Best Seller
+                          </span>
+                        ) : idx === 1 ? (
+                          <span className="text-secondary font-label-sm text-[12px] uppercase font-bold tracking-wider">
+                            Mới về
+                          </span>
+                        ) : (
+                          <span className="invisible font-label-sm text-[12px]">
+                            Spacer
+                          </span>
+                        )}
+                        <StockBadge stock={stock} outOfStock={oos} />
+                      </div>
                       <h3
                         className="font-body-lg text-body-lg font-bold text-on-surface mb-xs cursor-pointer hover:text-primary transition-colors line-clamp-1"
                         onClick={() => navigate(`/product/${p.slug || p.id}`)}
@@ -193,10 +200,10 @@ const EmptyCartState = () => {
                     </div>
                     <button
                       onClick={() => handleAdd(p)}
-                      disabled={added}
-                      className={`w-full py-2.5 rounded-lg font-bold text-label-sm transition-colors duration-200 active:scale-95 ${added ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed" : "border-2 border-primary text-primary hover:bg-primary hover:text-white"}`}
+                      disabled={added || oos}
+                      className={`w-full py-2.5 rounded-lg font-bold text-label-sm transition-colors duration-200 active:scale-95 ${added || oos ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed" : "border-2 border-primary text-primary hover:bg-primary hover:text-white"}`}
                     >
-                      {added ? "Đã thêm" : "Thêm vào giỏ"}
+                      {oos ? "Hết hàng" : added ? "Đã thêm" : "Thêm vào giỏ"}
                     </button>
                   </div>
                 );

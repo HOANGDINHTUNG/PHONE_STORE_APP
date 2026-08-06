@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import com.re.ecommerce.modules.inventory.dto.response.VariantWarehouseStockResponse;
 
 public record VariantResponse(
         UUID id,
@@ -22,6 +23,8 @@ public record VariantResponse(
         BigDecimal salePrice,
         VariantStatus status,
         long version,
+        Integer availableQuantity,
+        List<VariantWarehouseStockResponse> warehouseStocks,
         List<ImageResponse> images,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

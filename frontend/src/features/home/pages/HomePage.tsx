@@ -18,6 +18,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { fetchProducts } from "../../../api/productService";
+import { StockBadge } from "../../../components/common/StockBadge";
+import { resolveProductStock } from "../../../utils/stock";
 import { fetchNews, type NewsItem } from "../../../api/newsService";
 import { fetchBanners, type Banner } from "../../../api/bannerService";
 import { fetchBrands } from "../../../api/brandService";
@@ -430,13 +432,15 @@ export function HomePage() {
             {products.length > 0 ? (
               products.map((p) => {
                 const isFavorite = p?.id ? isInWishlist(p.id) : false;
+                const stock = resolveProductStock(p);
+                const outOfStock = stock <= 0;
                 return (
                   <Link
                     to={`/product/${p.slug}`}
                     key={p.slug}
                     className="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/20 hover:border-primary/40 transition-all hover:-translate-y-1.5 group relative flex flex-col"
                   >
-                    <div className="absolute top-3 left-3 z-10">
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
                       <span className="bg-gradient-to-r from-pink-600 to-rose-600 text-white text-[11px] font-black px-2.5 py-1 rounded-md uppercase shadow-md flex items-center gap-1 transition-transform group-hover:scale-105">
                         <Sparkles size={11} className="text-amber-300" />
                         {(() => {
@@ -456,6 +460,7 @@ export function HomePage() {
                           return "GIẢM 20%";
                         })()}
                       </span>
+                      <StockBadge stock={stock} outOfStock={outOfStock} variant="compact" />
                     </div>
                     <button
                       type="button"
@@ -480,18 +485,24 @@ export function HomePage() {
                         }
                       />
                     </button>
-                    <div className="h-44 md:h-56 bg-surface-container-lowest flex items-center justify-center p-4">
+                    <div className="h-44 md:h-56 bg-surface-container-lowest flex items-center justify-center p-4 relative">
                       <img
                         src={p.image}
                         alt={p.name}
-                        className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                        className={`w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ${outOfStock ? "opacity-55 grayscale-[0.35]" : ""}`}
                       />
+                      {outOfStock && (
+                        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-on-surface/80 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                          Hết hàng
+                        </span>
+                      )}
                     </div>
                     <div className="p-4 space-y-2 flex flex-col flex-1">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="text-[11px] font-semibold text-outline px-2 py-0.5 rounded bg-surface-container-high truncate">
                           256GB / Đủ Màu
                         </span>
+                        
                       </div>
                       <h3 className="font-label-sm text-label-sm text-on-surface line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">
                         {p.name}
@@ -512,8 +523,14 @@ export function HomePage() {
                           <span className="truncate">{p.gift}</span>
                         </div>
                       )}
-                      <div className="w-full mt-3 py-2.5 bg-primary-container text-white rounded-lg font-label-sm text-label-sm opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 flex items-center justify-center">
-                        Mua ngay
+                      <div
+                        className={`w-full mt-3 py-2.5 rounded-lg font-label-sm text-label-sm opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 flex items-center justify-center ${
+                          outOfStock
+                            ? "bg-surface-container-high text-on-surface-variant"
+                            : "bg-primary-container text-white"
+                        }`}
+                      >
+                        {outOfStock ? "Hết hàng" : "Mua ngay"}
                       </div>
                     </div>
                   </Link>

@@ -5,6 +5,8 @@ import { useStore } from "../../context/StoreContext";
 import { getDefaultProductImage } from "../../api/productService";
 import styles from "./ProductCard.module.css";
 import { Product } from "../../types";
+import { StockBadge } from "./StockBadge";
+import { resolveProductStock } from "../../utils/stock";
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +17,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
 
   const isFavorite = isInWishlist(product.id);
+  const stock = resolveProductStock(product);
+  const outOfStock = stock <= 0;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const fallbackSrc = getDefaultProductImage(product.brand, product.slug);
@@ -70,9 +74,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <img
           src={product.image || getDefaultProductImage(product.brand, product.slug)}
           alt={product.name}
-          className={styles.productImage}
+          className={`${styles.productImage}${outOfStock ? ` ${styles.imageOos}` : ""}`}
           onError={handleImageError}
         />
+        {outOfStock && <span className={styles.oosOverlay}>Hết hàng</span>}
       </div>
 
       {/* Brand & Subtitle */}
@@ -82,6 +87,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Product Name */}
       <h3 className={styles.productName}>{product.name}</h3>
+
+      <div className={styles.stockRow}>
+        <StockBadge stock={stock} outOfStock={outOfStock} variant="compact" />
+      </div>
 
       {/* Pricing */}
       <div className={styles.priceRow}>
@@ -123,13 +132,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
           type="primary"
           block
           className={styles.buyBtn}
+          disabled={outOfStock}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            addToCart(product);
+            if (outOfStock) return;
+            addToCart({ ...product, stock, outOfStock });
           }}
         >
-          Mua Ngay
+          {outOfStock ? "Hết hàng" : "Mua Ngay"}
         </Button>
       </div>
     </Card>

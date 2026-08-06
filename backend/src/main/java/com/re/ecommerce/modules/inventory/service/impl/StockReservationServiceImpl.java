@@ -148,9 +148,9 @@ public class StockReservationServiceImpl implements StockReservationService {
     }
 
     private int availableQuantity(WarehouseInventory inventory) {
-        return inventory.getAvailableQuantity() == null
-                ? inventory.getOnHandQuantity() - inventory.getReservedQuantity()
-                : inventory.getAvailableQuantity();
+        int onHand = inventory.getOnHandQuantity() == null ? 0 : inventory.getOnHandQuantity();
+        int reserved = inventory.getReservedQuantity() == null ? 0 : inventory.getReservedQuantity();
+        return Math.max(0, onHand - reserved);
     }
 
     private void recordTransaction(Warehouse warehouse, OrderItem item, StockTransactionType type,

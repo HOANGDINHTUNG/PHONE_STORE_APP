@@ -27,6 +27,7 @@ public interface CouponService {
 
     // Public / Customer Wallet & Product Section APIs
     List<CouponResponse> getFeaturedVouchers(UUID currentUserId);
+    List<CouponResponse> getPublicVouchers(UUID currentUserId);
     List<CouponResponse> getProductVouchers(UUID productId, UUID currentUserId);
     CouponResponse claimVoucher(UUID couponId, UUID userId);
     Page<CouponResponse> getMyWalletVouchers(UUID userId, String status, Pageable pageable);

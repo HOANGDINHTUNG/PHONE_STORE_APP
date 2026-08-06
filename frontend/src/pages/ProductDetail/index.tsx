@@ -14,9 +14,12 @@ import {
   BellRing,
 } from "lucide-react";
 import { useStore } from "../../context/StoreContext";
-import { fetchProductBySlug } from "../../api/productService";
+import { fetchProductBySlug, fetchRelatedProducts } from "../../api/productService";
 import { Product } from "../../types";
 import { message } from "antd";
+import { StockBadge } from "../../components/common/StockBadge";
+import { resolveProductStock } from "../../utils/stock";
+import { saveCheckoutSelectedIds } from "../../utils/checkoutSelection";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -24,11 +27,13 @@ const ProductDetail = () => {
   const { addToCart, user } = useStore();
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Variations state
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [selectedStorage, setSelectedStorage] = useState("256GB");
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState("Mặc định");
   const [mainImage, setMainImage] = useState("");
   const [showStickyBar, setShowStickyBar] = useState(false);
@@ -47,6 +52,7 @@ const ProductDetail = () => {
           setProduct(data);
           if (data.variants && data.variants.length > 0) {
             setSelectedVariantIndex(0);
+            setSelectedWarehouseId(data.variants[0].warehouseStocks?.[0]?.warehouseId || "");
             setMainImage(data.variants[0].image || data.image);
             setSelectedColor(data.variants[0].color || data.variants[0].name);
             if (data.variants[0].storageGb) {
@@ -55,6 +61,14 @@ const ProductDetail = () => {
           } else {
             setMainImage(data.image);
           }
+          // Related products for recommendations (non-blocking)
+          fetchRelatedProducts(slug)
+            .then((related) => {
+              if (active) setRelatedProducts(related);
+            })
+            .catch(() => {
+              if (active) setRelatedProducts([]);
+            });
         } else {
           navigate("/");
         }
@@ -71,6 +85,7 @@ const ProductDetail = () => {
     if (!product || !product.variants || !product.variants[index]) return;
     const variant = product.variants[index];
     setSelectedVariantIndex(index);
+    setSelectedWarehouseId(variant.warehouseStocks?.[0]?.warehouseId || "");
     if (variant.image) {
       setMainImage(variant.image);
     }
@@ -94,12 +109,31 @@ const ProductDetail = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const getSelectedStock = () => {
+    if (!product) return 0;
+    const variant = product.variants?.[selectedVariantIndex];
+    const warehouseStock = variant?.warehouseStocks?.find(
+      (item) => item.warehouseId === selectedWarehouseId,
+    );
+    if (warehouseStock) return warehouseStock.availableQuantity;
+    if (variant?.stock !== undefined && variant?.stock !== null) {
+      return variant.stock;
+    }
+    return resolveProductStock(product);
+  };
+
   const handleBuyNow = () => {
     if (product) {
+      const stock = getSelectedStock();
+      if (stock <= 0) {
+        message.warning("Sản phẩm hiện đang hết hàng.");
+        return;
+      }
       const variant = product.variants?.[selectedVariantIndex];
+      const checkoutLineId = variant?.id || product.id;
       addToCart({
         ...product,
-        id: variant?.id || product.id,
+        id: checkoutLineId,
         image: variant?.image || product.image,
         price: variant?.newPrice || variant?.price || product.price,
         newPrice: variant?.newPrice || variant?.price || product.newPrice,
@@ -107,13 +141,22 @@ const ProductDetail = () => {
         selectedStorage,
         selectedColor,
         quantity: 1,
+        stock,
+        outOfStock: false,
       });
+      // "Mua ngay" must replace any previous cart checkbox selection.
+      saveCheckoutSelectedIds([checkoutLineId]);
       navigate("/checkout");
     }
   };
 
   const handleAddToCart = () => {
     if (product) {
+      const stock = getSelectedStock();
+      if (stock <= 0) {
+        message.warning("Sản phẩm hiện đang hết hàng.");
+        return;
+      }
       const variant = product.variants?.[selectedVariantIndex];
       addToCart({
         ...product,
@@ -125,6 +168,8 @@ const ProductDetail = () => {
         selectedStorage,
         selectedColor,
         quantity: 1,
+        stock,
+        outOfStock: false,
       });
       message.success("Đã thêm sản phẩm vào giỏ hàng.");
     }
@@ -148,9 +193,9 @@ const ProductDetail = () => {
     product.price;
   const displayedOldPrice = selectedVariant?.oldPrice || product.oldPrice;
 
-  // Determine Out Of Stock state (Hardcoded demo logic or rely on `stock === 0`)
-  // You can set isOutOfStock = true for testing UI changes locally.
-  const isOutOfStock = product.stock !== undefined && product.stock === 0;
+  const selectedStock = getSelectedStock();
+  const isOutOfStock = selectedStock <= 0;
+  const warehouseOptions = selectedVariant?.warehouseStocks || [];
 
   return (
     <div className="bg-surface font-body-md text-on-surface pb-[80px] md:pb-0 overflow-x-hidden">
@@ -351,6 +396,17 @@ const ProductDetail = () => {
                       <span className="text-sm font-bold text-primary mt-2">
                         {v.newPrice || v.price}
                       </span>
+                      <span className="mt-1.5">
+                        <StockBadge
+                          stock={resolveProductStock({
+                            id: v.id,
+                            name: v.sku || v.name,
+                            stock: v.stock,
+                          })}
+                          variant="inline"
+                          showIcon={false}
+                        />
+                      </span>
                     </button>
                   ))
                 ) : (
@@ -366,17 +422,31 @@ const ProductDetail = () => {
               <div className="flex items-center gap-2 text-sm pt-2">
                 <MapPin size={20} className="text-on-surface-variant" />
                 <span className="font-medium">Xem kho hàng tại:</span>
-                <select className="bg-transparent border-none focus:ring-0 font-bold text-primary py-0 cursor-pointer pl-1 outline-none">
-                  <option>Hà Nội</option>
-                  <option>TP. Hồ Chí Minh</option>
-                  <option>Đà Nẵng</option>
+                <select
+                  value={selectedWarehouseId}
+                  onChange={(event) => setSelectedWarehouseId(event.target.value)}
+                  className="bg-transparent border-none focus:ring-0 font-bold text-primary py-0 cursor-pointer pl-1 outline-none"
+                >
+                  {warehouseOptions.length > 0 && warehouseOptions.map((warehouse) => (
+                    <option key={warehouse.warehouseId} value={warehouse.warehouseId}>
+                      {warehouse.warehouseName}
+                    </option>
+                  ))}
+                  {warehouseOptions.length === 0 && <option value="">Chưa có dữ liệu kho</option>}
                 </select>
               </div>
-              {/* Out of Stock Warning */}
+              {/* Stock status */}
+              <div className="mt-2">
+                <StockBadge
+                  stock={selectedStock}
+                  outOfStock={isOutOfStock}
+                  variant="detail"
+                />
+              </div>
               {isOutOfStock && (
-                <div className="flex items-center gap-2 text-sm text-error font-bold mt-2">
+                <div className="flex items-center gap-2 text-sm text-error font-bold mt-1">
                   <AlertCircle size={18} />
-                  <span>Hết hàng</span>
+                  <span>Sản phẩm tạm hết — vui lòng chọn biến thể khác hoặc nhận thông báo khi có hàng</span>
                 </div>
               )}
             </div>
@@ -647,6 +717,51 @@ const ProductDetail = () => {
             </div>
           </aside>
         </div>
+
+        {/* Related products */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-4 mb-10">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold text-on-surface">
+                Sản phẩm liên quan
+              </h2>
+              <Link
+                to="/"
+                className="text-sm font-bold text-primary hover:underline"
+              >
+                Xem thêm
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {relatedProducts.map((rp) => {
+                const rStock = resolveProductStock(rp);
+                const rOos = rStock <= 0;
+                return (
+                  <Link
+                    key={String(rp.id)}
+                    to={`/product/${rp.slug || rp.id}`}
+                    className="bg-white rounded-xl border border-outline-variant/30 p-4 hover:border-primary/40 hover:shadow-md transition-all group"
+                  >
+                    <div className="aspect-square flex items-center justify-center mb-3 relative">
+                      <img
+                        src={rp.image}
+                        alt={rp.name}
+                        className={`max-h-full object-contain group-hover:scale-105 transition-transform ${rOos ? "opacity-55 grayscale-[0.3]" : ""}`}
+                      />
+                    </div>
+                    <StockBadge stock={rStock} outOfStock={rOos} className="mb-2" />
+                    <h3 className="text-sm font-bold text-on-surface line-clamp-2 min-h-[40px] group-hover:text-primary">
+                      {rp.name}
+                    </h3>
+                    <p className="text-primary font-extrabold mt-1">
+                      {rp.newPrice || rp.price}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Desktop Sticky Bar (Hidden on Mobile) */}
@@ -667,6 +782,13 @@ const ProductDetail = () => {
               <p className="text-primary font-extrabold text-xl leading-tight">
                 {displayedPrice}
               </p>
+              <div className="mt-1">
+                <StockBadge
+                  stock={selectedStock}
+                  outOfStock={isOutOfStock}
+                  variant="inline"
+                />
+              </div>
             </div>
           </div>
           <div className="flex gap-4">

@@ -1,6 +1,7 @@
 import { apiClient } from "./client";
 import { Product } from "../types";
 import { getDefaultProductImage } from "./productService";
+import { resolveProductStock } from "../utils/stock";
 
 export interface WishlistItemResponse {
   id: string;
@@ -41,6 +42,13 @@ export const mapWishlistItemToProduct = (item: WishlistItemResponse): Product =>
   const rawCompare = p.compareAtPrice ?? (p as any).maxPrice;
 
   const formattedPrice = rawPrice ? formatPriceVND(rawPrice) : "Liên hệ";
+  const stock = resolveProductStock({
+    id: p.id,
+    name: p.name,
+    stock: (p as any).stock ?? (p as any).availableQuantity,
+    isAvailable: (p as any).isAvailable ?? (p.status ? p.status === "ACTIVE" : undefined),
+    outOfStock: (p as any).outOfStock,
+  });
 
   return {
     id: p.id,
@@ -54,6 +62,9 @@ export const mapWishlistItemToProduct = (item: WishlistItemResponse): Product =>
     rating: p.avgRating ?? 5.0,
     reviewsCount: p.reviewCount ?? 0,
     slug: p.slug,
+    stock,
+    availableQuantity: stock,
+    outOfStock: stock <= 0,
   };
 };
 

@@ -1,6 +1,9 @@
 import React from "react";
 import { PhoneStripImage } from "../../../features/storefront/components/PhoneStripImage";
 import { useStore } from "../../../context/StoreContext";
+import { StockBadge } from "../../../components/common/StockBadge";
+import { resolveProductStock } from "../../../utils/stock";
+import { getCheckoutCartItems } from "../../../utils/checkoutSelection";
 
 type OrderSummarySidebarProps = {
   buttonText: string;
@@ -14,6 +17,7 @@ export const OrderSummarySidebar = ({
   disabled = false,
 }: OrderSummarySidebarProps) => {
   const { cart, appliedVoucher } = useStore();
+  const checkoutCart = getCheckoutCartItems(cart);
 
   const getPriceNum = (val?: string | number): number => {
     if (typeof val === "number") return val;
@@ -21,7 +25,7 @@ export const OrderSummarySidebar = ({
     return 0;
   };
 
-  const subtotal = cart.reduce((sum, item) => {
+  const subtotal = checkoutCart.reduce((sum, item) => {
     const priceNum = item.newPrice
       ? getPriceNum(item.newPrice)
       : getPriceNum(item.price);
@@ -61,37 +65,50 @@ export const OrderSummarySidebar = ({
         </h2>
 
         <div className="space-y-4 mb-6 pb-6 border-b border-gray-100 max-h-[300px] overflow-y-auto">
-          {cart.map((item, idx) => (
-            <div key={item.id} className="flex gap-4">
-              <div className="w-16 h-16 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden relative">
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="max-h-full max-w-full object-contain p-1"
-                  />
-                ) : (
-                  <PhoneStripImage index={idx % 5} />
-                )}
-              </div>
-              <div className="flex-1 text-sm">
-                <div className="flex justify-between items-start gap-2">
-                  <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">
-                    {item.name}
-                  </h3>
-                  <span className="font-bold text-[#E91E63] shrink-0">
-                    {item.newPrice || formatCurrency(getPriceNum(item.price))}
-                  </span>
+          {checkoutCart.map((item, idx) => {
+            const stock = resolveProductStock(item);
+            const oos = stock <= 0 || !!item.outOfStock;
+            const overStock = !oos && stock > 0 && item.quantity > stock;
+            return (
+              <div key={item.id} className="flex gap-4">
+                <div className="w-16 h-16 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden relative">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className={`max-h-full max-w-full object-contain p-1 ${oos ? "opacity-50 grayscale" : ""}`}
+                    />
+                  ) : (
+                    <PhoneStripImage index={idx % 5} />
+                  )}
                 </div>
-                <p className="text-gray-500 mt-1">Số lượng: {item.quantity}</p>
+                <div className="flex-1 text-sm">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">
+                      {item.name}
+                    </h3>
+                    <span className="font-bold text-[#E91E63] shrink-0">
+                      {item.newPrice || formatCurrency(getPriceNum(item.price))}
+                    </span>
+                  </div>
+                  <p className="text-gray-500 mt-1">Số lượng: {item.quantity}</p>
+                  <div className="mt-1.5">
+                    <StockBadge stock={stock} outOfStock={oos} variant="inline" />
+                  </div>
+                  {overStock && (
+                    <p className="text-[11px] font-semibold text-amber-700 mt-1">
+                      Vượt tồn kho (còn {stock}) — vui lòng giảm số lượng
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="space-y-3 text-sm mb-6">
           <div className="flex justify-between">
-            <span className="text-gray-500">Tạm tính ({cart.length} SP)</span>
+            <span className="text-gray-500">Tạm tính ({checkoutCart.length} SP)</span>
             <span className="font-semibold text-gray-900">
               {formatCurrency(subtotal)}
             </span>
@@ -125,9 +142,9 @@ export const OrderSummarySidebar = ({
         </div>
 
         <button
-          disabled={disabled || cart.length === 0}
+          disabled={disabled || checkoutCart.length === 0}
           className={`w-full text-white py-3.5 rounded-xl font-bold text-[15px] transition-colors ${
-            disabled || cart.length === 0
+            disabled || checkoutCart.length === 0
               ? "bg-gray-300 cursor-not-allowed border border-gray-300"
               : "bg-[#C2185B] hover:bg-[#AD1457] shadow-sm"
           }`}

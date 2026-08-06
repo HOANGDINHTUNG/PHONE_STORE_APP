@@ -44,6 +44,11 @@ export interface VoucherAnalytics {
 
 export const voucherService = {
   // Public
+  getPublicVouchers: async (): Promise<Voucher[]> => {
+    const res = await apiClient.get<Voucher[]>("/vouchers/public");
+    return res.data;
+  },
+
   getFeaturedVouchers: async (): Promise<Voucher[]> => {
     try {
       const res = await apiClient.get<Voucher[]>("/vouchers/public/featured");

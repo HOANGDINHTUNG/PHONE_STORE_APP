@@ -21,6 +21,9 @@ import {
 import EmptyCartState from "../../components/cart_and_pdp/EmptyCartState";
 import { useStore } from "../../context/StoreContext";
 import { CartItem } from "../../types";
+import { StockBadge } from "../../components/common/StockBadge";
+import { resolveProductStock } from "../../utils/stock";
+import { saveCheckoutSelectedIds } from "../../utils/checkoutSelection";
 
 // ─── Mock Data ────────────────────────────────────────────────────────
 const crossSellProducts = [
@@ -29,6 +32,7 @@ const crossSellProducts = [
     name: "Ốp lưng Silicon Pink",
     price: "290.000đ",
     oldPrice: "450.000đ",
+    stock: 30,
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDrgVhGrTK8FAjbxpVELgY1Cgsbve3cEeK0qvbkku93xHrqZNUlrv-e_6yC1pkhGqKuMxqZ5Tqfc6NhD37tNlTNYHoR0mG6w0PUmll_O1q9L71mFCiz_-rpthmMYdawLkyd7f0V9KTcQIyHa5OswtJf0y5G4cBaGr2MWUq3ptq9Pxx06uo9mxL7YeJEZWoX2Fx8yzkzIM2ekKHWAx_1TJq2Kb5KYfpkgtYhVCXg--332FbdEjZvmPWP",
   },
@@ -37,6 +41,7 @@ const crossSellProducts = [
     name: "Sạc nhanh 65W GaN",
     price: "650.000đ",
     oldPrice: "890.000đ",
+    stock: 4,
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuCunfUrU13C6tq00FdY5aWre5hMKH46czzbmgu4DLTohnidabBtcx1zEhkeB_3oQqRvuuJXFMhzTKMt4j5LUSBpEIhhytX5yCweheH0piaaYsvLgJJaTcUBy9clH9jsh-pWeCciNAh7Cycf-mazYMzWX_aZOvcTkah_aHs3Uz-H7CCp_4GkZMHrLVQJK_VhSvdbF2RNVxvYB-CKkb9ZMcciRS9JSJ8s19_FOCCcNsUQQH5St8S7JDGo",
   },
@@ -45,12 +50,14 @@ const crossSellProducts = [
     name: "PinkBuds Pro 2",
     price: "1.890.000đ",
     oldPrice: "2.490.000đ",
+    stock: 0,
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDUxChAtL4xh8TI_w6o3eSdgzd-uvCDECMs0XYNiZvHWSCveeM7YVo3CNX9ntmfTXktU9E7IeJ76bHt8K_a_wQgYXjoNsaMqsvbaeeOoGIaU4wen1In2SZjpyHyUeMnX29pZFLybX33h9BpodwuJ2-KEixkIy6ezbzNzddvwyOnO-GgU2630aGj7H6lN037ysIUgpCJVpPbJhYjRskrw6RDzW_xRuakRDAgOb8UDsdB6cDe9WaAVFLY",
   },
 ];
 
-import { USER_VOUCHERS_LIST } from "../../utils/vouchers";
+import { AvailableVoucher } from "../../utils/vouchers";
+import { voucherService, Voucher } from "../../api/voucherService";
 
 // ─── Cart Component ───────────────────────────────────────────────────
 const Cart = () => {
@@ -65,18 +72,35 @@ const Cart = () => {
   } = useStore();
   const navigate = useNavigate();
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
-  const [selectAll, setSelectAll] = useState(true);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  // Default true so mobile (no terms checkbox in sticky bar) can checkout
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
 
   // Voucher Selection State
   const selectedVoucherCode = appliedVoucher?.code || null;
   const [inputCouponCode, setInputCouponCode] = useState(
-    appliedVoucher?.code || "FLASHSALE20",
+    appliedVoucher?.code || "",
   );
   const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [availableVouchers, setAvailableVouchers] = useState<Voucher[]>([]);
+  const [vouchersLoading, setVouchersLoading] = useState(true);
 
+  // Sync from global cart; preserve per-item selection (active)
   useEffect(() => {
-    setLocalCart(cart.map((item) => ({ ...item, active: true })));
+    setLocalCart((prev) => {
+      const prevById = new Map(prev.map((item) => [String(item.id), item]));
+      return cart.map((item) => {
+        const stock = resolveProductStock(item);
+        const outOfStock = stock <= 0 || !!item.outOfStock;
+        const existing = prevById.get(String(item.id));
+        return {
+          ...item,
+          stock,
+          outOfStock,
+          // New items selected by default; OOS cannot be selected
+          active: outOfStock ? false : (existing?.active ?? true),
+        };
+      });
+    });
   }, [cart]);
 
   const handleRemove = (id: number | string) => {
@@ -89,6 +113,12 @@ const Cart = () => {
       handleRemove(id);
       return;
     }
+    const target = localCart.find((item) => item.id === id);
+    const maxStock = resolveProductStock(target);
+    if (maxStock > 0 && newQty > maxStock) {
+      message.warning(`Chỉ còn ${maxStock} sản phẩm trong kho`);
+      newQty = maxStock;
+    }
     setLocalCart((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, quantity: newQty } : item,
@@ -97,7 +127,52 @@ const Cart = () => {
     updateCartQuantity(id, newQty);
   };
 
+  const toggleItemSelected = (id: number | string) => {
+    setLocalCart((prev) =>
+      prev.map((item) => {
+        if (item.id !== id || item.outOfStock) return item;
+        return { ...item, active: !item.active };
+      }),
+    );
+  };
+
+  const selectableItems = localCart.filter((item) => !item.outOfStock);
+  const selectedItems = localCart.filter(
+    (item) => !!item.active && !item.outOfStock,
+  );
+  const selectAllChecked =
+    selectableItems.length > 0 &&
+    selectableItems.every((item) => !!item.active);
+
+  const toggleSelectAll = () => {
+    const next = !selectAllChecked;
+    setLocalCart((prev) =>
+      prev.map((item) =>
+        item.outOfStock
+          ? { ...item, active: false }
+          : { ...item, active: next },
+      ),
+    );
+  };
+
+  const handleRemoveSelected = () => {
+    if (selectedItems.length === 0) {
+      message.warning("Chưa có sản phẩm nào được chọn");
+      return;
+    }
+    const ids = selectedItems.map((item) => item.id);
+    const idSet = new Set(ids.map(String));
+    ids.forEach((id) => removeFromCart(id));
+    setLocalCart((prev) => prev.filter((item) => !idSet.has(String(item.id))));
+    message.success(`Đã xóa ${ids.length} sản phẩm khỏi giỏ`);
+  };
+
   const handleAddCrossSell = (prod: (typeof crossSellProducts)[0]) => {
+    const stock = resolveProductStock(prod);
+    if (stock <= 0) {
+      message.warning("Sản phẩm đã hết hàng");
+      return;
+    }
     if (!localCart.some((item) => item.id === prod.id)) {
       const newItem: CartItem = {
         id: prod.id,
@@ -106,80 +181,70 @@ const Cart = () => {
         image: prod.image,
         quantity: 1,
         active: true,
+        stock,
+        outOfStock: false,
       };
       setLocalCart((prev) => [...prev, newItem]);
       addToCart(newItem);
     }
   };
 
-  // Subtotal Calculation (declared BEFORE hooks that depend on it)
-  const activeItems = localCart.filter((item) => !item.outOfStock);
-
-  const subtotal = activeItems.reduce((acc, item) => {
+  // Totals only for selected, in-stock items
+  const subtotal = selectedItems.reduce((acc, item) => {
     const priceStr = item.price || item.newPrice || "0đ";
     return acc + parseInt(priceStr.replace(/\D/g, "") || "0") * item.quantity;
   }, 0);
 
-  // Auto pre-select the Best Voucher (offering highest savings) when cart items are loaded or subtotal changes, only if no voucher is currently applied
+  // Always load the active campaigns from the database. Checkout validates the
+  // selected code again, so a cached campaign can never be used after expiry.
   useEffect(() => {
-    if (subtotal > 0 && !appliedVoucher) {
-      let maxSavings = 0;
-      let bestCode: string | null = null;
-
-      USER_VOUCHERS_LIST.forEach((v) => {
-        if (!v.minimumOrderValue || subtotal >= v.minimumOrderValue) {
-          let savings = 0;
-          if (v.type === "PERCENT") {
-            savings = (subtotal * v.discountValue) / 100;
-            if (v.maximumDiscountAmount && savings > v.maximumDiscountAmount) {
-              savings = v.maximumDiscountAmount;
-            }
-          } else {
-            savings = v.discountValue;
-          }
-          if (savings > maxSavings) {
-            maxSavings = savings;
-            bestCode = v.code;
-          }
+    let cancelled = false;
+    const loadVouchers = async () => {
+      setVouchersLoading(true);
+      try {
+        const vouchers = await voucherService.getPublicVouchers();
+        if (!cancelled) setAvailableVouchers(vouchers);
+      } catch {
+        if (!cancelled) {
+          setAvailableVouchers([]);
+          setVoucherError("Không thể tải mã giảm giá. Vui lòng thử lại.");
         }
-      });
-
-      if (bestCode) {
-        const bestVoucher = USER_VOUCHERS_LIST.find((v) => v.code === bestCode);
-        if (bestVoucher) {
-          applyVoucher(bestVoucher);
-          setInputCouponCode(bestCode);
-        }
+      } finally {
+        if (!cancelled) setVouchersLoading(false);
       }
-    }
-  }, [subtotal, appliedVoucher]);
+    };
+    void loadVouchers();
+    return () => { cancelled = true; };
+  }, []);
 
-  // Dynamic Discount Calculation based on selected voucher
+  const toStoreVoucher = (voucher: Voucher): AvailableVoucher => ({
+    id: voucher.id,
+    code: voucher.code,
+    name: voucher.name || voucher.code,
+    type: voucher.type === "AMOUNT" ? "FIXED" : "PERCENT",
+    discountValue: Number(voucher.discountValue),
+    maximumDiscountAmount: voucher.maximumDiscountAmount == null ? undefined : Number(voucher.maximumDiscountAmount),
+    minimumOrderValue: voucher.minimumOrderValue == null ? undefined : Number(voucher.minimumOrderValue),
+    description: voucher.description || "Ưu đãi đang áp dụng",
+  });
+
+  useEffect(() => {
+    if (!vouchersLoading && appliedVoucher && !availableVouchers.some(
+      (voucher) => voucher.code.toUpperCase() === appliedVoucher.code.toUpperCase(),
+    )) {
+      applyVoucher(null);
+      setVoucherError(`Mã giảm giá "${appliedVoucher.code}" không còn hiệu lực.`);
+    }
+  }, [availableVouchers, appliedVoucher, applyVoucher, vouchersLoading]);
+
   const discountAmount = React.useMemo(() => {
-    if (!selectedVoucherCode) return 0;
-    const voucher = USER_VOUCHERS_LIST.find(
-      (v) => v.code.toUpperCase() === selectedVoucherCode.toUpperCase(),
-    );
-    if (!voucher) return 0;
-
-    if (voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
-      return 0;
-    }
-
-    let disc = 0;
-    if (voucher.type === "PERCENT") {
-      disc = (subtotal * voucher.discountValue) / 100;
-      if (
-        voucher.maximumDiscountAmount &&
-        disc > voucher.maximumDiscountAmount
-      ) {
-        disc = voucher.maximumDiscountAmount;
-      }
-    } else {
-      disc = voucher.discountValue;
-    }
-    return Math.min(disc, subtotal);
-  }, [selectedVoucherCode, subtotal]);
+    const voucher = appliedVoucher;
+    if (!voucher || (voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue)) return 0;
+    const discount = voucher.type === "PERCENT"
+      ? Math.min((subtotal * voucher.discountValue) / 100, voucher.maximumDiscountAmount ?? Number.MAX_SAFE_INTEGER)
+      : voucher.discountValue;
+    return Math.min(discount, subtotal);
+  }, [appliedVoucher, subtotal]);
 
   // Auto revoke check when subtotal changes
   useEffect(() => {
@@ -204,7 +269,9 @@ const Cart = () => {
       setVoucherError("Vui lòng nhập mã giảm giá");
       return;
     }
-    const voucher = USER_VOUCHERS_LIST.find((v) => v.code === trimmed);
+    const voucher = availableVouchers.find(
+      (item) => item.code.toUpperCase() === trimmed,
+    );
     if (!voucher) {
       setVoucherError(
         `Mã giảm giá "${trimmed}" không tồn tại hoặc không hợp lệ`,
@@ -218,26 +285,31 @@ const Cart = () => {
       return;
     }
 
-    applyVoucher(voucher);
+    applyVoucher(toStoreVoucher(voucher));
+    setInputCouponCode(voucher.code);
     setVoucherError(null);
   };
 
   const formatPrice = (num: number) => num.toLocaleString("vi-VN") + " ₫";
 
   const handleCheckout = () => {
+    if (selectedItems.length === 0) {
+      message.warning("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+      return;
+    }
     if (!agreedToTerms) {
       message.warning(
         "Vui lòng đồng ý với Điều khoản & Điều kiện mua hàng tại PinkPhone trước khi thanh toán.",
       );
       return;
     }
-    if (activeItems.length > 0) {
-      if (!user) {
-        navigate("/login?redirect=/checkout");
-        return;
-      }
-      navigate("/checkout");
+    // Persist selection so checkout only bills selected lines
+    saveCheckoutSelectedIds(selectedItems.map((item) => item.id));
+    if (!user) {
+      navigate("/login?redirect=/checkout");
+      return;
     }
+    navigate("/checkout");
   };
 
   if (localCart.length === 0) {
@@ -259,21 +331,35 @@ const Cart = () => {
     const priceStr = item.price || item.newPrice || "0đ";
     const priceNum = parseInt(priceStr.replace(/\D/g, "") || "0");
     const itemTotal = priceNum * item.quantity;
-    const isOOS = !!item.outOfStock;
+    const stock = resolveProductStock(item);
+    const isOOS = !!item.outOfStock || stock <= 0;
+    const atMax = !isOOS && stock > 0 && item.quantity >= stock;
+
+    const isSelected = !!item.active && !isOOS;
 
     if (mobile) {
       return (
         <div
-          className={`bg-surface-container-lowest rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(214,51,108,0.08)] relative overflow-hidden transition-all ${isOOS ? "opacity-60 grayscale" : ""}`}
+          className={`bg-surface-container-lowest rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(214,51,108,0.08)] relative overflow-hidden transition-all ${isOOS ? "opacity-60 grayscale" : ""} ${!isSelected && !isOOS ? "ring-0 opacity-90" : ""}`}
         >
           {isOOS && (
-            <div className="absolute inset-0 bg-surface-dim/20 z-10 flex items-center justify-center">
+            <div className="absolute inset-0 bg-surface-dim/20 z-10 flex items-center justify-center pointer-events-none">
               <span className="bg-on-surface/80 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
                 Hết hàng
               </span>
             </div>
           )}
           <div className="flex gap-3">
+            <label className="flex items-start pt-1 shrink-0 cursor-pointer">
+              <input
+                type="checkbox"
+                className="w-5 h-5 rounded border-outline text-primary accent-primary disabled:opacity-40"
+                checked={isSelected}
+                disabled={isOOS}
+                onChange={() => toggleItemSelected(item.id)}
+                aria-label={`Chọn ${item.name} để thanh toán`}
+              />
+            </label>
             <div
               className="w-24 h-24 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center cursor-pointer"
               onClick={() => navigate(`/product/${item.slug || item.id}`)}
@@ -302,14 +388,15 @@ const Cart = () => {
               <p className="text-xs text-on-surface-variant">
                 SKU: PP-ITM-{item.id}
               </p>
-              <p className="text-primary font-bold text-base">{item.price}</p>
+              <StockBadge stock={stock} outOfStock={isOOS} variant="inline" />
+              <p className="text-primary font-bold text-base">{item.price || item.newPrice}</p>
             </div>
           </div>
           {!isOOS && (
             <div className="mt-3 pt-3 border-t border-outline-variant flex justify-between items-end">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-on-surface-variant uppercase font-bold">
-                  Số lượng
+                  Số lượng {stock > 0 ? `(tối đa ${stock})` : ""}
                 </span>
                 <div className="flex items-center bg-surface-container rounded-lg p-1">
                   <button
@@ -327,7 +414,8 @@ const Cart = () => {
                     onClick={() =>
                       handleUpdateQuantity(item.id, item.quantity + 1)
                     }
-                    className="w-8 h-8 flex items-center justify-center text-primary active:scale-90 transition-all hover:bg-primary/10 rounded-md"
+                    disabled={atMax}
+                    className={`w-8 h-8 flex items-center justify-center text-primary active:scale-90 transition-all hover:bg-primary/10 rounded-md ${atMax ? "opacity-40 cursor-not-allowed" : ""}`}
                   >
                     <Plus size={16} />
                   </button>
@@ -350,21 +438,29 @@ const Cart = () => {
     // Desktop card
     return (
       <div
-        className={`bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/30 flex gap-6 relative transition-all group hover:border-primary/50 ${isOOS ? "opacity-60 grayscale" : ""}`}
+        className={`bg-surface-container-lowest p-6 rounded-lg shadow-sm border flex gap-6 relative transition-all group ${
+          isOOS
+            ? "opacity-60 grayscale border-outline-variant/30"
+            : isSelected
+              ? "border-primary/40 hover:border-primary/60"
+              : "border-outline-variant/30 opacity-80 hover:border-outline"
+        }`}
       >
         {isOOS && (
-          <div className="absolute inset-0 bg-surface-dim/20 z-10 flex items-center justify-center rounded-lg">
+          <div className="absolute inset-0 bg-surface-dim/20 z-10 flex items-center justify-center rounded-lg pointer-events-none">
             <span className="bg-on-surface/80 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
               Hết hàng
             </span>
           </div>
         )}
-        <div className="absolute top-4 left-4 z-10">
+        <div className="flex items-start pt-1 shrink-0 z-20">
           <input
-            className="w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary"
+            className="w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             type="checkbox"
-            checked={selectAll}
-            readOnly
+            checked={isSelected}
+            disabled={isOOS}
+            onChange={() => toggleItemSelected(item.id)}
+            aria-label={`Chọn ${item.name} để thanh toán`}
           />
         </div>
         <div className="flex-shrink-0 w-32 h-32 bg-surface-container rounded-lg overflow-hidden flex items-center justify-center p-4">
@@ -386,31 +482,40 @@ const Cart = () => {
               <p className="text-xs text-on-surface-variant mt-1">
                 SKU: PP-ITM-{item.id}
               </p>
+              <div className="mt-2">
+                <StockBadge stock={stock} outOfStock={isOOS} variant="detail" />
+              </div>
             </div>
-            <p className="text-lg font-bold text-primary">{item.price}</p>
+            <p className="text-lg font-bold text-primary">{item.price || item.newPrice}</p>
           </div>
           {!isOOS && (
             <div className="flex items-center justify-between mt-auto">
-              <div className="flex items-center border border-outline-variant rounded-lg overflow-hidden bg-surface-container-low">
-                <button
-                  onClick={() =>
-                    handleUpdateQuantity(item.id, item.quantity - 1)
-                  }
-                  className="px-4 py-2 hover:bg-surface-container-highest transition-colors font-bold"
-                >
-                  -
-                </button>
-                <span className="w-12 text-center text-sm font-semibold">
-                  {item.quantity}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-on-surface-variant uppercase font-bold">
+                  Số lượng {stock > 0 ? `(tối đa ${stock})` : ""}
                 </span>
-                <button
-                  onClick={() =>
-                    handleUpdateQuantity(item.id, item.quantity + 1)
-                  }
-                  className="px-4 py-2 hover:bg-surface-container-highest transition-colors font-bold"
-                >
-                  +
-                </button>
+                <div className="flex items-center border border-outline-variant rounded-lg overflow-hidden bg-surface-container-low">
+                  <button
+                    onClick={() =>
+                      handleUpdateQuantity(item.id, item.quantity - 1)
+                    }
+                    className="px-4 py-2 hover:bg-surface-container-highest transition-colors font-bold"
+                  >
+                    -
+                  </button>
+                  <span className="w-12 text-center text-sm font-semibold">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() =>
+                      handleUpdateQuantity(item.id, item.quantity + 1)
+                    }
+                    disabled={atMax}
+                    className={`px-4 py-2 hover:bg-surface-container-highest transition-colors font-bold ${atMax ? "opacity-40 cursor-not-allowed" : ""}`}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-on-surface-variant">Thành tiền</p>
@@ -466,6 +571,30 @@ const Cart = () => {
             </div>
           )}
 
+          {/* Selection bar (mobile) */}
+          <div className="bg-surface-container-lowest p-3 rounded-xl shadow-sm flex items-center justify-between border border-outline-variant/30">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                className="w-5 h-5 rounded border-outline text-primary accent-primary cursor-pointer"
+                type="checkbox"
+                checked={selectAllChecked}
+                onChange={toggleSelectAll}
+                disabled={selectableItems.length === 0}
+              />
+              <span className="text-sm font-semibold">
+                Chọn tất cả ({selectedItems.length}/{selectableItems.length})
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={handleRemoveSelected}
+              disabled={selectedItems.length === 0}
+              className="text-error text-xs font-semibold disabled:opacity-40"
+            >
+              Xóa đã chọn
+            </button>
+          </div>
+
           {/* Product Cards */}
           <div className="space-y-3">
             {localCart.map((item) => (
@@ -487,6 +616,8 @@ const Cart = () => {
             >
               {crossSellProducts.map((prod) => {
                 const added = localCart.some((i) => i.id === prod.id);
+                const cStock = resolveProductStock(prod);
+                const cOos = cStock <= 0;
                 return (
                   <div
                     key={prod.id}
@@ -494,7 +625,7 @@ const Cart = () => {
                   >
                     <div className="w-full aspect-square bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center mb-1">
                       <img
-                        className="w-20 h-20 object-contain"
+                        className={`w-20 h-20 object-contain ${cOos ? "opacity-50 grayscale" : ""}`}
                         src={prod.image}
                         alt={prod.name}
                       />
@@ -502,15 +633,16 @@ const Cart = () => {
                     <h4 className="text-xs font-semibold line-clamp-1 text-on-surface">
                       {prod.name}
                     </h4>
+                    <StockBadge stock={cStock} outOfStock={cOos} variant="inline" showIcon={false} />
                     <p className="text-primary font-bold text-sm">
                       {prod.price}
                     </p>
                     <button
                       onClick={() => handleAddCrossSell(prod)}
-                      disabled={added}
-                      className={`w-full py-1.5 border rounded-lg text-xs font-bold active:scale-95 transition-all ${added ? "border-outline-variant text-on-surface-variant cursor-not-allowed" : "border-primary text-primary hover:bg-primary/10"}`}
+                      disabled={added || cOos}
+                      className={`w-full py-1.5 border rounded-lg text-xs font-bold active:scale-95 transition-all ${added || cOos ? "border-outline-variant text-on-surface-variant cursor-not-allowed" : "border-primary text-primary hover:bg-primary/10"}`}
                     >
-                      {added ? "Đã thêm" : "Thêm"}
+                      {cOos ? "Hết hàng" : added ? "Đã thêm" : "Thêm"}
                     </button>
                   </div>
                 );
@@ -538,7 +670,7 @@ const Cart = () => {
             <div className="space-y-1.5 border-b border-outline-variant pb-3">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-on-surface-variant">
-                  Tạm tính ({activeItems.length} sản phẩm):
+                  Tạm tính ({selectedItems.length} sản phẩm):
                 </span>
                 <span className="text-on-surface font-semibold">
                   {formatPrice(subtotal)}
@@ -570,7 +702,7 @@ const Cart = () => {
               </div>
               <button
                 onClick={handleCheckout}
-                disabled={activeItems.length === 0}
+                disabled={selectedItems.length === 0}
                 className="flex-1 bg-primary-container text-white font-bold py-4 rounded-xl text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-lg hover:bg-primary disabled:opacity-50"
               >
                 <span>Thanh toán</span>
@@ -624,16 +756,22 @@ const Cart = () => {
               <div className="bg-surface-container-lowest p-4 rounded-lg shadow-sm flex items-center justify-between border border-outline-variant/30">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
-                    className="w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary"
+                    className="w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary cursor-pointer"
                     type="checkbox"
-                    checked={selectAll}
-                    onChange={() => setSelectAll(!selectAll)}
+                    checked={selectAllChecked}
+                    onChange={toggleSelectAll}
+                    disabled={selectableItems.length === 0}
                   />
                   <span className="text-sm font-semibold">
-                    Chọn tất cả ({activeItems.length} sản phẩm)
+                    Chọn tất cả ({selectedItems.length}/{selectableItems.length} sản phẩm)
                   </span>
                 </label>
-                <button className="text-error text-sm font-semibold flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <button
+                  type="button"
+                  onClick={handleRemoveSelected}
+                  disabled={selectedItems.length === 0}
+                  className="text-error text-sm font-semibold flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                >
                   <Trash2 size={18} /> Xóa sản phẩm đã chọn
                 </button>
               </div>
@@ -723,14 +861,16 @@ const Cart = () => {
                 <div className="grid grid-cols-3 gap-6">
                   {crossSellProducts.map((prod) => {
                     const added = localCart.some((i) => i.id === prod.id);
+                    const cStock = resolveProductStock(prod);
+                    const cOos = cStock <= 0;
                     return (
                       <div
                         key={prod.id}
                         className="flex flex-col items-center p-4 border border-outline-variant/30 rounded-lg group hover:border-primary hover:shadow-md transition-all bg-white"
                       >
-                        <div className="w-24 h-24 mb-4">
+                        <div className="w-24 h-24 mb-3">
                           <img
-                            className="object-contain w-full h-full"
+                            className={`object-contain w-full h-full ${cOos ? "opacity-50 grayscale" : ""}`}
                             src={prod.image}
                             alt={prod.name}
                           />
@@ -738,6 +878,7 @@ const Cart = () => {
                         <p className="text-sm font-semibold text-center mb-1 text-on-surface group-hover:text-primary transition-colors">
                           {prod.name}
                         </p>
+                        <StockBadge stock={cStock} outOfStock={cOos} className="mb-2" />
                         <p className="text-primary font-bold text-base">
                           {prod.price}
                         </p>
@@ -746,10 +887,10 @@ const Cart = () => {
                         </p>
                         <button
                           onClick={() => handleAddCrossSell(prod)}
-                          disabled={added}
-                          className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${added ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed" : "bg-surface-container-low text-primary hover:bg-primary-fixed"}`}
+                          disabled={added || cOos}
+                          className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${added || cOos ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed" : "bg-surface-container-low text-primary hover:bg-primary-fixed"}`}
                         >
-                          {added ? "Đã thêm" : "Thêm ngay"}
+                          {cOos ? "Hết hàng" : added ? "Đã thêm" : "Thêm ngay"}
                         </button>
                       </div>
                     );
@@ -771,7 +912,7 @@ const Cart = () => {
                       </h4>
                     </div>
                     <span className="text-[11px] font-bold text-primary bg-primary-fixed/30 px-2 py-0.5 rounded-full">
-                      {USER_VOUCHERS_LIST.length} mã khả dụng
+                      {vouchersLoading ? "..." : availableVouchers.length} mã khả dụng
                     </span>
                   </div>
 
@@ -810,7 +951,7 @@ const Cart = () => {
                     </p>
 
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                      {USER_VOUCHERS_LIST.map((v) => {
+                      {availableVouchers.map((v) => {
                         const isSelected = selectedVoucherCode === v.code;
                         const isEligible =
                           !v.minimumOrderValue ||
@@ -838,7 +979,7 @@ const Cart = () => {
                                   applyVoucher(null);
                                   setInputCouponCode("");
                                 } else {
-                                  applyVoucher(v);
+                                  applyVoucher(toStoreVoucher(v));
                                   setInputCouponCode(v.code);
                                 }
                                 setVoucherError(null);
@@ -949,7 +1090,7 @@ const Cart = () => {
                   <div className="space-y-4 border-b border-outline-variant/30 pb-4 mb-4">
                     <div className="flex justify-between text-base">
                       <span className="text-on-surface-variant">
-                        Tạm tính ({activeItems.length} sản phẩm)
+                        Tạm tính ({selectedItems.length} sản phẩm)
                       </span>
                       <span>{formatPrice(subtotal)}</span>
                     </div>
@@ -1003,9 +1144,12 @@ const Cart = () => {
                   </label>
                   <button
                     onClick={handleCheckout}
-                    className="w-full bg-primary-container text-white py-4 rounded-lg text-lg font-bold mb-4 hover:bg-primary transition-all active:scale-95 shadow-md flex items-center justify-center gap-2"
+                    disabled={selectedItems.length === 0}
+                    className="w-full bg-primary-container text-white py-4 rounded-lg text-lg font-bold mb-4 hover:bg-primary transition-all active:scale-95 shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    TIẾN HÀNH THANH TOÁN
+                    {selectedItems.length === 0
+                      ? "CHỌN SẢN PHẨM ĐỂ THANH TOÁN"
+                      : `TIẾN HÀNH THANH TOÁN (${selectedItems.length})`}
                   </button>
                   <button
                     onClick={() => navigate("/")}

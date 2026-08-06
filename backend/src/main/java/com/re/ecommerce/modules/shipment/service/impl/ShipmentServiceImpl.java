@@ -68,7 +68,7 @@ public class ShipmentServiceImpl implements ShipmentService {
             throw new BusinessConflictException("WAREHOUSE_INACTIVE", "The selected warehouse is inactive.");
         }
 
-        User staff = userRepository.findById(staffId).orElse(null);
+        User staff = staffId == null ? null : userRepository.findById(staffId).orElse(null);
 
         Shipment shipment = Shipment.builder()
                 .shipmentCode("SHP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
@@ -103,9 +103,7 @@ public class ShipmentServiceImpl implements ShipmentService {
             }
             int available = warehouseInventoryRepository
                     .findById(new WarehouseInventoryId(warehouse.getId(), orderItem.getProductVariant().getId()))
-                    .map(inventory -> inventory.getAvailableQuantity() == null
-                            ? inventory.getOnHandQuantity() - inventory.getReservedQuantity()
-                            : inventory.getAvailableQuantity())
+                    .map(inventory -> saleableQuantity(inventory.getOnHandQuantity(), inventory.getReservedQuantity()))
                     .orElse(0);
             available += reservedForOrder(order.getId(), orderItem.getId(), warehouse.getId());
             if (itemReq.getQuantity() > available) {
@@ -218,9 +216,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         List<String> unavailableSkus = new java.util.ArrayList<>();
         for (RemainingOrderItem remaining : remainingItems) {
             int available = warehouseInventoryRepository.findById(new WarehouseInventoryId(warehouse.getId(), remaining.item().getProductVariant().getId()))
-                    .map(inventory -> inventory.getAvailableQuantity() == null
-                            ? inventory.getOnHandQuantity() - inventory.getReservedQuantity()
-                            : inventory.getAvailableQuantity())
+                    .map(inventory -> saleableQuantity(inventory.getOnHandQuantity(), inventory.getReservedQuantity()))
                     .orElse(0);
             available += reservedForOrder(order.getId(), remaining.item().getId(), warehouse.getId());
             if (available >= remaining.quantity()) fulfilled++;
@@ -268,6 +264,10 @@ public class ShipmentServiceImpl implements ShipmentService {
                         && reservation.getWarehouse().getId().equals(warehouseId))
                 .mapToInt(reservation -> reservation.getQuantity() == null ? 0 : reservation.getQuantity())
                 .sum();
+    }
+
+    private int saleableQuantity(Integer onHand, Integer reserved) {
+        return Math.max(0, (onHand == null ? 0 : onHand) - (reserved == null ? 0 : reserved));
     }
 
     private record RemainingOrderItem(OrderItem item, int quantity) { }

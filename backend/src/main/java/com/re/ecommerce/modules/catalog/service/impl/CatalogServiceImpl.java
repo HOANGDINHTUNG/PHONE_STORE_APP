@@ -11,13 +11,16 @@ import com.re.ecommerce.modules.catalog.repository.BrandRepository;
 import com.re.ecommerce.modules.catalog.repository.CategoryRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductRepository;
 import com.re.ecommerce.modules.catalog.service.CatalogService;
+import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class CatalogServiceImpl implements CatalogService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -80,6 +84,10 @@ public class CatalogServiceImpl implements CatalogService {
                 .filter(v -> v.getStatus() == VariantStatus.ACTIVE)
                 .findFirst().orElse(null);
         if (defaultVariant == null) return null;
-        return ProductCardResponse.fromProduct(p);
+        List<UUID> variantIds = p.getVariants().stream().map(ProductVariant::getId).toList();
+        Map<UUID, Integer> stock = warehouseInventoryRepository.sumAvailableQuantityByVariantIds(variantIds).stream()
+                .collect(Collectors.toMap(WarehouseInventoryRepository.VariantAvailableStock::getVariantId,
+                        row -> Math.max(0, row.getAvailableQuantity().intValue())));
+        return ProductCardResponse.fromProduct(p, stock);
     }
 }

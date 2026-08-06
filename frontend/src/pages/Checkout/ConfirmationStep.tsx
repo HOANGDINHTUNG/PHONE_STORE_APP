@@ -14,6 +14,13 @@ import { useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckoutData } from "./index";
+import { StockBadge } from "../../components/common/StockBadge";
+import { resolveProductStock } from "../../utils/stock";
+import {
+  clearCheckoutSelectedIds,
+  getCheckoutCartItems,
+  getCheckoutSelectedIds,
+} from "../../utils/checkoutSelection";
 
 type ConfirmationStepProps = {
   onBack: () => void;
@@ -21,7 +28,8 @@ type ConfirmationStepProps = {
 };
 
 const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
-  const { cart, clearCart } = useStore();
+  const { cart, clearCart, removeFromCart, appliedVoucher } = useStore();
+  const checkoutCart = getCheckoutCartItems(cart);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [loading, setLoading] = React.useState(false);
@@ -32,14 +40,25 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
     return 0;
   };
 
-  const subtotal = cart.reduce((sum, item) => {
+  const subtotal = checkoutCart.reduce((sum, item) => {
     const priceNum = item.newPrice
       ? getPriceNum(item.newPrice)
       : getPriceNum(item.price);
     return sum + priceNum * item.quantity;
   }, 0);
 
-  const discount = subtotal > 20000000 ? 500000 : 0;
+  const discount = !appliedVoucher ||
+    (appliedVoucher.minimumOrderValue && subtotal < appliedVoucher.minimumOrderValue)
+    ? 0
+    : Math.min(
+        appliedVoucher.type === "PERCENT"
+          ? Math.min(
+              (subtotal * appliedVoucher.discountValue) / 100,
+              appliedVoucher.maximumDiscountAmount ?? Number.MAX_SAFE_INTEGER,
+            )
+          : appliedVoucher.discountValue,
+        subtotal,
+      );
   const total = subtotal - discount;
 
   const formatCurrency = (val: number) =>
@@ -52,6 +71,7 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
 
       const orderResponse = await checkoutApi({
         idempotencyKey: orderIdempotencyKey,
+        couponCode: appliedVoucher?.code,
         guestName: checkoutData.guestName,
         guestPhone: checkoutData.guestPhone,
         guestEmail: checkoutData.guestEmail,
@@ -65,7 +85,7 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
         guestWardName: checkoutData.guestWardName || checkoutData.guestWardCode,
         guestDetailAddress: checkoutData.guestDetailAddress,
         note: checkoutData.note,
-        items: cart.map((item) => {
+        items: checkoutCart.map((item) => {
           const selectedStorageGb = Number(item.selectedStorage?.replace(/[^\d]/g, ""));
           const selectedVariant = item.variants?.find(
             (variant) =>
@@ -101,8 +121,14 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
           "Tạo đơn hàng thành công nhưng khởi tạo thanh toán thất bại.",
         );
       } else {
-        clearCart();
-        queryClient.invalidateQueries({ queryKey: ["myOrders"] });
+        // Remove only items that were checked out; keep unselected cart lines
+        const selectedIds = getCheckoutSelectedIds();
+        if (selectedIds && selectedIds.length > 0) {
+          selectedIds.forEach((id) => removeFromCart(id));
+        } else {
+          clearCart();
+        }
+        clearCheckoutSelectedIds();
         if (
           checkoutData.paymentMethod === "VNPAY" &&
           paymentAttempt.redirectUrl
@@ -231,7 +257,7 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
               </h2>
             </div>
             <div className="space-y-0 divide-y divide-gray-100 border-t border-gray-100 pt-2">
-              {cart.map((item, idx) => (
+              {checkoutCart.map((item, idx) => (
                 <div
                   key={item.id}
                   className="py-6 first:pt-4 last:pb-2 flex gap-4"
@@ -258,10 +284,19 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
                       </p>
                     </div>
 
-                    <div className="flex items-end justify-between mt-3 text-sm">
-                      <span className="text-gray-600 font-semibold">
-                        SL: {item.quantity}
-                      </span>
+                    <div className="flex items-end justify-between mt-3 text-sm gap-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-gray-600 font-semibold">
+                          SL: {item.quantity}
+                        </span>
+                        <StockBadge
+                          stock={resolveProductStock(item)}
+                          outOfStock={
+                            resolveProductStock(item) <= 0 || !!item.outOfStock
+                          }
+                          variant="inline"
+                        />
+                      </div>
                       <span className="font-extrabold text-gray-900">
                         {item.newPrice ||
                           formatCurrency(getPriceNum(item.price))}
@@ -285,7 +320,7 @@ const ConfirmationStep = ({ onBack, checkoutData }: ConfirmationStepProps) => {
           <div className="space-y-4 text-sm mb-6 border-b border-gray-100 pb-6">
             <div className="flex justify-between">
               <span className="text-gray-500 font-medium">
-                Tạm tính ({cart.length} sản phẩm)
+                Tạm tính ({checkoutCart.length} sản phẩm)
               </span>
               <span className="text-gray-900 font-medium">
                 {formatCurrency(subtotal)}

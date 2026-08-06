@@ -8,6 +8,8 @@ import {
 } from "../../api/productService";
 import { Product, CartItem } from "../../types";
 import { Search, User, ShoppingCart, HeadphonesIcon } from "lucide-react";
+import { StockBadge } from "../common/StockBadge";
+import { resolveProductStock } from "../../utils/stock";
 
 const Header = () => {
   const { user, cart, logout } = useStore();
@@ -235,46 +237,55 @@ const Header = () => {
                 {suggestions.length > 0 ? (
                   <>
                     <div className="max-h-[360px] overflow-y-auto">
-                      {suggestions.slice(0, 6).map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-3 p-3 pt-4 pb-4 border-b border-outline-variant/30 hover:bg-surface-soft cursor-pointer transition-colors"
-                          onClick={() => handleSelectProduct(item)}
-                        >
-                          <div className="w-12 h-12 bg-white rounded flex items-center justify-center p-1 shrink-0">
-                            <img
-                              src={
-                                item.image ||
-                                getDefaultProductImage(item.brand, item.slug)
-                              }
-                              alt={item.name}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                const fallback = getDefaultProductImage(
-                                  item.brand,
-                                  item.slug,
-                                );
-                                if (e.currentTarget.src !== fallback) {
-                                  e.currentTarget.src = fallback;
+                      {suggestions.slice(0, 6).map((item) => {
+                        const stock = resolveProductStock(item);
+                        const oos = stock <= 0;
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 p-3 pt-4 pb-4 border-b border-outline-variant/30 hover:bg-surface-soft cursor-pointer transition-colors"
+                            onClick={() => handleSelectProduct(item)}
+                          >
+                            <div className="w-12 h-12 bg-white rounded flex items-center justify-center p-1 shrink-0">
+                              <img
+                                src={
+                                  item.image ||
+                                  getDefaultProductImage(item.brand, item.slug)
                                 }
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-label-sm text-on-surface truncate">
-                              {item.name}
+                                alt={item.name}
+                                className={`w-full h-full object-contain ${oos ? "opacity-50 grayscale" : ""}`}
+                                onError={(e) => {
+                                  const fallback = getDefaultProductImage(
+                                    item.brand,
+                                    item.slug,
+                                  );
+                                  if (e.currentTarget.src !== fallback) {
+                                    e.currentTarget.src = fallback;
+                                  }
+                                }}
+                              />
                             </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs px-2 py-0.5 rounded bg-surface-container text-on-surface-variant line-clamp-1">
-                                {item.brand}
-                              </span>
-                              <span className="font-semibold text-primary text-sm whitespace-nowrap">
-                                {item.newPrice}
-                              </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-label-sm text-on-surface truncate">
+                                {item.name}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className="text-xs px-2 py-0.5 rounded bg-surface-container text-on-surface-variant line-clamp-1">
+                                  {item.brand}
+                                </span>
+                                <span className="font-semibold text-primary text-sm whitespace-nowrap">
+                                  {item.newPrice}
+                                </span>
+                                <StockBadge
+                                  stock={stock}
+                                  outOfStock={oos}
+                                  variant="inline"
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     <div
                       className="text-center font-label-sm text-primary py-3 hover:bg-surface-soft cursor-pointer transition-colors bg-white border-t border-outline-variant"

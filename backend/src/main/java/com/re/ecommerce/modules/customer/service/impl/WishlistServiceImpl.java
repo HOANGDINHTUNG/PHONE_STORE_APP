@@ -11,6 +11,8 @@ import com.re.ecommerce.modules.customer.service.WishlistService;
 import com.re.ecommerce.modules.catalog.repository.ProductRepository;
 import com.re.ecommerce.modules.catalog.entity.Product;
 import com.re.ecommerce.modules.catalog.entity.PublicationStatus;
+import com.re.ecommerce.modules.catalog.entity.ProductVariant;
+import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final WishlistItemRepository wishlistRepository;
     private final CustomerProfileRepository customerRepository;
     private final ProductRepository productRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -80,8 +85,13 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     private WishlistItemResponse mapToResponse(WishlistItem item) {
-        com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse productCard = com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse
-                .fromProduct(item.getProduct());
+        Product product = item.getProduct();
+        List<UUID> variantIds = product.getVariants().stream().map(ProductVariant::getId).toList();
+        Map<UUID, Integer> stock = warehouseInventoryRepository.sumAvailableQuantityByVariantIds(variantIds).stream()
+                .collect(Collectors.toMap(WarehouseInventoryRepository.VariantAvailableStock::getVariantId,
+                        row -> Math.max(0, row.getAvailableQuantity().intValue())));
+        com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse productCard =
+                com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse.fromProduct(product, stock);
 
         return new WishlistItemResponse(item.getId(), productCard, item.getCreatedAt());
     }

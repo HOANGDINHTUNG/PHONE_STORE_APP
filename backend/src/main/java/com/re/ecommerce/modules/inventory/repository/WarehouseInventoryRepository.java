@@ -16,6 +16,11 @@ import java.util.UUID;
 @Repository
 public interface WarehouseInventoryRepository extends JpaRepository<WarehouseInventory, WarehouseInventoryId> {
 
+    interface VariantAvailableStock {
+        UUID getVariantId();
+        Long getAvailableQuantity();
+    }
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT wi FROM WarehouseInventory wi WHERE wi.id = :id")
     Optional<WarehouseInventory> findByIdWithLock(@Param("id") WarehouseInventoryId id);
@@ -23,4 +28,11 @@ public interface WarehouseInventoryRepository extends JpaRepository<WarehouseInv
     List<WarehouseInventory> findByIdWarehouseId(UUID warehouseId);
 
     List<WarehouseInventory> findByIdProductVariantId(UUID productVariantId);
+
+    @Query("SELECT wi.id.productVariantId AS variantId, " +
+           "COALESCE(SUM(wi.onHandQuantity - wi.reservedQuantity), 0) AS availableQuantity " +
+           "FROM WarehouseInventory wi " +
+           "WHERE wi.id.productVariantId IN :variantIds AND wi.warehouse.status = 'ACTIVE' " +
+           "GROUP BY wi.id.productVariantId")
+    List<VariantAvailableStock> sumAvailableQuantityByVariantIds(@Param("variantIds") List<UUID> variantIds);
 }

@@ -1,6 +1,7 @@
 import { apiClient } from "./client";
 import { Product } from "../types";
 import { products as mockProducts } from "../mock/products";
+import { resolveProductStock, withResolvedStock } from "../utils/stock";
 
 export interface BackendProductImage {
   id?: string;
@@ -18,8 +19,19 @@ export interface BackendProductVariant {
   colorName?: string;
   color?: string;
   storageGb?: number;
+  ramGb?: number;
   mainImageUrl?: string;
   images?: BackendProductImage[];
+  availableQuantity?: number;
+  warehouseStocks?: Array<{
+    warehouseId: string;
+    warehouseName: string;
+    availableQuantity: number;
+  }>;
+  /** Legacy stock fields */
+  stock?: number;
+  availableQuantity?: number;
+  stockQuantity?: number;
 }
 
 export interface BackendProductResponse {
@@ -34,6 +46,12 @@ export interface BackendProductResponse {
   variants?: BackendProductVariant[];
   minPrice?: number;
   maxPrice?: number;
+  /** Optional stock fields if API ever exposes them */
+  stock?: number;
+  availableQuantity?: number;
+  stockQuantity?: number;
+  outOfStock?: boolean;
+  isAvailable?: boolean;
 }
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
@@ -114,6 +132,13 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
 
     const listP = v.listPrice ?? v.price ?? 0;
     const saleP = v.salePrice && v.salePrice > 0 ? v.salePrice : listP;
+    const variantStock = resolveProductStock({
+      id: v.id,
+      name: v.sku || bp.name,
+      stock: v.stock,
+      availableQuantity: v.availableQuantity,
+      stockQuantity: v.stockQuantity,
+    });
 
     return {
       id: v.id,
@@ -126,8 +151,33 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
       newPrice: formatCurrency(saleP),
       oldPrice: listP > saleP ? formatCurrency(listP) : undefined,
       image: img,
+      stock: variantStock,
+      warehouseStocks: v.warehouseStocks,
     };
   });
+
+  // Prefer product-level stock; else sum of variant stocks; else stable demo stock
+  const productLevelStock =
+    bp.stock ?? bp.availableQuantity ?? bp.stockQuantity;
+  let stock: number;
+  if (productLevelStock !== undefined && productLevelStock !== null) {
+    stock = resolveProductStock({
+      id: bp.id,
+      name: bp.name,
+      stock: productLevelStock,
+      outOfStock: bp.outOfStock,
+      isAvailable: bp.isAvailable,
+    });
+  } else if (mappedVariants.length > 0) {
+    stock = mappedVariants.reduce((sum, v) => sum + (v.stock ?? 0), 0);
+  } else {
+    stock = resolveProductStock({
+      id: bp.id,
+      name: bp.name,
+      outOfStock: bp.outOfStock,
+      isAvailable: bp.isAvailable,
+    });
+  }
 
   return {
     id: bp.id,
@@ -145,6 +195,9 @@ export const mapBackendProductToUI = (bp: BackendProductResponse): Product => {
     slug: bp.slug,
     description: bp.description,
     variants: mappedVariants,
+    stock,
+    availableQuantity: stock,
+    outOfStock: stock <= 0,
   };
 };
 
@@ -154,7 +207,7 @@ export const fetchProducts = async (
   brandId?: string
 ): Promise<Product[]> => {
   if (USE_MOCK) {
-    return mockProducts as Product[];
+    return (mockProducts as Product[]).map((p) => withResolvedStock(p));
   }
   try {
     const params: Record<string, string> = {};
@@ -176,9 +229,12 @@ export const fetchProducts = async (
 export const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   if (USE_MOCK) {
     const foundMock = mockProducts.find(
-      (p) => p.name.toLowerCase().includes(slug.toLowerCase()) || p.id.toString() === slug
+      (p) =>
+        p.slug === slug ||
+        p.name.toLowerCase().includes(slug.toLowerCase()) ||
+        p.id.toString() === slug
     );
-    return (foundMock as Product) || null;
+    return foundMock ? withResolvedStock(foundMock as Product) : null;
   }
   try {
     const response = await apiClient.get<BackendProductResponse>(`/products/${slug}`);
@@ -189,5 +245,77 @@ export const fetchProductBySlug = async (slug: string): Promise<Product | null> 
   } catch (error) {
     console.error(`API error fetching product ${slug} from backend SQL API:`, error);
     throw error;
+  }
+};
+
+/** Related products for PDP recommendations (uses existing public endpoint). */
+export const fetchRelatedProducts = async (slug: string): Promise<Product[]> => {
+  if (USE_MOCK) {
+    return (mockProducts as Product[])
+      .filter((p) => p.slug !== slug)
+      .slice(0, 4)
+      .map((p) => withResolvedStock(p));
+  }
+  try {
+    const response = await apiClient.get<
+      Array<{
+        id: string;
+        name: string;
+        slug: string;
+        brandName?: string;
+        categoryName?: string;
+        primaryImageUrl?: string;
+        effectiveMinPrice?: number;
+        effectiveMaxPrice?: number;
+        isAvailable?: boolean;
+        saleableVariantCount?: number;
+        availableQuantity?: number;
+        stock?: number;
+        availableQuantity?: number;
+      }>
+    >(`/products/${slug}/related-products`);
+
+    const items = Array.isArray(response.data) ? response.data : [];
+    if (items.length === 0) {
+      // Fallback: top products excluding current
+      const all = await fetchProducts();
+      return all.filter((p) => p.slug !== slug).slice(0, 4);
+    }
+
+    return items.map((card) => {
+      const stock = resolveProductStock({
+        id: card.id,
+        name: card.name,
+        stock: card.availableQuantity ?? card.stock,
+        availableQuantity: card.availableQuantity,
+        isAvailable: card.isAvailable,
+      });
+      const minP = card.effectiveMinPrice;
+      const maxP = card.effectiveMaxPrice;
+      return {
+        id: card.id,
+        name: card.name,
+        brand: card.brandName || "PinkPhone",
+        category: (card.categoryName || "").toLowerCase(),
+        image:
+          card.primaryImageUrl ||
+          getDefaultProductImage(card.brandName, card.slug, card.name),
+        newPrice: formatCurrency(minP),
+        oldPrice: maxP && minP && maxP > minP ? formatCurrency(maxP) : undefined,
+        slug: card.slug,
+        stock,
+        outOfStock: stock <= 0,
+        rating: 5,
+        reviewsCount: 0,
+      } as Product;
+    });
+  } catch (error) {
+    console.warn("Related products unavailable, using catalog fallback:", error);
+    try {
+      const all = await fetchProducts();
+      return all.filter((p) => p.slug !== slug).slice(0, 4);
+    } catch {
+      return [];
+    }
   }
 };

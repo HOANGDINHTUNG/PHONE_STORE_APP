@@ -81,6 +81,7 @@
   justify-content: center;
   height: 160px;
   margin-bottom: 16px;
+  position: relative;
 }
 
 .productImage {
@@ -88,6 +89,30 @@
   max-width: 100%;
   object-fit: contain;
   transition: transform var(--transition-speed);
+}
+
+.imageOos {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+
+.oosOverlay {
+  position: absolute;
+  inset: auto auto 10px 50%;
+  transform: translateX(-50%);
+  background: rgba(33, 33, 33, 0.82);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.stockRow {
+  margin-bottom: 10px;
+  min-height: 22px;
 }
 
 .card:hover .productImage {

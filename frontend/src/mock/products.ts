@@ -12,7 +12,9 @@ export const products = [
     gift: "Tặng củ sạc nhanh 25W chính hãng",
     rating: 5,
     reviewsCount: 320,
-    slug: "iphone-16-pro-max"
+    slug: "iphone-16-pro-max",
+    stock: 12,
+    outOfStock: false,
   },
   {
     id: "2",
@@ -27,7 +29,9 @@ export const products = [
     gift: "Tặng ốp lưng Titan cao cấp",
     rating: 5,
     reviewsCount: 180,
-    slug: "iphone-16-pro"
+    slug: "iphone-16-pro",
+    stock: 8,
+    outOfStock: false,
   },
   {
     id: "3",
@@ -42,7 +46,9 @@ export const products = [
     gift: "Tặng sạc không dây 15W",
     rating: 5,
     reviewsCount: 412,
-    slug: "samsung-galaxy-s24-ultra"
+    slug: "samsung-galaxy-s24-ultra",
+    stock: 3,
+    outOfStock: false,
   },
   {
     id: "4",
@@ -57,7 +63,9 @@ export const products = [
     gift: "Tặng bộ Photography Kit Leica",
     rating: 5,
     reviewsCount: 156,
-    slug: "xiaomi-14-ultra"
+    slug: "xiaomi-14-ultra",
+    stock: 25,
+    outOfStock: false,
   },
   {
     id: "5",
@@ -72,7 +80,9 @@ export const products = [
     gift: "Tặng tai nghe OPPO Enco Air3",
     rating: 5,
     reviewsCount: 89,
-    slug: "oppo-find-n3"
+    slug: "oppo-find-n3",
+    stock: 0,
+    outOfStock: true,
   },
   {
     id: "6",
@@ -87,7 +97,9 @@ export const products = [
     gift: "Tặng Bao da S-Pen chính hãng",
     rating: 5,
     reviewsCount: 140,
-    slug: "samsung-galaxy-z-fold-6"
+    slug: "samsung-galaxy-z-fold-6",
+    stock: 15,
+    outOfStock: false,
   },
   {
     id: "7",
@@ -102,7 +114,9 @@ export const products = [
     gift: "Tặng ốp lưng MagSafe",
     rating: 5,
     reviewsCount: 520,
-    slug: "iphone-15-pro-max"
+    slug: "iphone-15-pro-max",
+    stock: 6,
+    outOfStock: false,
   },
   {
     id: "8",
@@ -117,7 +131,9 @@ export const products = [
     gift: "Tặng 1 năm Google One 2TB",
     rating: 5,
     reviewsCount: 78,
-    slug: "google-pixel-9-pro-xl"
+    slug: "google-pixel-9-pro-xl",
+    stock: 18,
+    outOfStock: false,
   },
   {
     id: "9",
@@ -132,7 +148,9 @@ export const products = [
     gift: "Tặng quạt tản nhiệt sò lạnh",
     rating: 4.9,
     reviewsCount: 64,
-    slug: "realme-gt5-pro"
+    slug: "realme-gt5-pro",
+    stock: 4,
+    outOfStock: false,
   },
   {
     id: "10",
@@ -147,6 +165,8 @@ export const products = [
     gift: "Tặng tay cầm AeroActive Cooler X",
     rating: 5,
     reviewsCount: 110,
-    slug: "asus-rog-phone-8-pro"
-  }
+    slug: "asus-rog-phone-8-pro",
+    stock: 22,
+    outOfStock: false,
+  },
 ];

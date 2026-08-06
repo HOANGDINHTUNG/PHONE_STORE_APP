@@ -3,6 +3,8 @@ package com.re.ecommerce.modules.shipment.controller;
 import com.re.ecommerce.common.dto.PagedResponse;
 import com.re.ecommerce.common.exception.ResourceNotFoundException;
 import com.re.ecommerce.modules.auth.entity.User;
+import com.re.ecommerce.modules.auth.repository.UserRepository;
+import com.re.ecommerce.security.CustomUserDetails;
 import com.re.ecommerce.modules.inventory.dto.response.WarehouseResponse;
 import com.re.ecommerce.modules.inventory.entity.Warehouse;
 import com.re.ecommerce.modules.inventory.repository.WarehouseRepository;
@@ -44,6 +46,7 @@ public class AdminShipmentController {
     private final ShipmentItemUnitRepository shipmentItemUnitRepository;
     private final WarehouseRepository warehouseRepository;
     private final ShipmentService shipmentService;
+    private final UserRepository userRepository;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -75,16 +78,20 @@ public class AdminShipmentController {
 
     @PostMapping("/orders/{orderId}")
     @PreAuthorize("hasAuthority('SHIPMENT_MANAGE') or hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<AdminShipmentDetailResponse> create(
             @PathVariable UUID orderId,
             @Valid @RequestBody CreateShipmentRequest request,
-            @AuthenticationPrincipal User currentUser) {
-        Shipment shipment = shipmentService.createShipment(orderId, request, currentUser.getId());
+            @AuthenticationPrincipal CustomUserDetails principal) {
+        UUID staffId = principal == null ? null : userRepository.findByUsername(principal.username())
+                .map(User::getId).orElse(null);
+        Shipment shipment = shipmentService.createShipment(orderId, request, staffId);
         return ResponseEntity.status(HttpStatus.CREATED).body(toDetail(shipment));
     }
 
     @PatchMapping("/{shipmentId}/tracking")
     @PreAuthorize("hasAuthority('SHIPMENT_MANAGE') or hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<AdminShipmentDetailResponse> updateTracking(
             @PathVariable Long shipmentId, @Valid @RequestBody UpdateShipmentTrackingRequest request) {
         shipmentService.updateTracking(shipmentId, request);
@@ -93,6 +100,7 @@ public class AdminShipmentController {
 
     @PatchMapping("/{shipmentId}/status")
     @PreAuthorize("hasAuthority('SHIPMENT_MANAGE') or hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<AdminShipmentDetailResponse> updateStatus(
             @PathVariable Long shipmentId, @Valid @RequestBody ChangeShipmentStatusRequest request) {
         shipmentService.changeStatus(shipmentId, request);

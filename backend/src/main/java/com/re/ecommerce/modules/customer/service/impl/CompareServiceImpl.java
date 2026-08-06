@@ -7,6 +7,8 @@ import com.re.ecommerce.modules.auth.repository.CustomerProfileRepository;
 import com.re.ecommerce.modules.catalog.dto.response.ProductCardResponse;
 import com.re.ecommerce.modules.catalog.entity.Product;
 import com.re.ecommerce.modules.catalog.entity.PublicationStatus;
+import com.re.ecommerce.modules.catalog.entity.ProductVariant;
+import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
 import com.re.ecommerce.modules.catalog.repository.ProductRepository;
 import com.re.ecommerce.modules.customer.entity.CompareItem;
 import com.re.ecommerce.modules.customer.repository.CompareItemRepository;
@@ -16,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class CompareServiceImpl implements CompareService {
     private final CompareItemRepository compareItemRepository;
     private final CustomerProfileRepository customerRepository;
     private final ProductRepository productRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -37,7 +42,12 @@ public class CompareServiceImpl implements CompareService {
                 .map(item -> {
                     Product p = productRepository.findById(item.getProductId())
                              .orElse(null);
-                    return p != null ? ProductCardResponse.fromProduct(p) : null;
+                    if (p == null) return null;
+                    List<UUID> variantIds = p.getVariants().stream().map(ProductVariant::getId).toList();
+                    Map<UUID, Integer> stock = warehouseInventoryRepository.sumAvailableQuantityByVariantIds(variantIds).stream()
+                            .collect(Collectors.toMap(WarehouseInventoryRepository.VariantAvailableStock::getVariantId,
+                                    row -> Math.max(0, row.getAvailableQuantity().intValue())));
+                    return ProductCardResponse.fromProduct(p, stock);
                 })
                 .filter(p -> p != null)
                 .toList();

@@ -28,6 +28,12 @@ public class PublicVoucherController {
     private final CouponService couponService;
     private final UserRepository userRepository;
 
+    @GetMapping
+    public ResponseEntity<List<CouponResponse>> getPublicVouchers() {
+        UUID currentUserId = extractUserId();
+        return ResponseEntity.ok(couponService.getPublicVouchers(currentUserId));
+    }
+
     @GetMapping("/featured")
     public ResponseEntity<List<CouponResponse>> getFeaturedVouchers() {
         UUID currentUserId = extractUserId();

@@ -10,6 +10,11 @@ import com.re.ecommerce.modules.catalog.dto.response.*;
 import com.re.ecommerce.modules.catalog.entity.*;
 import com.re.ecommerce.modules.catalog.repository.*;
 import com.re.ecommerce.modules.catalog.service.ProductService;
+import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
+import com.re.ecommerce.modules.inventory.repository.WarehouseRepository;
+import com.re.ecommerce.modules.inventory.entity.Warehouse;
+import com.re.ecommerce.modules.inventory.entity.enums.WarehouseStatus;
+import com.re.ecommerce.modules.inventory.dto.response.VariantWarehouseStockResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +40,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductAttributeRepository attributeRepository;
     private final ProductImageRepository imageRepository;
     private final RelatedProductRepository relatedProductRepository;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
+    private final WarehouseRepository warehouseRepository;
     private final AuditLogger auditLogger;
 
     @Override
@@ -247,7 +256,8 @@ public class ProductServiceImpl implements ProductService {
                     ProductVariant defaultVariant = p.getVariants().stream()
                             .filter(v -> v.getStatus() == VariantStatus.ACTIVE).findFirst().orElse(null);
                     if (defaultVariant == null) return null;
-                    return ProductCardResponse.fromProduct(p);
+                    return ProductCardResponse.fromProduct(p, stockByVariantIds(
+                            p.getVariants().stream().map(ProductVariant::getId).toList()));
                 })
                 .filter(r -> r != null) // spec says variant must be saleable
                 .toList();
@@ -314,6 +324,8 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductPublicResponse mapToPublicResponse(Product product) {
         List<ProductVariant> variants = variantRepository.findByProductIdAndStatus(product.getId(), VariantStatus.ACTIVE);
+        Map<UUID, Integer> availableByVariantId = stockByVariantIds(
+                variants.stream().map(ProductVariant::getId).toList());
         
         List<VariantResponse> variantResponses = variants.stream().map(v -> {
             List<ImageResponse> images = imageRepository.findByVariantIdOrderBySortOrderAsc(v.getId()).stream()
@@ -323,6 +335,8 @@ public class ProductServiceImpl implements ProductService {
             return new VariantResponse(
                     v.getId(), v.getProduct().getId(), v.getSku(), v.getName(), v.getColor(), v.getRamGb(), v.getStorageGb(),
                     v.getTrackingType(), v.getWarrantyMonths(), v.getListPrice(), v.getSalePrice(), v.getStatus(), v.getVersion(),
+                    availableByVariantId.getOrDefault(v.getId(), 0),
+                    warehouseStocksForVariant(v.getId()),
                     images, v.getCreatedAt(), v.getUpdatedAt()
             );
         }).toList();
@@ -361,5 +375,28 @@ public class ProductServiceImpl implements ProductService {
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );
+    }
+
+    private Map<UUID, Integer> stockByVariantIds(List<UUID> variantIds) {
+        if (variantIds.isEmpty()) return Map.of();
+        return warehouseInventoryRepository.sumAvailableQuantityByVariantIds(variantIds).stream()
+                .collect(Collectors.toMap(
+                        WarehouseInventoryRepository.VariantAvailableStock::getVariantId,
+                        row -> Math.max(0, row.getAvailableQuantity().intValue())
+                ));
+    }
+
+    private List<VariantWarehouseStockResponse> warehouseStocksForVariant(UUID variantId) {
+        Map<UUID, Integer> inventoryByWarehouse = warehouseInventoryRepository
+                .findByIdProductVariantId(variantId).stream()
+                .filter(i -> i.getWarehouse().getStatus() == WarehouseStatus.ACTIVE)
+                .collect(Collectors.toMap(i -> i.getWarehouse().getId(),
+                        i -> Math.max(0, (i.getOnHandQuantity() == null ? 0 : i.getOnHandQuantity()) -
+                                (i.getReservedQuantity() == null ? 0 : i.getReservedQuantity()))));
+        return warehouseRepository.findAll().stream()
+                .filter(w -> w.getStatus() == WarehouseStatus.ACTIVE)
+                .map(w -> new VariantWarehouseStockResponse(w.getId(), w.getName(),
+                        inventoryByWarehouse.getOrDefault(w.getId(), 0)))
+                .toList();
     }
 }

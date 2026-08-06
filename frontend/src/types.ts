@@ -22,6 +22,13 @@ export interface ProductVariantUI {
   newPrice?: string;
   oldPrice?: string;
   image: string;
+  stock?: number;
+  availableQuantity?: number;
+  warehouseStocks?: Array<{
+    warehouseId: string;
+    warehouseName: string;
+    availableQuantity: number;
+  }>;
 }
 
 export interface Product {

@@ -279,15 +279,38 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   // Cart actions
   const addToCart = (product: Product | CartItem) => {
     setCart((prevCart) => {
+      const stock =
+        typeof product.stock === "number"
+          ? product.stock
+          : product.outOfStock
+            ? 0
+            : undefined;
       const existing = prevCart.find((item) => item.id === product.id);
       if (existing) {
+        const nextQty = existing.quantity + 1;
+        if (typeof stock === "number" && stock > 0 && nextQty > stock) {
+          return prevCart; // respect stock cap on FE
+        }
         return prevCart.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: nextQty,
+                stock: stock ?? item.stock,
+                outOfStock: product.outOfStock ?? item.outOfStock,
+              }
             : item,
         );
       }
-      return [...prevCart, { ...product, quantity: 1 } as CartItem];
+      return [
+        ...prevCart,
+        {
+          ...product,
+          quantity: 1,
+          stock: stock ?? product.stock,
+          outOfStock: product.outOfStock ?? (stock === 0),
+        } as CartItem,
+      ];
     });
   };
 

@@ -252,6 +252,8 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 variant.getSalePrice(),
                 variant.getStatus(),
                 variant.getVersion(),
+                null,
+                List.of(),
                 images,
                 variant.getCreatedAt(),
                 variant.getUpdatedAt()

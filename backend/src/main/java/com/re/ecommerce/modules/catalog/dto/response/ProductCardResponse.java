@@ -13,9 +13,16 @@ public record ProductCardResponse(
         BigDecimal effectiveMinPrice,
         BigDecimal effectiveMaxPrice,
         boolean isAvailable,
-        long saleableVariantCount
+        long saleableVariantCount,
+        int availableQuantity
 ) {
     public static ProductCardResponse fromProduct(com.re.ecommerce.modules.catalog.entity.Product p) {
+        return fromProduct(p, java.util.Map.of());
+    }
+
+    public static ProductCardResponse fromProduct(
+            com.re.ecommerce.modules.catalog.entity.Product p,
+            java.util.Map<UUID, Integer> availableByVariantId) {
         BigDecimal min = null;
         BigDecimal max = null;
         boolean available = false;
@@ -24,7 +31,8 @@ public record ProductCardResponse(
         
         if (p.getVariants() != null) {
             for (com.re.ecommerce.modules.catalog.entity.ProductVariant v : p.getVariants()) {
-                if (v.getStatus() == com.re.ecommerce.modules.catalog.entity.VariantStatus.ACTIVE) {
+                int variantAvailable = availableByVariantId.getOrDefault(v.getId(), 0);
+                if (v.getStatus() == com.re.ecommerce.modules.catalog.entity.VariantStatus.ACTIVE && variantAvailable > 0) {
                     available = true;
                     saleableCount++;
                 }
@@ -58,7 +66,8 @@ public record ProductCardResponse(
                 min,
                 max,
                 available,
-                saleableCount
+                saleableCount,
+                availableByVariantId.values().stream().mapToInt(Integer::intValue).sum()
         );
     }
 }

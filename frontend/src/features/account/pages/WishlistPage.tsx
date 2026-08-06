@@ -13,6 +13,8 @@ import { AccountShell } from "../components/AccountShell";
 import { useStore } from "../../../context/StoreContext";
 import { fetchWishlist } from "../../../api/wishlistService";
 import { Product } from "../../../types";
+import { StockBadge } from "../../../components/common/StockBadge";
+import { resolveProductStock } from "../../../utils/stock";
 
 export function WishlistPage() {
   const { wishlist: storeWishlist, toggleWishlist, addToCart } = useStore();
@@ -62,7 +64,9 @@ export function WishlistPage() {
   };
 
   const handleAddToCart = (product: Product) => {
-    addToCart(product);
+    const stock = resolveProductStock(product);
+    if (stock <= 0) return;
+    addToCart({ ...product, stock, outOfStock: false });
   };
 
   return (
@@ -103,6 +107,8 @@ export function WishlistPage() {
                 : `/product/${product.id}`;
               const pPrice = product.price || product.newPrice || "Liên hệ";
               const pOldPrice = product.oldPrice;
+              const stock = resolveProductStock(product);
+              const oos = stock <= 0;
 
               return (
                 <div
@@ -121,26 +127,29 @@ export function WishlistPage() {
                   {/* Image */}
                   <Link
                     to={productUrl}
-                    className="h-64 mb-6 flex items-center justify-center overflow-hidden block"
+                    className="h-64 mb-6 flex items-center justify-center overflow-hidden block relative"
                   >
                     <img
-                      className="h-full object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
+                      className={`h-full object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply ${oos ? "opacity-55 grayscale-[0.3]" : ""}`}
                       alt={product.name}
                       src={product.image || "/images/placeholder.png"}
                     />
                   </Link>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-semibold text-[12px]">
-                        Còn hàng
-                      </span>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <StockBadge stock={stock} outOfStock={oos} variant="compact" />
                       {product.badge && (
                         <span className="text-on-surface-variant font-semibold text-[12px]">
                           {product.badge}
                         </span>
                       )}
                     </div>
+                    <p className="text-[12px] font-semibold text-on-surface-variant">
+                      {oos
+                        ? "Sản phẩm tạm hết hàng"
+                        : `Còn ${stock} sản phẩm trong kho`}
+                    </p>
 
                     <Link
                       to={productUrl}
@@ -166,9 +175,14 @@ export function WishlistPage() {
                   <div className="grid grid-cols-2 gap-3 mt-auto">
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className="bg-primary text-on-primary py-3 rounded-lg font-semibold hover:bg-secondary active:scale-95 transition-all flex items-center justify-center gap-2 text-[14px]"
+                      disabled={oos}
+                      className={`py-3 rounded-lg font-semibold active:scale-95 transition-all flex items-center justify-center gap-2 text-[14px] ${
+                        oos
+                          ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed"
+                          : "bg-primary text-on-primary hover:bg-secondary"
+                      }`}
                     >
-                      <ShoppingCart size={18} /> Thêm giỏ
+                      <ShoppingCart size={18} /> {oos ? "Hết hàng" : "Thêm giỏ"}
                     </button>
                     <button
                       onClick={() => navigate(productUrl)}

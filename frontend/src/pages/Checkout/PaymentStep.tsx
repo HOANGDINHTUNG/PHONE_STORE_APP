@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { OrderSummarySidebar } from "./components/OrderSummarySidebar";
 import { Tag, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Radio } from "antd";
 import { CheckoutData } from "./index";
 import { useStore } from "../../context/StoreContext";
-import { USER_VOUCHERS_LIST } from "../../utils/vouchers";
+import { voucherService, Voucher } from "../../api/voucherService";
+import { getCheckoutCartItems } from "../../utils/checkoutSelection";
 
 type PaymentStepProps = {
   onNext: () => void;
@@ -22,8 +23,16 @@ const PaymentStep = ({
   isSubmitting,
 }: PaymentStepProps) => {
   const { appliedVoucher, applyVoucher, cart } = useStore();
+  const checkoutCart = getCheckoutCartItems(cart);
   const [inputCode, setInputCode] = useState(appliedVoucher?.code || "");
   const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [availableVouchers, setAvailableVouchers] = useState<Voucher[]>([]);
+
+  useEffect(() => {
+    void voucherService.getPublicVouchers()
+      .then(setAvailableVouchers)
+      .catch(() => setAvailableVouchers([]));
+  }, []);
 
   const getPriceNum = (val?: string | number): number => {
     if (typeof val === "number") return val;
@@ -31,7 +40,7 @@ const PaymentStep = ({
     return 0;
   };
 
-  const subtotal = cart.reduce((sum, item) => {
+  const subtotal = checkoutCart.reduce((sum, item) => {
     const priceNum = item.newPrice
       ? getPriceNum(item.newPrice)
       : getPriceNum(item.price);
@@ -44,7 +53,9 @@ const PaymentStep = ({
       setVoucherError("Vui lòng nhập mã giảm giá");
       return;
     }
-    const voucher = USER_VOUCHERS_LIST.find((v) => v.code === trimmed);
+    const voucher = availableVouchers.find(
+      (item) => item.code.toUpperCase() === trimmed,
+    );
     if (!voucher) {
       setVoucherError(
         `Mã giảm giá "${trimmed}" không tồn tại hoặc không hợp lệ`,
@@ -58,7 +69,16 @@ const PaymentStep = ({
       return;
     }
 
-    applyVoucher(voucher);
+    applyVoucher({
+      id: voucher.id,
+      code: voucher.code,
+      name: voucher.name || voucher.code,
+      type: voucher.type === "AMOUNT" ? "FIXED" : "PERCENT",
+      discountValue: Number(voucher.discountValue),
+      maximumDiscountAmount: voucher.maximumDiscountAmount == null ? undefined : Number(voucher.maximumDiscountAmount),
+      minimumOrderValue: voucher.minimumOrderValue == null ? undefined : Number(voucher.minimumOrderValue),
+      description: voucher.description || "Ưu đãi đang áp dụng",
+    });
     setVoucherError(null);
   };
 

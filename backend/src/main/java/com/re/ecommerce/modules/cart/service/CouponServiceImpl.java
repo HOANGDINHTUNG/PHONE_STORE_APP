@@ -188,6 +188,15 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<CouponResponse> getPublicVouchers(UUID currentUserId) {
+        LocalDateTime now = LocalDateTime.now();
+        return couponRepository.findActivePublicVouchers(now).stream()
+                .map(c -> mapToResponse(c, currentUserId, null, null))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<CouponResponse> getProductVouchers(UUID productId, UUID currentUserId) {
         LocalDateTime now = LocalDateTime.now();
         Product product = productRepository.findById(productId).orElse(null);
