@@ -23,4 +23,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
     List<OrderItem> findCompletedOrderItemsByCustomer(
             @Param("customer") User customer,
             @Param("statuses") List<OrderStatus> statuses);
+
+    @Query("SELECT i FROM OrderItem i JOIN FETCH i.product p JOIN i.order o " +
+           "WHERE o.status IN :statuses " +
+           "ORDER BY o.createdAt DESC")
+    List<OrderItem> findCompletedOrderItems(
+            @Param("statuses") List<OrderStatus> statuses);
 }

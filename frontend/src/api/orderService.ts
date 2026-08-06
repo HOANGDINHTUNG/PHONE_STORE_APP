@@ -2,24 +2,55 @@ import { apiClient } from "./client";
 
 export type OrderItemResponse = {
   id: string;
-  variantId: string;
+  productId?: string;
+  productVariantId?: string;
+  variantId?: string;
   productName: string;
+  variantName?: string;
   sku: string;
+  color?: string;
+  ram?: string;
+  storage?: string;
+  imageUrl?: string;
+  warrantyMonths?: number;
   quantity: number;
   unitPrice: number;
-  totalPrice: number;
+  lineTotal?: number;
+  totalPrice?: number;
+  discountAmount?: number;
 };
 
 export type OrderResponse = {
   id: string;
   orderCode: string;
-  customerName: string;
-  customerPhone: string;
-  subtotal: number;
+  customerId?: string;
+  sourceChannel?: string;
+  couponCode?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  receiverName?: string;
+  receiverPhone?: string;
+  customerName?: string;
+  customerPhone?: string;
+  shippingDetailAddress?: string;
+  shippingWardName?: string;
+  shippingDistrictName?: string;
+  shippingProvinceName?: string;
+  currency?: string;
+  subtotalAmount?: number;
+  subtotal?: number;
   shippingFee: number;
-  discountTotal: number;
-  total: number;
+  discountAmount?: number;
+  discountTotal?: number;
+  grandTotalAmount?: number;
+  total?: number;
   status: string;
+  note?: string;
+  createdAt?: string;
+  confirmedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
   items: OrderItemResponse[];
 };
 
@@ -85,6 +116,42 @@ export const createPaymentAttemptApi = async (
         "X-Idempotency-Key": idempotencyKey,
       },
     },
+  );
+  return response.data;
+};
+
+export type PagedResponse<T> = {
+  items: T[];
+  content?: T[];  // fallback alias
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+};
+
+export const getMyOrdersApi = async (
+  page: number = 1,
+  size: number = 10,
+): Promise<PagedResponse<OrderResponse>> => {
+  const response = await apiClient.get<PagedResponse<OrderResponse>>(
+    `/me/orders?page=${page}&size=${size}`
+  );
+  return response.data;
+};
+
+export const getMyOrderApi = async (orderCode: string): Promise<OrderResponse> => {
+  const response = await apiClient.get<OrderResponse>(`/me/orders/${orderCode}`);
+  return response.data;
+};
+
+export const cancelMyOrderApi = async (
+  orderId: string,
+  reason: string,
+): Promise<OrderResponse> => {
+  const response = await apiClient.post<OrderResponse>(
+    `/orders/${orderId}/cancel?reason=${encodeURIComponent(reason)}`
   );
   return response.data;
 };

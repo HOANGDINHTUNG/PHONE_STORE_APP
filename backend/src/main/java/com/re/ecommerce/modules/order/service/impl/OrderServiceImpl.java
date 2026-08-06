@@ -322,7 +322,7 @@ public class OrderServiceImpl implements OrderService {
     public PagedResponse<OrderResponse> getMyOrders(User currentUser, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, size, org.springframework.data.domain.Sort.by("createdAt").descending());
         org.springframework.data.domain.Page<Order> ordersPage = orderRepository.findByCustomer_Id(currentUser.getId(), pageable);
-        
+
         List<UUID> orderIds = ordersPage.getContent().stream().map(Order::getId).toList();
         List<OrderItem> allItems = orderIds.isEmpty() ? java.util.Collections.emptyList() : orderItemRepository.findByOrderIdIn(orderIds);
         java.util.Map<UUID, List<OrderItem>> itemsByOrderId = allItems.stream().collect(Collectors.groupingBy(item -> item.getOrder().getId()));

@@ -14,33 +14,19 @@ import { useStore } from "../../../context/StoreContext";
 import { AccountShell } from "../components/AccountShell";
 import { fetchMyOrders } from "../../../api/profileService";
 import { fetchWishlist } from "../../../api/wishlistService";
-import { loginApi } from "../../../api/authService";
 import { getDefaultProductImage } from "../../../api/productService";
 import { Product } from "../../../types";
 
 export function AccountOverviewPage() {
   const { user, wishlist: storeWishlist } = useStore();
-  const [progress, setProgress] = useState(0);
   const [orders, setOrders] = useState<any[]>([]);
   const [favoriteItems, setFavoriteItems] = useState<Product[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setProgress(70), 150);
-
     let active = true;
     const loadData = async () => {
-      let data = await fetchMyOrders();
-      let items = await fetchWishlist();
-
-      if ((!data || data.length === 0) && (!items || items.length === 0)) {
-        try {
-          await loginApi("admin", "123456");
-          data = await fetchMyOrders();
-          items = await fetchWishlist();
-        } catch (e) {
-          console.warn("Auto login fallback failed in AccountOverview:", e);
-        }
-      }
+      const data = await fetchMyOrders();
+      const items = await fetchWishlist();
 
       if (active) {
         if (data) setOrders(data);
@@ -51,7 +37,6 @@ export function AccountOverviewPage() {
     loadData();
 
     return () => {
-      clearTimeout(timer);
       active = false;
     };
   }, []);
@@ -71,12 +56,51 @@ export function AccountOverviewPage() {
       ? `ID: PP-${user.id}`
       : "ID: PP-GUEST";
 
-  // Calculate real quick stats from DB data
-  const totalOrders = orders.length;
-  const totalSpending = orders.reduce(
+  // ── Tier definitions ──
+  const TIERS = [
+    { name: "Thành viên", minSpend: 0 },
+    { name: "Bạc", minSpend: 5_000_000 },
+    { name: "Vàng", minSpend: 15_000_000 },
+    { name: "Bạch Kim", minSpend: 30_000_000 },
+    { name: "Kim cương", minSpend: 100_000_000 },
+    { name: "Thẻ Đen", minSpend: 500_000_000 },
+  ];
+
+  // ── Only count COMPLETED / DELIVERED orders ──
+  const completedOrders = orders.filter(
+    (o) => o.status === "COMPLETED" || o.status === "DELIVERED",
+  );
+  const totalOrders = completedOrders.length;
+  const totalSpending = completedOrders.reduce(
     (sum, o) => sum + (o.grandTotalAmount || o.totalAmount || o.subtotalAmount || 0),
     0,
   );
+
+  // ── Current tier & next tier ──
+  let currentTierIdx = 0;
+  for (let i = TIERS.length - 1; i >= 0; i--) {
+    if (totalSpending >= TIERS[i].minSpend) {
+      currentTierIdx = i;
+      break;
+    }
+  }
+  const currentTier = TIERS[currentTierIdx];
+  const nextTier = currentTierIdx < TIERS.length - 1 ? TIERS[currentTierIdx + 1] : null;
+
+  // ── Progress percentage toward next tier ──
+  let progressPercent = 0;
+  let remaining = 0;
+  if (nextTier) {
+    const rangeSize = nextTier.minSpend - currentTier.minSpend;
+    const spentInRange = totalSpending - currentTier.minSpend;
+    progressPercent = Math.min(100, Math.max(0, (spentInRange / rangeSize) * 100));
+    remaining = nextTier.minSpend - totalSpending;
+  } else {
+    progressPercent = 100; // Already at max tier
+    remaining = 0;
+  }
+
+  // ── Format helpers ──
   const formattedSpending =
     totalSpending > 0
       ? totalSpending >= 1_000_000
@@ -86,6 +110,19 @@ export function AccountOverviewPage() {
   const points = Math.floor(totalSpending / 100_000).toLocaleString("vi-VN");
   const favoriteCount = favoriteItems.length;
 
+  const formatVND = (v: number) =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(v);
+
+  // ── Tier badge color ──
+  const tierBadgeClass =
+    currentTierIdx === 3
+      ? "bg-gradient-to-r from-blue-400 to-purple-500 text-white"
+      : currentTierIdx === 2
+        ? "bg-gradient-to-r from-yellow-400 to-amber-500 text-white"
+        : currentTierIdx === 1
+          ? "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800"
+          : "bg-surface-container-high text-on-surface-variant";
+
   return (
     <AccountShell title="Tổng quan tài khoản">
       <div className="flex-1 space-y-gutter">
@@ -94,8 +131,8 @@ export function AccountOverviewPage() {
           {/* Personal Info Card */}
           <div className="bento-card col-span-1 lg:col-span-2 rounded-xl p-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 p-lg">
-              <span className="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-bold text-xs">
-                Hạng Vàng
+              <span className={`px-3 py-1 rounded-full font-bold text-xs ${tierBadgeClass}`}>
+                Hạng {currentTier.name}
               </span>
             </div>
             <div className="flex items-center gap-lg">
@@ -132,24 +169,28 @@ export function AccountOverviewPage() {
             <div className="mt-8 pt-6 border-t border-outline-variant/30">
               <div className="flex justify-between items-end mb-2">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  Tiến trình nâng hạng Kim cương
+                  {nextTier
+                    ? `Tiến trình nâng hạng ${nextTier.name}`
+                    : `Bạn đã đạt hạng cao nhất!`}
                 </span>
                 <span className="font-label-sm text-label-sm text-primary">
-                  Còn thiếu: 15,000,000đ
+                  {nextTier
+                    ? `Còn thiếu: ${formatVND(remaining)}`
+                    : `Tổng chi tiêu: ${formatVND(totalSpending)}`}
                 </span>
               </div>
               <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${progressPercent}%` }}
                 ></div>
               </div>
               <div className="flex justify-between mt-2">
                 <span className="text-xs text-on-surface-variant">
-                  Hạng Vàng
+                  Hạng {currentTier.name}
                 </span>
                 <span className="text-xs text-on-surface-variant font-bold">
-                  Hạng Kim cương
+                  {nextTier ? `Hạng ${nextTier.name}` : "Hạng tối đa"}
                 </span>
               </div>
             </div>
@@ -202,9 +243,9 @@ export function AccountOverviewPage() {
                           o.items?.[0]?.imageUrl && o.items?.[0]?.imageUrl.trim() !== ""
                             ? o.items?.[0]?.imageUrl
                             : getDefaultProductImage(
-                                undefined,
-                                o.items?.[0]?.productName || o.items?.[0]?.variantName,
-                              )
+                              undefined,
+                              o.items?.[0]?.productName || o.items?.[0]?.variantName,
+                            )
                         }
                       />
                     ))

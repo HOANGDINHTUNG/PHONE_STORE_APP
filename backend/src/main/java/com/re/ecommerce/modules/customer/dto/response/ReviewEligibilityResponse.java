@@ -9,6 +9,7 @@ public record ReviewEligibilityResponse(
         UUID orderItemId,
         UUID productId,
         String productName,
+        String imageUrl,
         UUID orderId,
         LocalDateTime orderCompletedAt,
         boolean hasReview,
