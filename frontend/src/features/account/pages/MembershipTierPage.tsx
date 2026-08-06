@@ -50,21 +50,21 @@ export function MembershipTierPage() {
               <div className="flex justify-between mb-2 items-end">
                 <span className="text-sm font-semibold text-on-surface-variant">
                   Tiến trình lên hạng{" "}
-                  <span className="text-primary font-bold">Kim Cương</span>
+                  <span className="text-primary font-bold">Bạch Kim</span>
                 </span>
                 <span className="text-xs text-on-surface-variant font-bold">
-                  8,500 / 15,000 Điểm
+                  8,500 / 30,000 Điểm
                 </span>
               </div>
               <div className="w-full bg-white/50 h-3 rounded-full overflow-hidden shadow-inner">
                 <div
                   className="h-full bg-primary transition-all duration-1000 ease-out"
-                  style={{ width: "56.6%" }}
+                  style={{ width: "28.3%" }}
                 ></div>
               </div>
               <p className="mt-4 text-sm text-on-surface-variant/80 max-w-[28rem]">
-                Chỉ cần tích lũy thêm <strong>6,500 điểm</strong> để mở khóa đặc
-                quyền Kim Cương cao cấp nhất.
+                Chỉ cần tích lũy thêm <strong>21,500 điểm</strong> để mở khóa đặc
+                quyền Bạch Kim cao cấp.
               </p>
             </div>
             {/* Abstract decorative elements */}
@@ -162,7 +162,7 @@ export function MembershipTierPage() {
                     Đặc quyền
                   </th>
                   <th className="py-4 font-bold text-on-surface-variant min-w-[120px]">
-                    Đồng
+                    Thành viên
                   </th>
                   <th className="py-4 font-bold text-on-surface-variant min-w-[120px]">
                     Bạc
@@ -170,26 +170,34 @@ export function MembershipTierPage() {
                   <th className="py-4 font-bold text-primary text-lg min-w-[150px]">
                     Vàng
                   </th>
+                  <th className="py-4 font-bold text-secondary text-lg min-w-[150px]">
+                    Bạch Kim
+                  </th>
                   <th className="py-4 font-bold text-secondary text-xl min-w-[150px]">
                     Kim Cương
+                  </th>
+                  <th className="py-4 font-bold text-secondary text-xl min-w-[150px]">
+                    Thẻ Đen
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/30">
                 <tr className="hover:bg-surface-container-low transition-colors">
                   <td className="py-6 font-medium">Chi tiêu tích lũy</td>
-                  <td className="py-6 text-on-surface-variant">Dưới 5tr</td>
-                  <td className="py-6 text-on-surface-variant">5tr - 20tr</td>
-                  <td className="py-6 font-bold text-primary text-lg">
-                    20tr - 100tr
-                  </td>
-                  <td className="py-6 font-bold text-secondary">Trên 100tr</td>
+                  <td className="py-6 text-on-surface-variant">0 - 5tr</td>
+                  <td className="py-6 text-on-surface-variant">5tr - 15tr</td>
+                  <td className="py-6 font-bold text-primary text-lg">15tr - 30tr</td>
+                  <td className="py-6 font-bold text-secondary">30tr - 100tr</td>
+                  <td className="py-6 font-bold text-secondary">100tr - 500tr</td>
+                  <td className="py-6 font-bold text-secondary">Trên 500tr</td>
                 </tr>
                 <tr className="hover:bg-surface-container-low transition-colors">
                   <td className="py-6 font-medium">Tích lũy điểm</td>
                   <td className="py-6 text-on-surface-variant">0.5%</td>
                   <td className="py-6 text-on-surface-variant">1%</td>
                   <td className="py-6 font-bold text-primary text-lg">2%</td>
+                  <td className="py-6 font-bold text-secondary">3%</td>
+                  <td className="py-6 font-bold text-secondary">4%</td>
                   <td className="py-6 font-bold text-secondary">5%</td>
                 </tr>
                 <tr className="hover:bg-surface-container-low transition-colors">
@@ -200,13 +208,17 @@ export function MembershipTierPage() {
                   <td className="py-6 text-on-surface-variant">1 lần/năm</td>
                   <td className="py-6 font-bold text-primary">Vô hạn</td>
                   <td className="py-6 font-bold text-secondary">Vô hạn</td>
+                  <td className="py-6 font-bold text-secondary">Vô hạn</td>
+                  <td className="py-6 font-bold text-secondary">Vô hạn</td>
                 </tr>
                 <tr className="hover:bg-surface-container-low transition-colors">
                   <td className="py-6 font-medium">Thu cũ đổi mới</td>
                   <td className="py-6 text-on-surface-variant">+100k</td>
                   <td className="py-6 text-on-surface-variant">+200k</td>
                   <td className="py-6 font-bold text-primary text-lg">+500k</td>
+                  <td className="py-6 font-bold text-secondary">+700k</td>
                   <td className="py-6 font-bold text-secondary">+1tr</td>
+                  <td className="py-6 font-bold text-secondary">+1.5tr</td>
                 </tr>
                 <tr className="hover:bg-surface-container-low transition-colors">
                   <td className="py-6 font-medium">Hỗ trợ kỹ thuật tại nhà</td>
@@ -218,6 +230,12 @@ export function MembershipTierPage() {
                   </td>
                   <td className="py-6">
                     <X size={20} className="text-on-surface-variant/30" />
+                  </td>
+                  <td className="py-6 font-bold text-secondary flex items-center gap-1">
+                    <Award size={16} /> Có
+                  </td>
+                  <td className="py-6 font-bold text-secondary flex items-center gap-1">
+                    <Award size={16} /> Có
                   </td>
                   <td className="py-6 font-bold text-secondary flex items-center gap-1">
                     <Award size={16} /> Có

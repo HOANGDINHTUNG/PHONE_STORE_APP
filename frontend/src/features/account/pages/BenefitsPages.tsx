@@ -90,8 +90,8 @@ export function MembershipPage() {
           <p className="text-sm font-bold text-white/80">Hạng hiện tại</p>
           <div className="mt-2 flex items-center gap-3"><Crown size={32} /><h2 className="text-4xl font-black">Vàng</h2></div>
           <p className="mt-2 text-sm">Bạn đang ở nhóm 35% khách hàng thân thiết nhất.</p>
-          <div className="mt-6 flex justify-between text-xs"><span>Tiến trình lên hạng Kim cương</span><strong>8.500 / 15.000 điểm</strong></div>
-          <div className="mt-2 h-2 rounded-full bg-white/25"><div className="h-full w-3/5 rounded-full bg-white" /></div>
+          <div className="mt-6 flex justify-between text-xs"><span>Tiến trình lên hạng Bạch Kim</span><strong>8.500 / 30.000 điểm</strong></div>
+          <div className="mt-2 h-2 rounded-full bg-white/25"><div className="h-full w-[28.3%] rounded-full bg-white" /></div>
         </section>
         <Panel className="grid place-items-center p-6 text-center">
           <Star size={28} className="text-primary" />
@@ -112,12 +112,12 @@ export function MembershipPage() {
         <h2 className="text-lg font-extrabold">So sánh quyền lợi các hạng</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[38rem] text-sm">
-            <thead><tr className="text-left text-muted"><th className="py-3">Đặc quyền</th><th>Đồng</th><th>Bạc</th><th className="text-primary">Vàng</th><th>Kim cương</th></tr></thead>
+            <thead><tr className="text-left text-muted"><th className="py-3">Đặc quyền</th><th>Thành viên</th><th>Bạc</th><th className="text-primary">Vàng</th><th>Bạch Kim</th><th>Kim Cương</th><th>Thẻ Đen</th></tr></thead>
             <tbody className="[&_td]:border-t [&_td]:border-border [&_td]:py-4">
-              <tr><td>Chi tiêu tích lũy</td><td>Dưới 5tr</td><td>5tr - 20tr</td><td className="font-bold text-primary">20tr - 100tr</td><td>Trên 100tr</td></tr>
-              <tr><td>Tích lũy điểm</td><td>0,5%</td><td>1%</td><td className="font-bold text-primary">2%</td><td>5%</td></tr>
-              <tr><td>Vệ sinh máy miễn phí</td><td>—</td><td>1 lần/năm</td><td className="font-bold text-primary">Vô hạn</td><td>Vô hạn</td></tr>
-              <tr><td>Ưu đãi thu cũ</td><td>+100k</td><td>+200k</td><td className="font-bold text-primary">+500k</td><td>+1 triệu</td></tr>
+              <tr><td>Chi tiêu tích lũy</td><td>0 - 5tr</td><td>5tr - 15tr</td><td className="font-bold text-primary">15tr - 30tr</td><td className="text-secondary">30tr - 100tr</td><td className="text-secondary">100tr - 500tr</td><td className="font-bold text-secondary">Trên 500tr</td></tr>
+              <tr><td>Tích lũy điểm</td><td>0,5%</td><td>1%</td><td className="font-bold text-primary">2%</td><td className="text-secondary">3%</td><td className="text-secondary">4%</td><td className="text-secondary">5%</td></tr>
+              <tr><td>Vệ sinh máy miễn phí</td><td>—</td><td>1 lần/năm</td><td className="font-bold text-primary">Vô hạn</td><td className="text-secondary">Vô hạn</td><td className="text-secondary">Vô hạn</td><td className="text-secondary">Vô hạn</td></tr>
+              <tr><td>Ưu đãi thu cũ</td><td>+100k</td><td>+200k</td><td className="font-bold text-primary">+500k</td><td className="text-secondary">+700k</td><td className="text-secondary">+1 triệu</td><td className="text-secondary">+1.5tr</td></tr>
             </tbody>
           </table>
         </div>

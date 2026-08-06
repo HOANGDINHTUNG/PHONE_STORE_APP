@@ -31,13 +31,7 @@ export const loginApi = async (
 
     if (response.data && response.data.accessToken) {
       const token = response.data.accessToken;
-      if (remember) {
-        localStorage.setItem("pinkphone_token", token);
-      } else {
-        sessionStorage.setItem("pinkphone_token", token);
-      }
-
-      const u = response.data.user;
+        const u = response.data.user;
       const parsedUser = {
         id: u?.id,
         name: u?.fullName || response.data.username || emailOrPhone,
@@ -52,6 +46,10 @@ export const loginApi = async (
       };
 
       if (remember) {
+        sessionStorage.removeItem("pinkphone_token");
+        sessionStorage.removeItem("pinkphone_refreshToken");
+        sessionStorage.removeItem("pinkphone_user");
+
         localStorage.setItem("pinkphone_token", token);
         if (response.data.refreshToken)
           localStorage.setItem(
@@ -60,6 +58,10 @@ export const loginApi = async (
           );
         localStorage.setItem("pinkphone_user", JSON.stringify(parsedUser));
       } else {
+        localStorage.removeItem("pinkphone_token");
+        localStorage.removeItem("pinkphone_refreshToken");
+        localStorage.removeItem("pinkphone_user");
+
         sessionStorage.setItem("pinkphone_token", token);
         if (response.data.refreshToken)
           sessionStorage.setItem(
@@ -95,6 +97,10 @@ export const registerApi = async (details: {
     if (response.data && response.data.accessToken) {
       // Logic from Register assumes we always effectively "remember" for initial ease,
       // or default set to localStorage.
+      sessionStorage.removeItem("pinkphone_token");
+      sessionStorage.removeItem("pinkphone_refreshToken");
+      sessionStorage.removeItem("pinkphone_user");
+
       localStorage.setItem("pinkphone_token", response.data.accessToken);
       if (response.data.refreshToken) {
         localStorage.setItem(

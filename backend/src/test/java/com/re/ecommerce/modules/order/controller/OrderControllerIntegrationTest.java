@@ -222,6 +222,14 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
+    void getMyOrders_shouldReturnEmptyPage_whenUserHasNoOrders() throws Exception {
+        mockMvc.perform(get("/api/v1/me/orders")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(0)));
+    }
+
+    @Test
     void getMyOrder_shouldReturnDetails() throws Exception {
         Order order = new Order();
         order.setCustomer(testUser);

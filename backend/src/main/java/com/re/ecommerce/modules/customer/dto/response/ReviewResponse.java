@@ -9,6 +9,8 @@ public record ReviewResponse(
         UUID id,
         UUID productId,
         UUID orderItemId,
+        String productName,
+        String imageUrl,
         String customerName,
         Integer rating,
         String title,

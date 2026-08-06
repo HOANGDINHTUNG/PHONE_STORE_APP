@@ -8,87 +8,84 @@ import {
   PackageOpen,
   Search,
   Truck,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountShell, Panel } from "../components/AccountShell";
+import { useQuery } from "@tanstack/react-query";
+import { getMyOrdersApi, OrderResponse } from "../../../api/orderService";
 
-const orders = [
-  {
-    code: "#PP123-001",
-    date: "15/10/2024",
-    name: "iPhone 16 Pro Max - Pink Titanium",
-    specs: "Dung lượng: 256GB | Số lượng: 01",
-    price: "34.990.000đ",
-    oldPrice: "36.990.000đ",
-    status: "ĐANG GIAO",
-    statusType: "active",
-    image: "/images/prod_iphone15.png",
-    actions: [
-      {
-        label: "Theo dõi",
-        primary: true,
-        link: "/tai-khoan/theo-doi-don-hang",
-      },
-      {
-        label: "Xem chi tiết",
-        outline: true,
-        link: "/tai-khoan/don-hang/PP123-001",
-      },
-    ],
-  },
-  {
-    code: "#PP122-890",
-    date: "02/09/2024",
-    name: "Samsung Galaxy Z Flip 6",
-    specs: "Màu sắc: Rose Gold | Số lượng: 01",
-    price: "22.490.000đ",
-    status: "HOÀN THÀNH",
-    statusType: "completed",
-    image: "/images/prod_s24.png",
-    actions: [
-      { label: "Đánh giá", outline: true, link: "/tai-khoan/danh-gia" },
-      { label: "Mua lại", primary: true, link: "/san-pham/pinkphone-ultra-x" },
-      {
-        label: "Xem chi tiết",
-        outline: true,
-        link: "/tai-khoan/don-hang/PP123-001",
-      },
-    ],
-  },
-  {
-    code: "#PP121-456",
-    date: "15/07/2024",
-    name: "Apple Watch Series 9 GPS",
-    specs: "Dây quấn thể thao hồng | 41mm",
-    price: "8.590.000đ",
-    status: "HOÀN THÀNH",
-    statusType: "completed",
-    image: "/images/prod_realmegt.png",
-    actions: [
-      { label: "Mua lại", primary: true, link: "/san-pham/pinkphone-ultra-x" },
-      {
-        label: "Xem chi tiết",
-        outline: true,
-        link: "/tai-khoan/don-hang/PP123-001",
-      },
-    ],
-  },
-];
+import { AlertCircle } from "lucide-react";
 
-export function OrderHistoryPage({ empty = false }: { empty?: boolean }) {
+export function OrderHistoryPage() {
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["myOrders", 1],
+    queryFn: () => getMyOrdersApi(1, 20),
+  });
+
+  const orders = data?.items || data?.content || [];
+  const isEmpty = !isLoading && !isError && orders.length === 0;
+
+  const httpStatus = (error as any)?.response?.status;
+
   return (
     <AccountShell
-      title={empty ? "Lịch sử mua hàng (Trống)" : "Lịch sử mua hàng"}
+      title={isError ? "Lỗi tải đơn hàng | PinkPhone" : isEmpty ? "Lịch sử mua hàng (Trống)" : "Lịch sử mua hàng"}
       description="Xem và quản lý tất cả các đơn hàng bạn đã thực hiện tại PinkPhone."
     >
-      {empty ? <EmptyHistory /> : <HistoryContent />}
+      {isLoading ? (
+        <div className="flex justify-center p-12">
+          <Loader2 className="animate-spin text-primary w-8 h-8" />
+        </div>
+      ) : isError ? (
+        <Panel className="p-8 text-center border border-red-200 bg-red-50/50 rounded-2xl">
+          <div className="mx-auto grid size-16 place-items-center rounded-full bg-red-100 text-red-600 mb-4">
+            <AlertCircle size={36} />
+          </div>
+          <h3 className="text-lg font-bold text-red-700 mb-2">
+            Không thể lấy danh sách đơn hàng
+          </h3>
+          <p className="text-sm text-red-600 max-w-md mx-auto mb-5 leading-relaxed">
+            {httpStatus === 401
+              ? "Phiên đăng nhập đã hết hạn (Mã lỗi: 401 Unauthorized). Vui lòng đăng nhập lại."
+              : httpStatus === 403
+              ? "Bạn không có quyền truy cập dữ liệu đơn hàng (Mã lỗi: 403 Forbidden)."
+              : httpStatus
+              ? `Máy chủ phản hồi mã lỗi HTTP: ${httpStatus}. Vui lòng thử lại sau.`
+              : "Không thể kết nối đến máy chủ backend (ERR_CONNECTION_REFUSED hoặc lỗi mạng)."}
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => refetch()}
+              type="button"
+              className="px-5 py-2.5 bg-red-600 text-white font-bold text-sm rounded-xl hover:bg-red-700 transition"
+            >
+              Thử lại
+            </button>
+            {httpStatus === 401 && (
+              <Link
+                to="/login"
+                className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-strong transition"
+              >
+                Đăng nhập lại
+              </Link>
+            )}
+          </div>
+        </Panel>
+      ) : isEmpty ? (
+        <EmptyHistory />
+      ) : (
+        <HistoryContent orders={orders} />
+      )}
     </AccountShell>
   );
 }
 
-function HistoryContent() {
+function HistoryContent({ orders }: { orders: OrderResponse[] }) {
   const [activeTab, setActiveTab] = useState("Tất cả");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [timeFilter, setTimeFilter] = useState("ALL");
 
   const tabs = [
     "Tất cả",
@@ -97,8 +94,65 @@ function HistoryContent() {
     "Đang giao",
     "Hoàn thành",
     "Đã hủy",
-    "Trả hàng",
   ];
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "Chờ xác nhận";
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "PROCESSING":
+        return "Đang xử lý";
+      case "SHIPPED":
+      case "SHIPPING":
+        return "Đang giao";
+      case "DELIVERED":
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELLED":
+        return "Đã hủy";
+      case "PARTIALLY_RETURNED":
+        return "Đổi trả một phần";
+      case "RETURNED":
+        return "Đã đổi trả";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusType = (status: string) => {
+    if (status === "DELIVERED" || status === "COMPLETED" || status === "CANCELLED" || status === "RETURNED") return "completed";
+    return "active";
+  };
+
+  const filteredOrders = orders.filter((o) => {
+    // Tab filter
+    if (activeTab !== "Tất cả" && getStatusText(o.status) !== activeTab) {
+      return false;
+    }
+    // Search filter
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      const codeMatch = o.orderCode?.toLowerCase().includes(q);
+      const itemMatch = o.items?.some((i) =>
+        i.productName?.toLowerCase().includes(q) || i.variantName?.toLowerCase().includes(q)
+      );
+      if (!codeMatch && !itemMatch) return false;
+    }
+    // Time filter
+    if (timeFilter !== "ALL" && o.createdAt) {
+      const orderDate = new Date(o.createdAt).getTime();
+      const now = new Date().getTime();
+      const days = (now - orderDate) / (1000 * 3600 * 24);
+      if (timeFilter === "30" && days > 30) return false;
+      if (timeFilter === "180" && days > 180) return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -137,8 +191,10 @@ function HistoryContent() {
           />
           <input
             type="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-xl focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 outline-none transition-all"
-            placeholder="Tìm kiếm theo mã đơn hoặc tên điện thoại..."
+            placeholder="Tìm kiếm theo mã đơn hoặc tên sản phẩm..."
           />
         </div>
         <div className="relative flex items-center">
@@ -146,11 +202,14 @@ function HistoryContent() {
             className="absolute left-4 z-10 text-on-surface-variant pointer-events-none"
             size={18}
           />
-          <select className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-xl focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 outline-none appearance-none transition-all cursor-pointer">
-            <option>Tất cả thời gian</option>
-            <option>30 ngày qua</option>
-            <option>6 tháng qua</option>
-            <option>Năm 2024</option>
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline rounded-xl focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 outline-none appearance-none transition-all cursor-pointer"
+          >
+            <option value="ALL">Tất cả thời gian</option>
+            <option value="30">30 ngày qua</option>
+            <option value="180">6 tháng qua</option>
           </select>
           <ChevronDown
             className="absolute right-4 z-10 text-on-surface-variant pointer-events-none"
@@ -161,118 +220,121 @@ function HistoryContent() {
 
       {/* Order List */}
       <div className="flex flex-col gap-lg">
-        {orders.map((order) => (
-          <article
-            key={order.code}
-            className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden hover:shadow-md transition-all"
-          >
-            <div className="flex items-center justify-between p-4 bg-surface-container-low border-b border-outline-variant/20">
-              <div className="flex items-center gap-lg">
-                <span className="font-bold text-primary">{order.code}</span>
-                <span className="text-on-surface-variant text-sm flex items-center gap-1">
-                  <CalendarDays size={18} /> {order.date}
-                </span>
-              </div>
-              <div
-                className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                  order.statusType === "active"
-                    ? "bg-secondary-container text-on-secondary-container"
-                    : "bg-outline-variant text-on-surface"
-                }`}
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-10 text-muted">Không tìm thấy đơn hàng nào phù hợp.</div>
+        ) : (
+          filteredOrders.map((order) => {
+            const firstItem = order.items && order.items[0];
+            const extraCount = order.items ? order.items.length - 1 : 0;
+            const statusType = getStatusType(order.status);
+            const totalAmount = order.grandTotalAmount ?? order.total ?? 0;
+            const formattedDate = order.createdAt 
+              ? new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : null;
+            
+            return (
+              <article
+                key={order.orderCode}
+                className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden hover:shadow-md transition-all"
               >
-                {order.statusType === "active" ? (
-                  <Truck size={16} />
-                ) : (
-                  <CheckCircle2 size={16} />
-                )}{" "}
-                {order.status}
-              </div>
-            </div>
-
-            <div className="p-6 flex flex-col md:flex-row gap-lg">
-              <div
-                className="w-24 h-24 bg-surface-container rounded-lg p-2 flex items-center justify-center shrink-0"
-                title={order.name}
-              >
-                <img
-                  src={order.image}
-                  alt={order.name}
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div>
-
-              <div className="flex-1 flex flex-col md:flex-row justify-between gap-lg min-w-0">
-                <div className="min-w-0">
-                  <h4
-                    className="font-headline-md text-headline-md text-on-surface mb-1 truncate"
-                    title={order.name}
-                  >
-                    {order.name}
-                  </h4>
-                  <p className="text-on-surface-variant font-body-md mb-2 truncate">
-                    {order.specs}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg text-primary">
-                      {order.price}
-                    </span>
-                    {order.oldPrice && (
-                      <span className="text-on-surface-variant line-through text-sm">
-                        {order.oldPrice}
-                      </span>
+                <div className="flex items-center justify-between p-4 bg-surface-container-low border-b border-outline-variant/20">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-primary">#{order.orderCode}</span>
+                    {formattedDate && (
+                      <span className="text-xs text-muted">({formattedDate})</span>
                     )}
+                  </div>
+                  <div
+                    className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      statusType === "active"
+                        ? "bg-secondary-container text-on-secondary-container"
+                        : "bg-outline-variant text-on-surface"
+                    }`}
+                  >
+                    {statusType === "active" ? (
+                      <Truck size={16} />
+                    ) : (
+                      <CheckCircle2 size={16} />
+                    )}{" "}
+                    {getStatusText(order.status)}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap md:flex-col justify-end gap-2 md:min-w-[140px]">
-                  {order.actions.map((act) => (
-                    <Link
-                      key={act.label}
-                      to={act.link}
-                      className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-center transition-colors active:scale-95 ${
-                        act.primary
-                          ? act.label === "Mua lại"
-                            ? "bg-secondary-container text-on-secondary-container hover:bg-secondary" // Matches 'Mua lại' in mockup
-                            : "bg-primary text-on-primary hover:bg-secondary" // Generic strong button
-                          : act.label === "Đánh giá"
-                            ? "bg-surface text-on-surface border border-outline hover:bg-surface-container"
-                            : "border border-primary text-primary hover:bg-primary-fixed-dim/20"
-                      }`}
-                    >
-                      {act.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+                <div className="p-6 flex flex-col md:flex-row gap-lg">
+                  <div className="w-24 h-24 bg-surface-container rounded-lg p-2 flex items-center justify-center shrink-0 border border-outline-variant/20 overflow-hidden">
+                    {firstItem?.imageUrl ? (
+                      <img
+                        src={firstItem.imageUrl}
+                        alt={firstItem.productName}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <PackageOpen size={40} className="text-muted" />
+                    )}
+                  </div>
 
-      {/* Pagination */}
-      <div className="flex justify-center items-center gap-sm mt-xl">
-        <button
-          className="w-10 h-10 flex items-center justify-center rounded-full border border-outline hover:bg-surface-container transition-colors disabled:opacity-30"
-          disabled
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary font-bold shadow-sm">
-          1
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors font-medium">
-          2
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors font-medium">
-          3
-        </button>
-        <span className="px-2 text-on-surface-variant">...</span>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors font-medium">
-          10
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full border border-outline hover:bg-surface-container transition-colors">
-          <ChevronRight size={20} />
-        </button>
+                  <div className="flex-1 flex flex-col md:flex-row justify-between gap-lg min-w-0">
+                    <div className="min-w-0">
+                      {firstItem && (
+                        <>
+                          <h4
+                            className="font-headline-md text-headline-md text-on-surface mb-1 truncate"
+                            title={firstItem.productName}
+                          >
+                            {firstItem.productName}
+                          </h4>
+                          <p className="text-on-surface-variant text-sm mb-2">
+                            {firstItem.ram || firstItem.storage || firstItem.color ? (
+                              <span className="inline-block bg-surface-soft px-2 py-0.5 rounded text-xs text-on-surface font-medium mr-2">
+                                {[firstItem.ram, firstItem.storage, firstItem.color].filter(Boolean).join(" - ")}
+                              </span>
+                            ) : null}
+                            Số lượng: x{firstItem.quantity}
+                          </p>
+                          {extraCount > 0 && (
+                            <p className="text-xs text-secondary italic mb-2">
+                              (Và {extraCount} sản phẩm khác...)
+                            </p>
+                          )}
+                        </>
+                      )}
+                      
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs text-muted">Tổng thanh toán:</span>
+                        <span className="font-bold text-lg text-primary">
+                          {formatCurrency(totalAmount)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap md:flex-col justify-end gap-2 md:min-w-[140px]">
+                      <Link
+                        to={`/account/tracking?orderCode=${order.orderCode}`}
+                        className="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-center transition-colors active:scale-95 bg-secondary-container text-on-secondary-container hover:bg-secondary"
+                      >
+                        Theo dõi
+                      </Link>
+                      {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
+                        <Link
+                          to="/account/reviews"
+                          className="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-center transition-colors active:scale-95 bg-surface text-on-surface border border-outline hover:bg-surface-container"
+                        >
+                          Đánh giá
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        )}
       </div>
     </>
   );
@@ -298,24 +360,6 @@ function EmptyHistory() {
         >
           Mua sắm ngay
         </Link>
-        <Link
-          to="/#promotions"
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-neutral-soft px-6 font-bold hover:bg-border transition"
-        >
-          Xem khuyến mãi
-        </Link>
-      </div>
-      <div className="mt-10 grid gap-4 border-t border-border pt-7 sm:grid-cols-3">
-        {["Bảo hành 24 tháng", "Giao hỏa tốc 2h", "Thu cũ đổi mới"].map(
-          (benefit) => (
-            <div
-              key={benefit}
-              className="flex items-center justify-center gap-2 text-sm font-bold text-muted"
-            >
-              <Truck size={18} className="text-primary" /> {benefit}
-            </div>
-          ),
-        )}
       </div>
     </Panel>
   );

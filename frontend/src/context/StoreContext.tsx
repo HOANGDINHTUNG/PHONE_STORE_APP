@@ -55,6 +55,16 @@ interface StoreProviderProps {
 
 export const StoreProvider = ({ children }: StoreProviderProps) => {
   const [user, setUser] = useState<User | null>(() => {
+    const token =
+      localStorage.getItem("pinkphone_token") ||
+      sessionStorage.getItem("pinkphone_token");
+
+    if (!token) {
+      localStorage.removeItem("pinkphone_user");
+      sessionStorage.removeItem("pinkphone_user");
+      return null;
+    }
+
     const saved =
       localStorage.getItem("pinkphone_user") ||
       sessionStorage.getItem("pinkphone_user");
@@ -97,38 +107,32 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
 
   useEffect(() => {
     const loadProfileAndWishlist = async () => {
-      let token =
+      const token =
         localStorage.getItem("pinkphone_token") ||
         sessionStorage.getItem("pinkphone_token");
 
-      if (!token) {
-        try {
-          const res = await loginApi("admin", "123456");
-          if (res?.token) {
-            token = res.token;
-          }
-        } catch (e) {
-          console.warn("Auto login failed:", e);
+      if (!token) return;
+
+      try {
+        const profile = await fetchProfile();
+        if (profile) {
+          setUser((currentUser) => ({
+            ...currentUser,
+            ...profile,
+            role: currentUser?.role || profile?.role,
+          }));
         }
+      } catch (e) {
+        console.warn("Fetch profile failed:", e);
       }
 
-      if (token) {
-        let profile = await fetchProfile();
-        if (!profile) {
-          try {
-            const res = await loginApi("admin", "123456");
-            if (res) profile = await fetchProfile();
-          } catch (e) {
-            console.warn("Re-login failed:", e);
-          }
-        }
-        if (profile) {
-          setUser((currentUser) => ({ ...profile, role: currentUser?.role || profile?.role || "ADMIN" }));
-        }
+      try {
         const dbWishlist = await fetchWishlist();
         if (dbWishlist && dbWishlist.length > 0) {
           setWishlist(dbWishlist);
         }
+      } catch (e) {
+        console.warn("Fetch wishlist failed:", e);
       }
     };
     loadProfileAndWishlist();
@@ -151,7 +155,33 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     try {
       const loggedUser = await loginApi(emailOrPhone, password, remember);
       if (loggedUser) {
+        localStorage.removeItem("pinkphone_cart");
+        localStorage.removeItem("pinkphone_wishlist");
+        setCart([]);
+        setWishlist([]);
+
         setUser(loggedUser);
+
+        try {
+          const profile = await fetchProfile();
+          if (profile) {
+            const mergedUser = {
+              ...loggedUser,
+              ...profile,
+              role: loggedUser.role || profile.role,
+            };
+            setUser(mergedUser);
+          }
+        } catch (e) {
+          console.warn("Failed to refresh profile after login:", e);
+        }
+
+        try {
+          const dbWishlist = await fetchWishlist();
+          setWishlist(dbWishlist || []);
+        } catch (e) {
+          setWishlist([]);
+        }
         return loggedUser;
       }
     } catch (error) {
@@ -175,9 +205,11 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
       localStorage.removeItem("pinkphone_token");
       localStorage.removeItem("pinkphone_user");
       localStorage.removeItem("pinkphone_cart");
+      localStorage.removeItem("pinkphone_wishlist");
       sessionStorage.removeItem("pinkphone_token");
       sessionStorage.removeItem("pinkphone_user");
       setCart([]);
+      setWishlist([]);
       setUser(null);
     }
   };
@@ -190,7 +222,26 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   }) => {
     const newUser = await registerApi(details);
     if (newUser) {
+      localStorage.removeItem("pinkphone_cart");
+      localStorage.removeItem("pinkphone_wishlist");
+      setCart([]);
+      setWishlist([]);
+
       setUser(newUser);
+
+      try {
+        const profile = await fetchProfile();
+        if (profile) {
+          setUser({
+            ...newUser,
+            ...profile,
+            role: newUser.role || profile.role,
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to refresh profile after register:", e);
+      }
+
       return true;
     }
     return false;
