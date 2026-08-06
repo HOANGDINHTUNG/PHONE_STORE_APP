@@ -1,5 +1,12 @@
 import { AccountShell } from "../components/AccountShell";
-import { Star, AlertCircle, Clock, Edit } from "lucide-react";
+import {
+  Star,
+  AlertCircle,
+  Clock,
+  Edit,
+  MessageSquare,
+  Search,
+} from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -20,46 +27,7 @@ export function AccountReviewsHistoryPage() {
     "ALL" | "APPROVED" | "PENDING" | "REJECTED"
   >("ALL");
 
-  const reviews: ReviewHistoryItem[] = [
-    {
-      id: "1",
-      name: "PinkPhone Pro Max 512GB - Rose Petal",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBA2GXiJcRcqVUwcuypmugwC3ASn4vn7O3dqrUk7YjvbsA8lfBsx5tvnMTXLasRzmfS6YlXJ2Dd_NzOX4-SUx8IjfPgNjvZV8qw3lz8xWTDTFXdQQ5s1xo40gRrj5EeVEA7BALyZxiP9qxLm_lGQ4Uw8P1FICOHXEtR5mAzY9y6joAGtsF9peE4B_r1VMQgd1KcFFAXcfkwov1ywgBuzqxrgrXAYsvJ7rTHDU5-7NeEXfKehLmnVHCL",
-      rating: 5,
-      status: "APPROVED",
-      title: "Sản phẩm tuyệt vời!",
-      content:
-        "Tôi rất hài lòng với chiếc điện thoại này. Màu sắc Rose Petal thực sự rất sang trọng và đẳng cấp. Camera chụp ảnh ban đêm cực kỳ ấn tượng, pin cũng rất trâu, dùng cả ngày không hết.",
-      date: "15/05/2024",
-    },
-    {
-      id: "2",
-      name: "PinkBuds Air Pro - Limited Edition",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBjmCyeVcTcZBbdLz13R-GLDCCkML4t9WjM0yq79oRYMSzq9LB8N4FT5NLItzX2c5qFG_jGFdxRBi233P1ow090BTi67ivITrKtKIkzwZTcDnJV2THr_HS_wjum1cNhDNBOHJvVEToCBnnEK5SUMg41cElLwRewGtqSHHkoUCoW7Irdf7zHF5bP8gvj3FK46Pfgr60LScr01fzIy5dClv8FIAYBoCaFvNFtwUmYrgzf6c6PygHwknAd",
-      rating: 4,
-      status: "PENDING",
-      title: "Âm thanh hay, thiết kế đẹp",
-      content:
-        "Sản phẩm rất đẹp, đóng gói cẩn thận. Âm thanh trong trẻo và kết nối rất nhanh với PinkPhone. Sẽ giới thiệu cho bạn bè.",
-      date: "18/05/2024",
-    },
-    {
-      id: "3",
-      name: "PinkBook M3 Ultra - Rose Gold",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAGj9it8FDS-yMSegAYrioGKAZSYOh79BviqDt52p2nJoVyuKLN--NLVgM3-coISkInf1_BY1MD9l51Xq8Iv4kXKwLVa8Qxj_gGKPfFjITHlScO8AUPO_JK6ijV6TqtQToOlvLmL7q9QBeaG0vKeMRfztoDYyUf8iOFWMFDXOZuYZuY4d8mWPN4MHjVfLFpifxnJINOTcc9cpfn7B6kzj09wRkm-beshxboDdtyZltRtOCug7mLWsVi",
-      rating: 1,
-      status: "REJECTED",
-      title: "Quá tệ hại",
-      content:
-        "Giao hàng chậm trễ, nhân viên thái độ không tốt. Máy này không đáng mua chút nào, mọi người nên tránh xa...",
-      date: "10/05/2024",
-      rejectionReason:
-        "Nội dung không phù hợp với quy định của cộng đồng (Đánh giá dịch vụ vận chuyển thay vì đánh giá sản phẩm).",
-    },
-  ];
+  const reviews: ReviewHistoryItem[] = [];
 
   const filteredReviews = reviews.filter(
     (r) => filter === "ALL" || r.status === filter,
@@ -234,10 +202,31 @@ export function AccountReviewsHistoryPage() {
           ))}
 
           {filteredReviews.length === 0 && (
-            <div className="text-center py-20 bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
-              <p className="text-on-surface-variant font-bold">
-                Không có đánh giá nào phù hợp với bộ lọc này.
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-surface-container-lowest to-surface-container-low/30 min-h-[400px] rounded-2xl border border-outline-variant/30 mt-4">
+              <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+                <div className="absolute inset-0 bg-primary-fixed rounded-full opacity-30 animate-pulse"></div>
+                <div className="absolute inset-2 bg-secondary-fixed rounded-full opacity-50"></div>
+                <MessageSquare className="w-16 h-16 text-primary relative z-10" />
+
+                <Star className="absolute top-2 right-2 w-6 h-6 text-tertiary" />
+                <Search className="absolute bottom-4 left-0 w-5 h-5 text-secondary opacity-70" />
+              </div>
+
+              <h2 className="text-[24px] font-headline-md text-on-surface mb-3 font-bold">
+                Bạn chưa có đánh giá nào.
+              </h2>
+              <p className="text-[16px] font-body-md text-on-surface-variant max-w-[400px] mx-auto mb-8 opacity-80">
+                Những nhận xét của bạn sẽ giúp người dùng khác chọn được sản
+                phẩm ưng ý nhất.
               </p>
+
+              <Link
+                to="/account/reviews/pending"
+                className="bg-secondary-container text-on-secondary-container hover:bg-primary-container px-6 py-3 rounded-full text-[14px] font-bold transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md flex items-center justify-center gap-2 max-w-fit mx-auto"
+              >
+                <Edit className="w-5 h-5" />
+                Xem sản phẩm chờ đánh giá
+              </Link>
             </div>
           )}
         </div>

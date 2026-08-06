@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Calendar,
   Info,
@@ -7,11 +8,11 @@ import {
   ShoppingBag,
   SearchX,
   Check,
-  Sparkles,
-  Tag,
-  Clock,
-  ChevronRight,
-  X
+  Star,
+  Eye,
+  X,
+  Frown,
+  Search,
 } from "lucide-react";
 import { AccountShell } from "../components/AccountShell";
 import { voucherService, Voucher } from "../../../api/voucherService";
@@ -21,11 +22,11 @@ const DEFAULT_MOCK_VOUCHERS: Voucher[] = [
   {
     id: "v1",
     code: "WELCOME50",
-    name: "Voucher Chào Mới Khách Hàng",
+    name: "Voucher Chào Mới",
     type: "AMOUNT",
-    discountValue: 50000,
+    discountValue: 500000,
     appliesToAll: true,
-    minimumOrderValue: 200000,
+    minimumOrderValue: 15000000,
     startTime: "2026-01-01T00:00:00",
     endTime: "2026-12-31T23:59:59",
     status: "ACTIVE",
@@ -35,27 +36,27 @@ const DEFAULT_MOCK_VOUCHERS: Voucher[] = [
   {
     id: "v2",
     code: "TECH10",
-    name: "Giảm 10% Cho Smartphone Cao Cấp",
+    name: "Giảm Phụ Kiện Chính Hãng",
     type: "PERCENT",
     discountValue: 10,
     appliesToAll: true,
-    minimumOrderValue: 5000000,
+    minimumOrderValue: 500000,
     maximumDiscountAmount: 500000,
     startTime: "2026-01-01T00:00:00",
-    endTime: "2026-12-31T23:59:59",
+    endTime: "2027-01-15T23:59:59",
     status: "ACTIVE",
     usedCount: 84,
     isClaimed: true,
   },
   {
     id: "v3",
-    code: "SAMSUNG300",
-    name: "Ưu Đãi Đặc Quyền Samsung Galaxy",
+    code: "FLASHSALE20",
+    name: "Flash Sale Cuối Tuần",
     type: "AMOUNT",
-    discountValue: 300000,
+    discountValue: 1200000,
     appliesToAll: false,
-    minimumOrderValue: 8000000,
-    maximumDiscountAmount: 300000,
+    minimumOrderValue: 10000000,
+    maximumDiscountAmount: 1200000,
     startTime: "2026-01-01T00:00:00",
     endTime: "2026-12-31T23:59:59",
     status: "ACTIVE",
@@ -64,13 +65,13 @@ const DEFAULT_MOCK_VOUCHERS: Voucher[] = [
   },
   {
     id: "v4",
-    code: "FLASHSALE20",
-    name: "Flash Sale 20% Cuối Tuần",
-    type: "PERCENT",
-    discountValue: 20,
+    code: "FIRSTORDER",
+    name: "Ưu đãi thành viên mới",
+    type: "AMOUNT",
+    discountValue: 200000,
     appliesToAll: true,
-    minimumOrderValue: 10000000,
-    maximumDiscountAmount: 1000000,
+    minimumOrderValue: 2000000,
+    maximumDiscountAmount: 200000,
     startTime: "2026-01-01T00:00:00",
     endTime: "2026-12-31T23:59:59",
     status: "ACTIVE",
@@ -79,6 +80,8 @@ const DEFAULT_MOCK_VOUCHERS: Voucher[] = [
   },
 ];
 
+type TabValue = "AVAILABLE" | "EXPIRING_SOON" | "USED" | "EXPIRED";
+
 export function VouchersPage() {
   const [activeTab, setActiveTab] = useState<TabValue>("AVAILABLE");
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -86,6 +89,10 @@ export function VouchersPage() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+
+  // UI states for new layout
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortMethod, setSortMethod] = useState("NEWEST");
 
   const navigate = useNavigate();
 
@@ -99,7 +106,7 @@ export function VouchersPage() {
       const res = await voucherService.getMyWalletVouchers(tab);
       if (res.content && res.content.length > 0) {
         setVouchers(res.content);
-      } else if (tab === "AVAILABLE") {
+      } else if (tab === "AVAILABLE" || tab === "EXPIRING_SOON") {
         setVouchers(DEFAULT_MOCK_VOUCHERS);
       } else {
         setVouchers([]);
@@ -119,7 +126,7 @@ export function VouchersPage() {
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
-    showToast(`Đã sao chép mã giảm giá "${code}" vào khay nhớ tạm!`);
+    showToast(`Đã sao chép mã giảm giá "${code}"!`);
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
@@ -127,183 +134,355 @@ export function VouchersPage() {
     navigate("/");
   };
 
+  // Filter & Sort
+  const filteredVouchers = vouchers
+    .filter(
+      (v) =>
+        v.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+    .sort((a, b) => {
+      if (sortMethod === "DISCOUNT_DESC")
+        return b.discountValue - a.discountValue;
+      if (sortMethod === "EXPIRING_SOON")
+        return new Date(a.endTime).getTime() - new Date(b.endTime).getTime();
+      return 0; // Default NEWEST
+    });
+
+  const getCardThemeConfig = (index: number) => {
+    const themes = [
+      {
+        border: "border-primary",
+        tagBg: "bg-secondary-fixed text-on-secondary-fixed",
+        textClass: "text-primary",
+      },
+      {
+        border: "border-tertiary",
+        tagBg: "bg-tertiary-fixed text-on-tertiary-fixed",
+        textClass: "text-tertiary",
+      },
+      {
+        border: "border-secondary",
+        tagBg: "bg-error-container text-on-error-container",
+        textClass: "text-secondary",
+      },
+      {
+        border: "border-primary",
+        tagBg: "bg-primary-fixed text-on-primary-fixed",
+        textClass: "text-primary",
+      },
+      {
+        border: "border-outline",
+        tagBg: "bg-surface-container-highest text-on-surface-variant",
+        textClass: "text-on-surface",
+      },
+    ];
+    return themes[index % themes.length];
+  };
+
   return (
-    <AccountShell
-      title="Kho Voucher của tôi"
-      description="Quản lý danh sách các mã giảm giá và ưu đãi độc quyền dành riêng cho bạn. Sử dụng mã khi thanh toán để nhận chiết khấu tốt nhất."
-    >
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 mb-6 overflow-x-auto pb-1 hide-scrollbar">
-        {[
-          { key: "AVAILABLE", label: "Đang khả dụng" },
-          { key: "EXPIRING_SOON", label: "Sắp hết hạn" },
-          { key: "USED", label: "Đã sử dụng" },
-          { key: "EXPIRED", label: "Đã hết hạn" },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as TabValue)}
-            className={`px-5 py-3 text-sm font-bold whitespace-nowrap transition-all border-b-2 ${
-              activeTab === tab.key
-                ? "text-pink-600 border-pink-600 bg-pink-50/50"
-                : "text-slate-500 border-transparent hover:text-slate-900"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <AccountShell>
+      {/* Dynamic Scoped Styles for the Coupon rendering */}
+      <style>{`
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .coupon-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fcf8f9 100%);
+            position: relative;
+            overflow: hidden;
+            border-left: 6px solid;
+        }
+        .coupon-card::before, .coupon-card::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            width: 24px;
+            height: 24px;
+            background: #f0edee;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .coupon-card::before { top: -12px; }
+        .coupon-card::after { bottom: -12px; }
+        .coupon-separator {
+            border-left: 2px dashed #e0bec4;
+            height: 100%;
+            margin: 0 1rem;
+            position: relative;
+        }
+      `}</style>
 
-      {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 rounded-2xl bg-slate-100 animate-pulse" />
-          ))}
-        </div>
-      ) : vouchers.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {vouchers.map((v) => {
-            const isPercent = v.type === "PERCENT";
-            const formattedDiscount = isPercent
-              ? `Giảm ${v.discountValue}%`
-              : `Giảm ${(v.discountValue / 1000).toLocaleString("vi-VN")}k`;
-
-            const minSpend = v.minimumOrderValue
-              ? `Đơn tối thiểu ${(v.minimumOrderValue / 1000000).toLocaleString("vi-VN")} triệu`
-              : "Áp dụng cho mọi đơn hàng";
-
-            const isAvailable = activeTab === "AVAILABLE" || activeTab === "EXPIRING_SOON";
-
-            return (
-              <div
-                key={v.id}
-                className={`relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 bg-white shadow-sm transition-all duration-300 hover:shadow-md ${
-                  activeTab === "EXPIRING_SOON"
-                    ? "border-amber-400 ring-1 ring-amber-400/30"
-                    : isAvailable
-                    ? "border-pink-200 hover:border-pink-400"
-                    : "border-slate-200 opacity-70 bg-slate-50"
-                }`}
-              >
-                {/* Decorative Ticket Edge Cutouts */}
-                <div className="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-pink-200 bg-slate-50" />
-                <div className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-pink-200 bg-slate-50" />
-
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="inline-block rounded-md bg-pink-100 px-2 py-0.5 text-xs font-mono font-black text-pink-700">
-                        {v.code}
-                      </span>
-                      <h3 className="mt-1 text-base font-extrabold text-slate-900 leading-snug">{v.name}</h3>
-                    </div>
-                    <span className="shrink-0 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-3 py-1 text-sm font-black text-white shadow-sm">
-                      {formattedDiscount}
-                    </span>
-                  </div>
-
-                  <p className="mt-2 text-xs font-medium text-slate-600">{minSpend}</p>
-                  {v.maximumDiscountAmount && (
-                    <p className="text-[11px] text-slate-500">
-                      Tối đa {(v.maximumDiscountAmount / 1000).toLocaleString("vi-VN")}k
-                    </p>
-                  )}
-
-                  <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-pink-500" />
-                      HSD: {new Date(v.endTime).toLocaleDateString("vi-VN")}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
-                  <button
-                    onClick={() => setSelectedVoucher(v)}
-                    className="p-2 text-xs font-semibold text-slate-500 hover:text-pink-600 flex items-center gap-1"
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                    Chi tiết
-                  </button>
-
-                  <div className="ml-auto flex items-center gap-2">
-                    <button
-                      onClick={() => handleCopy(v.code)}
-                      className="inline-flex items-center gap-1 rounded-xl border border-pink-300 bg-pink-50 px-3 py-1.5 text-xs font-bold text-pink-700 hover:bg-pink-100 transition-all active:scale-95"
-                    >
-                      {copiedCode === v.code ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                      {copiedCode === v.code ? "Đã chép" : "Sao chép"}
-                    </button>
-
-                    {isAvailable && (
-                      <button
-                        onClick={() => handleShopNow(v)}
-                        className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:from-pink-700 hover:to-rose-700 transition-all active:scale-95"
-                      >
-                        <ShoppingBag className="h-3.5 w-3.5" />
-                        Mua ngay
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="py-20 flex flex-col items-center justify-center text-center">
-          <SearchX className="h-16 w-16 text-slate-300 mb-3" />
-          <h3 className="text-lg font-bold text-slate-800">Không tìm thấy voucher phù hợp</h3>
-          <p className="text-sm text-slate-500 max-w-sm mt-1">
-            Hiện tại bạn chưa có mã giảm giá nào trong mục này. Hãy săn thêm các deal Hot tại trang chủ!
+      <div className="flex-1">
+        <div className="mb-8">
+          <h1 className="text-[32px] md:text-[48px] font-black tracking-tight text-primary mb-2">
+            Kho mã giảm giá
+          </h1>
+          <p className="text-on-surface-variant text-[16px] max-w-2xl">
+            Khám phá các ưu đãi độc quyền dành riêng cho thành viên PinkPhone.
+            Áp dụng ngay để nhận mức giá tốt nhất cho chiếc smartphone mơ ước.
           </p>
         </div>
-      )}
 
-      {/* Details Modal */}
-      {selectedVoucher && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="text-base font-bold text-slate-900">Chi tiết Voucher {selectedVoucher.code}</h3>
-              <button onClick={() => setSelectedVoucher(null)} className="rounded-full p-1 text-slate-400 hover:bg-slate-100">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-2 text-xs text-slate-700">
-              <p className="font-bold text-pink-600 text-sm">{selectedVoucher.name}</p>
-              <p className="text-slate-600">{selectedVoucher.description || "Không có mô tả chi tiết."}</p>
-              <div className="rounded-xl bg-slate-50 p-3 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Mã voucher:</span>
-                  <span className="font-mono font-bold">{selectedVoucher.code}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Hạn sử dụng:</span>
-                  <span className="font-semibold">{new Date(selectedVoucher.endTime).toLocaleString("vi-VN")}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Đơn tối thiểu:</span>
-                  <span className="font-semibold">
-                    {selectedVoucher.minimumOrderValue
-                      ? `${selectedVoucher.minimumOrderValue.toLocaleString("vi-VN")}đ`
-                      : "Không bắt buộc"}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => setSelectedVoucher(null)} className="w-full rounded-xl bg-pink-600 py-2.5 text-sm font-bold text-white hover:bg-pink-700">
-              Đóng
+        {/* Tabs Section */}
+        <div className="flex items-center gap-2 border-b border-outline-variant mb-8 overflow-x-auto pb-1 hide-scrollbar">
+          {[
+            { key: "AVAILABLE", label: "Có thể sử dụng" },
+            { key: "EXPIRING_SOON", label: "Sắp hết hạn" },
+            { key: "USED", label: "Đã sử dụng" },
+            { key: "EXPIRED", label: "Đã hết hạn" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as TabValue)}
+              className={`px-6 py-3 font-bold whitespace-nowrap transition-all border-b-2 ${
+                activeTab === tab.key
+                  ? "text-primary border-primary"
+                  : "text-on-surface-variant border-transparent hover:text-secondary font-medium"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Filter & Search */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] font-bold text-on-surface-variant">
+              Sắp xếp theo:
+            </span>
+            <select
+              value={sortMethod}
+              onChange={(e) => setSortMethod(e.target.value)}
+              className="bg-surface-container border-none rounded-lg text-[14px] font-bold py-1.5 focus:ring-primary text-on-surface outline-none cursor-pointer"
+            >
+              <option value="NEWEST">Mới nhất</option>
+              <option value="DISCOUNT_DESC">Giá trị giảm cao nhất</option>
+              <option value="EXPIRING_SOON">Thời gian hết hạn gần nhất</option>
+            </select>
+          </div>
+          <div className="w-full md:w-auto relative">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full md:w-64 pl-4 pr-12 py-2 bg-white border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-fixed-dim text-[16px] outline-none"
+              placeholder="Nhập mã voucher..."
+              type="text"
+            />
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white px-3 py-1 rounded text-[14px] font-bold active:scale-95 transition-transform">
+              Áp dụng
             </button>
           </div>
         </div>
-      )}
+
+        {/* Coupon Bento Grid */}
+        {loading ? (
+          <div className="bento-grid">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-56 rounded-xl bg-surface-container-low animate-pulse"
+              />
+            ))}
+          </div>
+        ) : filteredVouchers.length > 0 ? (
+          <div className="bento-grid">
+            {filteredVouchers.map((v, idx) => {
+              const theme = getCardThemeConfig(idx);
+              const isPercent = v.type === "PERCENT";
+              const formattedDiscount = isPercent
+                ? `Giảm ${v.discountValue}%`
+                : `Giảm ${(v.discountValue / 1000).toLocaleString("vi-VN")}k`;
+
+              const minSpend = v.minimumOrderValue
+                ? `Cho đơn hàng từ ${(v.minimumOrderValue / 1000).toLocaleString("vi-VN")}đ`
+                : "Cho tất cả đơn hàng";
+
+              const isAvailable =
+                activeTab === "AVAILABLE" || activeTab === "EXPIRING_SOON";
+
+              return (
+                <div
+                  key={v.id}
+                  className={`coupon-card rounded-xl shadow-sm hover:shadow-md transition-all group ${theme.border} ${!isAvailable ? "opacity-60 grayscale-[0.3]" : ""}`}
+                >
+                  <div className="p-6 flex flex-col h-full">
+                    <div className="flex justify-between items-start mb-4">
+                      <div
+                        className={`${theme.tagBg} px-3 py-1 rounded-full text-[14px] font-bold`}
+                      >
+                        {v.code}
+                      </div>
+                      {isAvailable && (
+                        <Star size={20} className="text-primary fill-primary" />
+                      )}
+                    </div>
+
+                    <h2
+                      className={`text-[32px] font-black tracking-tight mb-1 ${theme.textClass}`}
+                    >
+                      {formattedDiscount}
+                    </h2>
+                    <p className="text-on-surface-variant text-[14px] font-bold mb-4">
+                      {minSpend}
+                    </p>
+
+                    <div className="mt-auto space-y-3">
+                      <div className="flex items-center gap-2 text-on-surface-variant opacity-80">
+                        <Calendar size={18} />
+                        <span className="text-[12px] font-medium">
+                          Hạn dùng:{" "}
+                          {new Date(v.endTime).toLocaleDateString("vi-VN")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-on-surface-variant opacity-80">
+                        <Info size={18} />
+                        <span className="text-[12px] font-medium">
+                          {v.appliesToAll ? "Tất cả sản phẩm" : v.name}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() =>
+                            isAvailable ? handleShopNow(v) : null
+                          }
+                          className={`flex-1 ${isAvailable ? "bg-primary hover:bg-secondary" : "bg-surface-variant text-on-surface-variant cursor-not-allowed"} text-white py-2.5 rounded-lg font-bold transition-all active:scale-95`}
+                        >
+                          {isAvailable ? "Dùng ngay" : "Không khả dụng"}
+                        </button>
+                        <button
+                          onClick={() => setSelectedVoucher(v)}
+                          className="px-3 border border-outline text-on-surface-variant rounded-lg hover:bg-surface-container transition-all active:scale-95"
+                          title="Xem thông tin chi tiết"
+                        >
+                          <Eye size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-20 flex flex-col items-center justify-center text-center">
+            <Frown className="h-16 w-16 text-outline mb-4" strokeWidth={1.5} />
+            <h3 className="text-[24px] font-bold text-on-surface mb-2">
+              Không tìm thấy mã giảm giá
+            </h3>
+            <p className="text-on-surface-variant text-[16px]">
+              Hiện tại bạn chưa có mã giảm giá nào trong mục này.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Details Modal */}
+      {selectedVoucher && document.body
+        ? createPortal(
+            <div
+              className="fixed z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+              style={{
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                position: "fixed",
+                width: "100vw",
+                height: "100vh",
+              }}
+            >
+              <div className="rounded-[24px] bg-surface-container-lowest p-6 sm:p-8 shadow-2xl overflow-y-auto w-[90%] max-w-[420px] max-h-[90vh]">
+                <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4 mb-4">
+                  <h3 className="text-[20px] font-black text-on-surface">
+                    Chi tiết Voucher
+                  </h3>
+                  <button
+                    onClick={() => setSelectedVoucher(null)}
+                    className="rounded-full p-2 text-on-surface-variant hover:bg-surface-variant transition-colors shrink-0"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <span className="inline-block bg-primary-fixed text-primary px-4 py-1.5 rounded-full text-[16px] font-black font-mono tracking-wider mb-2">
+                      {selectedVoucher.code}
+                    </span>
+                    <p className="text-[18px] font-bold text-primary leading-tight">
+                      {selectedVoucher.name}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-surface-container-low p-4 space-y-3 border border-outline-variant/30">
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-[14px] text-on-surface-variant font-medium shrink-0">
+                        Hạn sử dụng:
+                      </span>
+                      <span className="text-[14px] font-bold text-right">
+                        {new Date(selectedVoucher.endTime).toLocaleString(
+                          "vi-VN",
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-[14px] text-on-surface-variant font-medium shrink-0">
+                        Đơn tối thiểu:
+                      </span>
+                      <span className="text-[14px] font-bold text-right">
+                        {selectedVoucher.minimumOrderValue
+                          ? `${selectedVoucher.minimumOrderValue.toLocaleString("vi-VN")}đ`
+                          : "Không giới hạn"}
+                      </span>
+                    </div>
+                    {selectedVoucher.maximumDiscountAmount && (
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-[14px] text-on-surface-variant font-medium shrink-0">
+                          Giảm tối đa:
+                        </span>
+                        <span className="text-[14px] font-bold text-primary text-right">
+                          {selectedVoucher.maximumDiscountAmount.toLocaleString(
+                            "vi-VN",
+                          )}
+                          đ
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                  <button
+                    onClick={() => handleCopy(selectedVoucher.code)}
+                    className="w-full rounded-xl border-2 border-primary text-primary py-3 text-[14px] font-bold hover:bg-primary-fixed/50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Copy size={18} /> Sao chép mã
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedVoucher(null);
+                      handleShopNow(selectedVoucher);
+                    }}
+                    className="w-full rounded-xl bg-primary text-white py-3 text-[14px] font-bold hover:bg-secondary transition-colors"
+                  >
+                    Dùng ngay
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       {/* Floating Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
-          <Check className="h-5 w-5 text-emerald-400" />
+        <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 rounded-xl bg-inverse-surface px-5 py-3.5 text-[14px] font-bold text-inverse-on-surface shadow-2xl animate-[slideUp_0.3s_ease-out]">
+          <Check size={20} className="text-green-400" />
           <span>{toastMessage}</span>
         </div>
       )}

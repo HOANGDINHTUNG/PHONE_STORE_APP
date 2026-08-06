@@ -8,7 +8,6 @@ import com.re.ecommerce.modules.auth.repository.UserRepository;
 import com.re.ecommerce.modules.cart.dto.response.CartResponse;
 import com.re.ecommerce.modules.cart.dto.response.CouponQuoteResponse;
 import com.re.ecommerce.modules.cart.dto.response.CouponResponse;
-import com.re.ecommerce.modules.cart.entity.UserVoucherStatus;
 import com.re.ecommerce.modules.cart.service.CouponService;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +43,7 @@ public class CustomerVoucherController {
 
     @GetMapping("/me")
     public ResponseEntity<Page<CouponResponse>> getMyWalletVouchers(
-            @RequestParam(required = false) UserVoucherStatus status,
+            @RequestParam(required = false) String status,
             Pageable pageable) {
         UUID userId = requireUserId();
         return ResponseEntity.ok(couponService.getMyWalletVouchers(userId, status, pageable));

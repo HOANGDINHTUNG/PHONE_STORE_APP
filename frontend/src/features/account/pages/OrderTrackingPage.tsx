@@ -1,4 +1,13 @@
-import { Check, Headphones, MapPin, MessageCircle, Loader2, PackageOpen, ChevronDown, AlertCircle } from "lucide-react";
+import {
+  Check,
+  Headphones,
+  MapPin,
+  MessageCircle,
+  Loader2,
+  PackageOpen,
+  ChevronDown,
+  AlertCircle,
+} from "lucide-react";
 import { AccountShell } from "../components/AccountShell";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,18 +18,31 @@ export function OrderTrackingPage() {
   const orderCodeFromUrl = searchParams.get("orderCode") || "";
 
   // 1. Fetch user orders list so user can choose any order or default to the latest order
-  const { data: pagedOrders, isLoading: loadingOrders, isError: errorOrders, error: errDetailOrders, refetch: refetchOrders } = useQuery({
+  const {
+    data: pagedOrders,
+    isLoading: loadingOrders,
+    isError: errorOrders,
+    error: errDetailOrders,
+    refetch: refetchOrders,
+  } = useQuery({
     queryKey: ["myOrders", 1],
     queryFn: () => getMyOrdersApi(1, 50),
   });
 
   const ordersList = pagedOrders?.items || pagedOrders?.content || [];
-  
+
   // Selected order code: URL order code or fallback to latest order code
-  const activeOrderCode = orderCodeFromUrl || (ordersList.length > 0 ? ordersList[0].orderCode : "");
+  const activeOrderCode =
+    orderCodeFromUrl || (ordersList.length > 0 ? ordersList[0].orderCode : "");
 
   // 2. Fetch active order details
-  const { data: order, isLoading: loadingOrder, isError: errorSingleOrder, error: errDetailSingle, refetch: refetchSingle } = useQuery({
+  const {
+    data: order,
+    isLoading: loadingOrder,
+    isError: errorSingleOrder,
+    error: errDetailSingle,
+    refetch: refetchSingle,
+  } = useQuery({
     queryKey: ["myOrder", activeOrderCode],
     queryFn: () => getMyOrderApi(activeOrderCode),
     enabled: !!activeOrderCode,
@@ -50,7 +72,7 @@ export function OrderTrackingPage() {
         title="Theo dõi đơn hàng | PinkPhone"
         description="Quản lý quá trình giao nhận sản phẩm"
       >
-        <div className="p-8 text-center border border-red-200 bg-red-50/50 rounded-2xl my-8">
+        <div className="w-full p-8 text-center border border-red-200 bg-red-50/50 rounded-2xl my-8">
           <div className="mx-auto grid size-16 place-items-center rounded-full bg-red-100 text-red-600 mb-4">
             <AlertCircle size={36} />
           </div>
@@ -61,14 +83,17 @@ export function OrderTrackingPage() {
             {httpStatus === 401
               ? "Phiên đăng nhập đã hết hạn (Mã lỗi: 401 Unauthorized). Vui lòng đăng nhập lại."
               : httpStatus === 403
-              ? "Bạn không có quyền truy cập đơn hàng này (Mã lỗi: 403 Forbidden)."
-              : httpStatus
-              ? `Máy chủ phản hồi mã lỗi HTTP: ${httpStatus}. Vui lòng thử lại.`
-              : "Không thể kết nối đến máy chủ backend (ERR_CONNECTION_REFUSED)."}
+                ? "Bạn không có quyền truy cập đơn hàng này (Mã lỗi: 403 Forbidden)."
+                : httpStatus
+                  ? `Máy chủ phản hồi mã lỗi HTTP: ${httpStatus}. Vui lòng thử lại.`
+                  : "Không thể kết nối đến máy chủ backend (ERR_CONNECTION_REFUSED)."}
           </p>
           <div className="flex justify-center gap-3">
             <button
-              onClick={() => { refetchOrders(); if (activeOrderCode) refetchSingle(); }}
+              onClick={() => {
+                refetchOrders();
+                if (activeOrderCode) refetchSingle();
+              }}
               type="button"
               className="px-5 py-2.5 bg-red-600 text-white font-bold text-sm rounded-xl hover:bg-red-700 transition"
             >
@@ -96,9 +121,16 @@ export function OrderTrackingPage() {
       >
         <div className="flex-grow flex flex-col items-center justify-center py-20 text-center">
           <PackageOpen size={48} className="text-muted mb-4" />
-          <h2 className="text-xl font-bold mb-2">Bạn chưa có đơn hàng nào để theo dõi</h2>
-          <p className="text-muted mb-4 text-sm">Hãy khám phá các sản phẩm tuyệt vời tại PinkPhone.</p>
-          <Link to="/" className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-strong transition">
+          <h2 className="text-xl font-bold mb-2">
+            Bạn chưa có đơn hàng nào để theo dõi
+          </h2>
+          <p className="text-muted mb-4 text-sm">
+            Hãy khám phá các sản phẩm tuyệt vời tại PinkPhone.
+          </p>
+          <Link
+            to="/"
+            className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-strong transition"
+          >
             Mua sắm ngay
           </Link>
         </div>
@@ -114,7 +146,10 @@ export function OrderTrackingPage() {
       >
         <div className="flex-grow flex flex-col items-center justify-center py-20 text-center text-red-500">
           <p>Không tìm thấy thông tin đơn hàng này.</p>
-          <Link to="/account/orders" className="text-primary hover:underline font-medium mt-2">
+          <Link
+            to="/account/orders"
+            className="text-primary hover:underline font-medium mt-2"
+          >
             Quay lại Lịch sử mua hàng
           </Link>
         </div>
@@ -124,41 +159,66 @@ export function OrderTrackingPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "PENDING": return "Chờ xác nhận";
-      case "CONFIRMED": return "Đã xác nhận";
-      case "PROCESSING": return "Đang xử lý";
+      case "PENDING":
+        return "Chờ xác nhận";
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "PROCESSING":
+        return "Đang xử lý";
       case "SHIPPED":
-      case "SHIPPING": return "Đang giao";
+      case "SHIPPING":
+        return "Đang giao";
       case "DELIVERED":
-      case "COMPLETED": return "Hoàn thành";
-      case "CANCELLED": return "Đã hủy";
-      default: return status;
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELLED":
+        return "Đã hủy";
+      default:
+        return status;
     }
   };
 
   const isCompleted = (step: string) => {
     if (order.status === "CANCELLED") return false;
-    const normalizedStatus = order.status === "CONFIRMED" ? "PROCESSING" 
-      : (order.status === "SHIPPING" ? "SHIPPED" 
-      : (order.status === "COMPLETED" ? "DELIVERED" : order.status));
-      
+    const normalizedStatus =
+      order.status === "CONFIRMED"
+        ? "PROCESSING"
+        : order.status === "SHIPPING"
+          ? "SHIPPED"
+          : order.status === "COMPLETED"
+            ? "DELIVERED"
+            : order.status;
+
     const statuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
     const currentIndex = statuses.indexOf(normalizedStatus);
     const stepIndex = statuses.indexOf(step);
     return currentIndex >= stepIndex;
   };
 
-  const receiverName = order.receiverName || order.contactName || order.customerName || "Khách hàng";
-  const receiverPhone = order.receiverPhone || order.contactPhone || order.customerPhone || "Chưa cập nhật";
+  const receiverName =
+    order.receiverName ||
+    order.contactName ||
+    order.customerName ||
+    "Khách hàng";
+  const receiverPhone =
+    order.receiverPhone ||
+    order.contactPhone ||
+    order.customerPhone ||
+    "Chưa cập nhật";
   const fullAddress = [
     order.shippingDetailAddress,
     order.shippingWardName,
     order.shippingDistrictName,
     order.shippingProvinceName,
-  ].filter(Boolean).join(", ");
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(val);
 
   const totalAmount = order.grandTotalAmount ?? order.total ?? 0;
 
@@ -171,7 +231,10 @@ export function OrderTrackingPage() {
         {/* Order Selector Dropdown if multiple orders exist */}
         {ordersList.length > 1 && (
           <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <label htmlFor="orderSelect" className="font-bold text-sm text-on-surface">
+            <label
+              htmlFor="orderSelect"
+              className="font-bold text-sm text-on-surface"
+            >
               Chọn đơn hàng cần theo dõi:
             </label>
             <div className="relative flex-1 max-w-xs">
@@ -183,11 +246,15 @@ export function OrderTrackingPage() {
               >
                 {ordersList.map((o) => (
                   <option key={o.orderCode} value={o.orderCode}>
-                    #{o.orderCode} - {getStatusText(o.status)} ({formatCurrency(o.grandTotalAmount ?? o.total ?? 0)})
+                    #{o.orderCode} - {getStatusText(o.status)} (
+                    {formatCurrency(o.grandTotalAmount ?? o.total ?? 0)})
                   </option>
                 ))}
               </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted" />
+              <ChevronDown
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted"
+              />
             </div>
           </div>
         )}
@@ -202,8 +269,8 @@ export function OrderTrackingPage() {
               {order.status === "DELIVERED"
                 ? "Đã giao thành công"
                 : order.status === "CANCELLED"
-                ? "Đơn hàng đã bị hủy"
-                : "Đang trong quá trình xử lý và giao hàng"}
+                  ? "Đơn hàng đã bị hủy"
+                  : "Đang trong quá trình xử lý và giao hàng"}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -225,30 +292,44 @@ export function OrderTrackingPage() {
               <h2 className="font-headline-md text-2xl font-semibold text-on-surface">
                 Hành trình đơn hàng
               </h2>
-              <span className={`px-3 py-1 text-white rounded-full font-bold text-sm ${order.status === "CANCELLED" ? "bg-red-500" : "bg-primary"}`}>
+              <span
+                className={`px-3 py-1 text-white rounded-full font-bold text-sm ${order.status === "CANCELLED" ? "bg-red-500" : "bg-primary"}`}
+              >
                 {getStatusText(order.status)}
               </span>
             </div>
-            
+
             {order.status === "CANCELLED" ? (
-               <div className="text-center py-10">
-                 <p className="text-red-500 font-medium">Đơn hàng này đã bị hủy. Hành trình giao hàng kết thúc.</p>
-               </div>
+              <div className="text-center py-10">
+                <p className="text-red-500 font-medium">
+                  Đơn hàng này đã bị hủy. Hành trình giao hàng kết thúc.
+                </p>
+              </div>
             ) : (
               <div className="space-y-0 relative">
                 {/* Vertical line */}
                 <div className="absolute left-[11px] top-6 bottom-8 w-[2px] bg-outline-variant"></div>
 
                 {/* Step 4: DELIVERED */}
-                <div className={`relative pb-8 flex gap-4 ${isCompleted("DELIVERED") ? "" : "opacity-50"}`}>
+                <div
+                  className={`relative pb-8 flex gap-4 ${isCompleted("DELIVERED") ? "" : "opacity-50"}`}
+                >
                   <div className="relative z-10 shrink-0">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isCompleted("DELIVERED") ? "bg-primary ring-4 ring-primary-fixed text-white" : "bg-outline-variant text-white"}`}>
-                      {isCompleted("DELIVERED") ? <div className="w-2 h-2 rounded-full bg-white"></div> : <Check size={14} strokeWidth={3} />}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center ${isCompleted("DELIVERED") ? "bg-primary ring-4 ring-primary-fixed text-white" : "bg-outline-variant text-white"}`}
+                    >
+                      {isCompleted("DELIVERED") ? (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      ) : (
+                        <Check size={14} strokeWidth={3} />
+                      )}
                     </div>
                   </div>
                   <div className="flex-grow pt-[2px]">
                     <div className="flex justify-between items-start">
-                      <h4 className={`font-bold text-lg ${isCompleted("DELIVERED") ? "text-on-surface" : "text-on-surface-variant"}`}>
+                      <h4
+                        className={`font-bold text-lg ${isCompleted("DELIVERED") ? "text-on-surface" : "text-on-surface-variant"}`}
+                      >
                         Giao hàng thành công
                       </h4>
                     </div>
@@ -259,15 +340,25 @@ export function OrderTrackingPage() {
                 </div>
 
                 {/* Step 3: SHIPPED */}
-                <div className={`relative pb-8 flex gap-4 ${isCompleted("SHIPPED") ? "" : "opacity-50"}`}>
+                <div
+                  className={`relative pb-8 flex gap-4 ${isCompleted("SHIPPED") ? "" : "opacity-50"}`}
+                >
                   <div className="relative z-10 shrink-0">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isCompleted("SHIPPED") ? (order.status === "SHIPPED" ? "bg-primary ring-4 ring-primary-fixed" : "bg-primary") : "bg-outline-variant"}`}>
-                      {order.status === "SHIPPED" ? <div className="w-2 h-2 rounded-full bg-white"></div> : <Check size={14} strokeWidth={3} />}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isCompleted("SHIPPED") ? (order.status === "SHIPPED" ? "bg-primary ring-4 ring-primary-fixed" : "bg-primary") : "bg-outline-variant"}`}
+                    >
+                      {order.status === "SHIPPED" ? (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      ) : (
+                        <Check size={14} strokeWidth={3} />
+                      )}
                     </div>
                   </div>
                   <div className="flex-grow pt-[2px]">
                     <div className="flex justify-between items-start">
-                      <h4 className={`font-bold text-lg ${isCompleted("SHIPPED") ? "text-on-surface" : "text-on-surface-variant"}`}>
+                      <h4
+                        className={`font-bold text-lg ${isCompleted("SHIPPED") ? "text-on-surface" : "text-on-surface-variant"}`}
+                      >
                         Đang giao hàng
                       </h4>
                     </div>
@@ -278,15 +369,25 @@ export function OrderTrackingPage() {
                 </div>
 
                 {/* Step 2: PROCESSING */}
-                <div className={`relative pb-8 flex gap-4 ${isCompleted("PROCESSING") ? "" : "opacity-50"}`}>
+                <div
+                  className={`relative pb-8 flex gap-4 ${isCompleted("PROCESSING") ? "" : "opacity-50"}`}
+                >
                   <div className="relative z-10 shrink-0">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isCompleted("PROCESSING") ? (order.status === "PROCESSING" ? "bg-primary ring-4 ring-primary-fixed" : "bg-primary") : "bg-outline-variant"}`}>
-                      {order.status === "PROCESSING" ? <div className="w-2 h-2 rounded-full bg-white"></div> : <Check size={14} strokeWidth={3} />}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isCompleted("PROCESSING") ? (order.status === "PROCESSING" ? "bg-primary ring-4 ring-primary-fixed" : "bg-primary") : "bg-outline-variant"}`}
+                    >
+                      {order.status === "PROCESSING" ? (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      ) : (
+                        <Check size={14} strokeWidth={3} />
+                      )}
                     </div>
                   </div>
                   <div className="flex-grow pt-[2px]">
                     <div className="flex justify-between items-start">
-                      <h4 className={`font-bold text-lg ${isCompleted("PROCESSING") ? "text-on-surface" : "text-on-surface-variant"}`}>
+                      <h4
+                        className={`font-bold text-lg ${isCompleted("PROCESSING") ? "text-on-surface" : "text-on-surface-variant"}`}
+                      >
                         Đang xử lý
                       </h4>
                     </div>
@@ -297,15 +398,25 @@ export function OrderTrackingPage() {
                 </div>
 
                 {/* Step 1: PENDING */}
-                <div className={`relative pb-0 flex gap-4 ${isCompleted("PENDING") ? "" : "opacity-50"}`}>
+                <div
+                  className={`relative pb-0 flex gap-4 ${isCompleted("PENDING") ? "" : "opacity-50"}`}
+                >
                   <div className="relative z-10 shrink-0">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isCompleted("PENDING") ? (order.status === "PENDING" ? "bg-primary ring-4 ring-primary-fixed" : "bg-primary") : "bg-outline-variant"}`}>
-                      {order.status === "PENDING" ? <div className="w-2 h-2 rounded-full bg-white"></div> : <Check size={14} strokeWidth={3} />}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isCompleted("PENDING") ? (order.status === "PENDING" ? "bg-primary ring-4 ring-primary-fixed" : "bg-primary") : "bg-outline-variant"}`}
+                    >
+                      {order.status === "PENDING" ? (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      ) : (
+                        <Check size={14} strokeWidth={3} />
+                      )}
                     </div>
                   </div>
                   <div className="flex-grow pt-[2px]">
                     <div className="flex justify-between items-start">
-                      <h4 className={`font-bold text-lg ${isCompleted("PENDING") ? "text-on-surface" : "text-on-surface-variant"}`}>
+                      <h4
+                        className={`font-bold text-lg ${isCompleted("PENDING") ? "text-on-surface" : "text-on-surface-variant"}`}
+                      >
                         Chờ xác nhận
                       </h4>
                     </div>
@@ -346,7 +457,9 @@ export function OrderTrackingPage() {
                     <p className="text-on-surface-variant text-xs font-semibold">
                       Địa chỉ nhận hàng
                     </p>
-                    <p className="text-sm text-on-surface leading-relaxed">{fullAddress}</p>
+                    <p className="text-sm text-on-surface leading-relaxed">
+                      {fullAddress}
+                    </p>
                   </div>
                 )}
               </div>
@@ -363,14 +476,22 @@ export function OrderTrackingPage() {
                     <div key={idx} className="flex gap-3 items-center text-xs">
                       <div className="w-12 h-12 rounded bg-surface-container shrink-0 overflow-hidden flex items-center justify-center p-1 border border-outline-variant/20">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" />
+                          <img
+                            src={item.imageUrl}
+                            alt={item.productName}
+                            className="w-full h-full object-contain"
+                          />
                         ) : (
                           <PackageOpen size={20} className="text-muted" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold truncate text-on-surface">{item.productName}</p>
-                        <p className="text-muted">x{item.quantity} - {formatCurrency(item.unitPrice)}</p>
+                        <p className="font-bold truncate text-on-surface">
+                          {item.productName}
+                        </p>
+                        <p className="text-muted">
+                          x{item.quantity} - {formatCurrency(item.unitPrice)}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -386,7 +507,10 @@ export function OrderTrackingPage() {
                 bạn 24/7.
               </p>
               <div className="space-y-2">
-                <Link to="/account/support" className="w-full bg-white text-primary font-bold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all active:scale-95 text-sm">
+                <Link
+                  to="/account/support"
+                  className="w-full bg-white text-primary font-bold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all active:scale-95 text-sm"
+                >
                   <Headphones size={20} /> Liên hệ hỗ trợ ngay
                 </Link>
               </div>

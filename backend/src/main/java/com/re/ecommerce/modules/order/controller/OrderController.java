@@ -60,7 +60,8 @@ public class OrderController {
             Authentication auth,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
-        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new org.springframework.security.authentication.CredentialsExpiredException("User account no longer exists"));
         return ResponseEntity.ok(orderService.getMyOrders(currentUser, page, size));
     }
 
@@ -69,7 +70,8 @@ public class OrderController {
     public ResponseEntity<OrderResponse> getMyOrder(
             Authentication auth,
             @PathVariable String orderCode) {
-        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new org.springframework.security.authentication.CredentialsExpiredException("User account no longer exists"));
         return ResponseEntity.ok(orderService.getMyOrder(currentUser, orderCode));
     }
 
@@ -78,7 +80,8 @@ public class OrderController {
     public ResponseEntity<CartResponse> reorder(
             Authentication auth,
             @PathVariable String orderCode) {
-        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new org.springframework.security.authentication.CredentialsExpiredException("User account no longer exists"));
         return ResponseEntity.ok(orderService.reorder(currentUser, orderCode));
     }
 
@@ -131,7 +134,8 @@ public class OrderController {
             Authentication auth,
             @PathVariable UUID orderId,
             @RequestParam String reason) {
-        User currentUser = userRepository.findByUsername(auth.getName()).orElseThrow();
+        User currentUser = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new org.springframework.security.authentication.CredentialsExpiredException("User account no longer exists"));
         return ResponseEntity.ok(orderService.cancelOrder(currentUser, orderId, reason));
     }
 

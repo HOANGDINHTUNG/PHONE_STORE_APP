@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { OrderSummarySidebar } from "./components/OrderSummarySidebar";
-import { Tag, X, AlertCircle } from "lucide-react";
+import { Tag, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Radio } from "antd";
 import { CheckoutData } from "./index";
+import { useStore } from "../../context/StoreContext";
+import { USER_VOUCHERS_LIST } from "../../utils/vouchers";
 
 type PaymentStepProps = {
   onNext: () => void;
@@ -19,6 +21,53 @@ const PaymentStep = ({
   setCheckoutData,
   isSubmitting,
 }: PaymentStepProps) => {
+  const { appliedVoucher, applyVoucher, cart } = useStore();
+  const [inputCode, setInputCode] = useState(appliedVoucher?.code || "");
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+
+  const getPriceNum = (val?: string | number): number => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string") return parseInt(val.replace(/\D/g, "")) || 0;
+    return 0;
+  };
+
+  const subtotal = cart.reduce((sum, item) => {
+    const priceNum = item.newPrice
+      ? getPriceNum(item.newPrice)
+      : getPriceNum(item.price);
+    return sum + priceNum * item.quantity;
+  }, 0);
+
+  const handleApplyVoucher = () => {
+    const trimmed = inputCode.trim().toUpperCase();
+    if (!trimmed) {
+      setVoucherError("Vui lòng nhập mã giảm giá");
+      return;
+    }
+    const voucher = USER_VOUCHERS_LIST.find((v) => v.code === trimmed);
+    if (!voucher) {
+      setVoucherError(
+        `Mã giảm giá "${trimmed}" không tồn tại hoặc không hợp lệ`,
+      );
+      return;
+    }
+    if (voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
+      setVoucherError(
+        `Đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đủ điều kiện tối thiểu ${voucher.minimumOrderValue.toLocaleString("vi-VN")}đ để dùng mã "${trimmed}"`,
+      );
+      return;
+    }
+
+    applyVoucher(voucher);
+    setVoucherError(null);
+  };
+
+  const handleRemoveVoucher = () => {
+    applyVoucher(null);
+    setInputCode("");
+    setVoucherError(null);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start">
       <div className="flex-1 w-full max-w-3xl space-y-6">
@@ -32,16 +81,47 @@ const PaymentStep = ({
             Mã giảm giá / Voucher
           </h2>
 
-          <div className="flex gap-3 mb-6">
+          <div className="flex gap-3 mb-3">
             <input
               type="text"
               placeholder="Nhập mã giảm giá..."
-              className="flex-1 h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors"
+              value={inputCode}
+              onChange={(e) => {
+                setInputCode(e.target.value.toUpperCase());
+                setVoucherError(null);
+              }}
+              disabled={!!appliedVoucher}
+              className="flex-1 h-11 px-4 rounded-xl border border-gray-200 bg-[#FAFAFA] text-sm font-semibold focus:outline-none focus:border-[#E91E63] focus:bg-white transition-colors disabled:opacity-70 disabled:bg-gray-100 uppercase"
             />
-            <button className="h-11 px-6 rounded-xl bg-[#C2185B] text-white font-bold text-sm hover:bg-[#AD1457] transition-colors whitespace-nowrap">
-              Áp dụng
-            </button>
+            {appliedVoucher ? (
+              <button
+                onClick={handleRemoveVoucher}
+                className="h-11 px-6 rounded-xl bg-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-300 transition-colors whitespace-nowrap flex items-center gap-1"
+              >
+                <X size={16} /> Bỏ mã
+              </button>
+            ) : (
+              <button
+                onClick={handleApplyVoucher}
+                className="h-11 px-6 rounded-xl bg-[#C2185B] text-white font-bold text-sm hover:bg-[#AD1457] transition-colors whitespace-nowrap"
+              >
+                Áp dụng
+              </button>
+            )}
           </div>
+
+          {voucherError && (
+            <div className="flex items-center gap-2 rounded-lg bg-rose-50 p-3 text-sm font-semibold text-rose-700 border border-rose-200">
+              <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+              <span>{voucherError}</span>
+            </div>
+          )}
+          {appliedVoucher && !voucherError && (
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-sm font-semibold text-emerald-700 border border-emerald-200">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+              <span>Áp dụng thành công mã {appliedVoucher.code}!</span>
+            </div>
+          )}
         </section>
 
         {/* Payment Methods Section */}

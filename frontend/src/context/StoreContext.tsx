@@ -14,6 +14,7 @@ import {
   addToWishlistApi,
   removeFromWishlistApi,
 } from "../api/wishlistService";
+import { AvailableVoucher } from "../utils/vouchers";
 
 interface StoreContextType {
   user: User | null;
@@ -37,6 +38,8 @@ interface StoreContextType {
   clearCart: () => void;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number | string) => boolean;
+  appliedVoucher: AvailableVoucher | null;
+  applyVoucher: (voucher: AvailableVoucher | null) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -96,6 +99,13 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [appliedVoucher, setAppliedVoucher] = useState<AvailableVoucher | null>(
+    () => {
+      const saved = localStorage.getItem("pinkphone_voucher");
+      return saved ? JSON.parse(saved) : null;
+    },
+  );
+
   useEffect(() => {
     if (!user) return;
     if (localStorage.getItem("pinkphone_token")) {
@@ -146,6 +156,14 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     localStorage.setItem("pinkphone_wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
+  useEffect(() => {
+    if (appliedVoucher) {
+      localStorage.setItem("pinkphone_voucher", JSON.stringify(appliedVoucher));
+    } else {
+      localStorage.removeItem("pinkphone_voucher");
+    }
+  }, [appliedVoucher]);
+
   // Auth actions
   const login = async (
     emailOrPhone: string,
@@ -157,8 +175,10 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
       if (loggedUser) {
         localStorage.removeItem("pinkphone_cart");
         localStorage.removeItem("pinkphone_wishlist");
+        localStorage.removeItem("pinkphone_voucher");
         setCart([]);
         setWishlist([]);
+        setAppliedVoucher(null);
 
         setUser(loggedUser);
 
@@ -206,10 +226,12 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
       localStorage.removeItem("pinkphone_user");
       localStorage.removeItem("pinkphone_cart");
       localStorage.removeItem("pinkphone_wishlist");
+      localStorage.removeItem("pinkphone_voucher");
       sessionStorage.removeItem("pinkphone_token");
       sessionStorage.removeItem("pinkphone_user");
       setCart([]);
       setWishlist([]);
+      setAppliedVoucher(null);
       setUser(null);
     }
   };
@@ -224,8 +246,10 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     if (newUser) {
       localStorage.removeItem("pinkphone_cart");
       localStorage.removeItem("pinkphone_wishlist");
+      localStorage.removeItem("pinkphone_voucher");
       setCart([]);
       setWishlist([]);
+      setAppliedVoucher(null);
 
       setUser(newUser);
 
@@ -280,6 +304,11 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
 
   const clearCart = () => {
     setCart([]);
+    setAppliedVoucher(null);
+  };
+
+  const applyVoucher = (voucher: AvailableVoucher | null) => {
+    setAppliedVoucher(voucher);
   };
 
   // Wishlist actions
@@ -287,14 +316,15 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     if (!product || !product.id) return;
     const currentList = wishlist || [];
     const isExist = currentList.some(
-      (item) => item && item.id != null && String(item.id) === String(product.id)
+      (item) =>
+        item && item.id != null && String(item.id) === String(product.id),
     );
 
     setWishlist((prevWishlist) => {
       const prev = prevWishlist || [];
       if (isExist) {
         return prev.filter(
-          (item) => item && String(item.id) !== String(product.id)
+          (item) => item && String(item.id) !== String(product.id),
         );
       }
       return [...prev, product];
@@ -315,7 +345,8 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   const isInWishlist = (productId?: number | string) => {
     if (!productId || !wishlist || !Array.isArray(wishlist)) return false;
     return wishlist.some(
-      (item) => item && item.id != null && String(item.id) === String(productId)
+      (item) =>
+        item && item.id != null && String(item.id) === String(productId),
     );
   };
 
@@ -334,6 +365,8 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
         clearCart,
         toggleWishlist,
         isInWishlist,
+        appliedVoucher,
+        applyVoucher,
       }}
     >
       {children}

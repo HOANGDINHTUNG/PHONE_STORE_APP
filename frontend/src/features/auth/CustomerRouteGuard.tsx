@@ -8,11 +8,6 @@ type CustomerRouteGuardProps = {
 
 /** Keeps an authenticated administrator in the back-office area. */
 export function CustomerRouteGuard({ children }: CustomerRouteGuardProps) {
-  const { user } = useStore();
-
-  if (user?.role === "ADMIN") {
-    return <Navigate to="/admin" replace />;
-  }
-
+  // Bỏ logic redirect ADMIN để tài khoản quản trị vẫn có thể truy cập trang chủ / storefront bình thường
   return <>{children}</>;
 }

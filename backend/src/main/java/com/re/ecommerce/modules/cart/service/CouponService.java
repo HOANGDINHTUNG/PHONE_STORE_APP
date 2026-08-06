@@ -9,7 +9,6 @@ import com.re.ecommerce.modules.cart.dto.response.CouponResponse;
 import com.re.ecommerce.modules.cart.dto.response.CouponUsageResponse;
 import com.re.ecommerce.modules.cart.dto.response.VoucherAnalyticsResponse;
 import com.re.ecommerce.modules.cart.entity.CouponStatus;
-import com.re.ecommerce.modules.cart.entity.UserVoucherStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,7 +29,7 @@ public interface CouponService {
     List<CouponResponse> getFeaturedVouchers(UUID currentUserId);
     List<CouponResponse> getProductVouchers(UUID productId, UUID currentUserId);
     CouponResponse claimVoucher(UUID couponId, UUID userId);
-    Page<CouponResponse> getMyWalletVouchers(UUID userId, UserVoucherStatus status, Pageable pageable);
+    Page<CouponResponse> getMyWalletVouchers(UUID userId, String status, Pageable pageable);
 
     // Cart Integration APIs
     CartResponse applyVoucherToCart(UUID customerId, byte[] guestTokenHash, String code);

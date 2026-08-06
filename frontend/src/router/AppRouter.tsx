@@ -23,8 +23,11 @@ import { AccountProfilePage } from "../features/account/pages/AccountProfilePage
 import { AccountAddressPage } from "../features/account/pages/AccountAddressPage";
 import { AccountSupportPage } from "../features/account/pages/AccountSupportPage";
 import { AccountTermsPage } from "../features/account/pages/AccountTermsPage";
+import { ChangePasswordPage } from "../features/account/pages/SettingsPages";
 import { AccountReviewsPage } from "../features/account/pages/AccountReviewsPage";
 import { AccountReviewsHistoryPage } from "../features/account/pages/AccountReviewsHistoryPage";
+import { OrderDetailPage } from "../features/account/pages/OrderDetailPage";
+import { OrderTrackingDetailPage } from "../features/account/pages/OrderTrackingDetailPage";
 import { ReturnCreatePage } from "../features/account/pages/ReturnCreatePage";
 import { ReturnDetailsPage } from "../features/account/pages/ReturnDetailsPage";
 import { WarrantyDetailPage } from "../features/account/pages/WarrantyDetailPage";
@@ -44,16 +47,41 @@ import { RolesPermissionsPage } from "../features/admin/rolePermissions/RolesPer
 import { NotificationsPage as AdminNotificationsPage } from "../features/admin/notificationAudit/NotificationsPage";
 import { AuditLogsPage } from "../features/admin/notificationAudit/AuditLogsPage";
 import { AdminCatalogPage } from "../features/admin/AdminCatalogPage";
-import { AdminCouponDetailPage, AdminCouponEditorPage, AdminPromotionsPage } from "../features/admin/AdminPromotionPages";
-import { AdminOrderDetailPage, AdminOrdersPage } from "../features/admin/AdminOrderPages";
-import { AdminPaymentDetailPage, AdminPaymentsPage, AdminRefundQueuePage } from "../features/admin/AdminPaymentPages";
-import { AdminShipmentCreatePage, AdminShipmentDetailPage, AdminShipmentsPage } from "../features/admin/AdminShipmentPages";
-import { AdminInventoryBalancesPage, AdminReorderAlertsPage, AdminStockHistoryPage, AdminWarehousesPage } from "../features/admin/AdminInventoryPages";
+import {
+  AdminCouponDetailPage,
+  AdminCouponEditorPage,
+  AdminPromotionsPage,
+} from "../features/admin/AdminPromotionPages";
+import {
+  AdminOrderDetailPage,
+  AdminOrdersPage,
+} from "../features/admin/AdminOrderPages";
+import {
+  AdminPaymentDetailPage,
+  AdminPaymentsPage,
+  AdminRefundQueuePage,
+} from "../features/admin/AdminPaymentPages";
+import {
+  AdminShipmentCreatePage,
+  AdminShipmentDetailPage,
+  AdminShipmentsPage,
+} from "../features/admin/AdminShipmentPages";
+import {
+  AdminInventoryBalancesPage,
+  AdminReorderAlertsPage,
+  AdminStockHistoryPage,
+  AdminWarehousesPage,
+} from "../features/admin/AdminInventoryPages";
 import { AdminSuppliersPage } from "../features/admin/AdminSuppliersPage";
 import { AdminWarehouseCreatePage } from "../features/admin/AdminWarehouseCreatePage";
 import { AdminInventoryUnitDetailPage } from "../features/admin/AdminInventoryUnitDetailPage";
 import { AdminInventoryUnitDirectoryPage } from "../features/admin/AdminInventoryUnitDirectoryPage";
-import { AdminInventoryEntitiesPage, AdminStockLedgerPage, AdminWarehouseDetailPage, AdminWarehouseManagementPage } from "../features/admin/AdminInventoryOperationsPages";
+import {
+  AdminInventoryEntitiesPage,
+  AdminStockLedgerPage,
+  AdminWarehouseDetailPage,
+  AdminWarehouseManagementPage,
+} from "../features/admin/AdminInventoryOperationsPages";
 import { CustomerRouteGuard } from "../features/auth/CustomerRouteGuard";
 
 const customerRoute = (element: React.ReactNode) => (
@@ -98,9 +126,18 @@ export const router = createBrowserRouter([
       { path: "inventory/alerts", element: <AdminReorderAlertsPage /> },
       { path: "inventory/history", element: <AdminStockLedgerPage /> },
       { path: "inventory/ledger", element: <AdminStockLedgerPage /> },
-      { path: "inventory/warehouses/:warehouseId", element: <AdminWarehouseDetailPage /> },
-      { path: "inventory/unit-details", element: <AdminInventoryUnitDirectoryPage /> },
-      { path: "inventory/unit-details/:warehouseId/:variantId", element: <AdminInventoryUnitDetailPage /> },
+      {
+        path: "inventory/warehouses/:warehouseId",
+        element: <AdminWarehouseDetailPage />,
+      },
+      {
+        path: "inventory/unit-details",
+        element: <AdminInventoryUnitDirectoryPage />,
+      },
+      {
+        path: "inventory/unit-details/:warehouseId/:variantId",
+        element: <AdminInventoryUnitDetailPage />,
+      },
       { path: "suppliers", element: <AdminSuppliersPage /> },
       { path: "procurement", element: <ProcurementListPage /> },
       { path: "procurement/:poCode", element: <ProcurementDetailPage /> },
@@ -155,8 +192,16 @@ export const router = createBrowserRouter([
     element: customerRoute(<OrderHistoryPage />),
   },
   {
+    path: "/account/orders/:id",
+    element: <OrderDetailPage />,
+  },
+  {
     path: "/account/tracking",
     element: customerRoute(<OrderTrackingPage />),
+  },
+  {
+    path: "/account/tracking/:id",
+    element: <OrderTrackingDetailPage />,
   },
   {
     path: "/account/warranty",
@@ -166,10 +211,7 @@ export const router = createBrowserRouter([
     path: "/account/tier",
     element: customerRoute(<MembershipTierPage />),
   },
-  {
-    path: "/account/reviews",
-    // element: customerRoute(<MyReviewsPage />),
-  },
+
   {
     path: "/account/returns",
     element: customerRoute(<ReturnsPage />),
@@ -205,6 +247,10 @@ export const router = createBrowserRouter([
   {
     path: "/account/profile",
     element: <AccountProfilePage />,
+  },
+  {
+    path: "/account/security",
+    element: <ChangePasswordPage />,
   },
   {
     path: "/account/support",

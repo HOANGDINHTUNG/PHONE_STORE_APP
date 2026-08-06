@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { message } from "antd";
 import {
   X,
   Minus,
@@ -49,69 +50,29 @@ const crossSellProducts = [
   },
 ];
 
-interface AvailableVoucher {
-  id: string;
-  code: string;
-  name: string;
-  type: "PERCENT" | "AMOUNT";
-  discountValue: number;
-  maximumDiscountAmount?: number;
-  minimumOrderValue?: number;
-  description: string;
-}
-
-const USER_VOUCHERS_LIST: AvailableVoucher[] = [
-  {
-    id: "v1",
-    code: "WELCOME50",
-    name: "Voucher Chào Mới",
-    type: "AMOUNT",
-    discountValue: 50000,
-    minimumOrderValue: 200000,
-    description: "Giảm 50.000đ cho đơn hàng từ 200.000đ",
-  },
-  {
-    id: "v2",
-    code: "TECH10",
-    name: "Giảm 10% Smartphone",
-    type: "PERCENT",
-    discountValue: 10,
-    maximumDiscountAmount: 500000,
-    minimumOrderValue: 5000000,
-    description: "Giảm 10% tối đa 500.000đ cho đơn từ 5.000.000đ",
-  },
-  {
-    id: "v3",
-    code: "SAMSUNG300",
-    name: "Voucher 300k Samsung",
-    type: "AMOUNT",
-    discountValue: 300000,
-    minimumOrderValue: 8000000,
-    description: "Giảm 300.000đ cho sản phẩm Samsung",
-  },
-  {
-    id: "v4",
-    code: "FLASHSALE20",
-    name: "Flash Sale 20% Cuối Tuần",
-    type: "PERCENT",
-    discountValue: 20,
-    maximumDiscountAmount: 1000000,
-    minimumOrderValue: 10000000,
-    description: "Giảm 20% tối đa 1.000.000đ cho đơn từ 10.000.000đ",
-  },
-];
+import { USER_VOUCHERS_LIST } from "../../utils/vouchers";
 
 // ─── Cart Component ───────────────────────────────────────────────────
 const Cart = () => {
-  const { user, cart, removeFromCart, updateCartQuantity, addToCart } =
-    useStore();
+  const {
+    user,
+    cart,
+    removeFromCart,
+    updateCartQuantity,
+    addToCart,
+    appliedVoucher,
+    applyVoucher,
+  } = useStore();
   const navigate = useNavigate();
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
   const [selectAll, setSelectAll] = useState(true);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Voucher Selection State
-  const [inputCouponCode, setInputCouponCode] = useState("FLASHSALE20");
-  const [selectedVoucherCode, setSelectedVoucherCode] = useState<string | null>("FLASHSALE20");
+  const selectedVoucherCode = appliedVoucher?.code || null;
+  const [inputCouponCode, setInputCouponCode] = useState(
+    appliedVoucher?.code || "FLASHSALE20",
+  );
   const [voucherError, setVoucherError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -159,9 +120,9 @@ const Cart = () => {
     return acc + parseInt(priceStr.replace(/\D/g, "") || "0") * item.quantity;
   }, 0);
 
-  // Auto pre-select the Best Voucher (offering highest savings) when cart items are loaded or subtotal changes
+  // Auto pre-select the Best Voucher (offering highest savings) when cart items are loaded or subtotal changes, only if no voucher is currently applied
   useEffect(() => {
-    if (subtotal > 0) {
+    if (subtotal > 0 && !appliedVoucher) {
       let maxSavings = 0;
       let bestCode: string | null = null;
 
@@ -184,17 +145,20 @@ const Cart = () => {
       });
 
       if (bestCode) {
-        setSelectedVoucherCode(bestCode);
-        setInputCouponCode(bestCode);
+        const bestVoucher = USER_VOUCHERS_LIST.find((v) => v.code === bestCode);
+        if (bestVoucher) {
+          applyVoucher(bestVoucher);
+          setInputCouponCode(bestCode);
+        }
       }
     }
-  }, [subtotal]);
+  }, [subtotal, appliedVoucher]);
 
   // Dynamic Discount Calculation based on selected voucher
   const discountAmount = React.useMemo(() => {
     if (!selectedVoucherCode) return 0;
     const voucher = USER_VOUCHERS_LIST.find(
-      (v) => v.code.toUpperCase() === selectedVoucherCode.toUpperCase()
+      (v) => v.code.toUpperCase() === selectedVoucherCode.toUpperCase(),
     );
     if (!voucher) return 0;
 
@@ -205,7 +169,10 @@ const Cart = () => {
     let disc = 0;
     if (voucher.type === "PERCENT") {
       disc = (subtotal * voucher.discountValue) / 100;
-      if (voucher.maximumDiscountAmount && disc > voucher.maximumDiscountAmount) {
+      if (
+        voucher.maximumDiscountAmount &&
+        disc > voucher.maximumDiscountAmount
+      ) {
         disc = voucher.maximumDiscountAmount;
       }
     } else {
@@ -216,18 +183,18 @@ const Cart = () => {
 
   // Auto revoke check when subtotal changes
   useEffect(() => {
-    if (selectedVoucherCode) {
-      const voucher = USER_VOUCHERS_LIST.find(
-        (v) => v.code.toUpperCase() === selectedVoucherCode.toUpperCase()
-      );
-      if (voucher && voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
+    if (appliedVoucher) {
+      if (
+        appliedVoucher.minimumOrderValue &&
+        subtotal < appliedVoucher.minimumOrderValue
+      ) {
         setVoucherError(
-          `Voucher "${voucher.code}" đã bị hủy vì đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đạt tối thiểu ${voucher.minimumOrderValue.toLocaleString("vi-VN")}đ.`
+          `Voucher "${appliedVoucher.code}" đã bị hủy vì đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đạt tối thiểu ${appliedVoucher.minimumOrderValue.toLocaleString("vi-VN")}đ.`,
         );
-        setSelectedVoucherCode(null);
+        applyVoucher(null);
       }
     }
-  }, [subtotal, selectedVoucherCode]);
+  }, [subtotal, appliedVoucher]);
 
   const total = Math.max(subtotal - discountAmount, 0);
 
@@ -239,23 +206,31 @@ const Cart = () => {
     }
     const voucher = USER_VOUCHERS_LIST.find((v) => v.code === trimmed);
     if (!voucher) {
-      setVoucherError(`Mã giảm giá "${trimmed}" không tồn tại hoặc không hợp lệ`);
+      setVoucherError(
+        `Mã giảm giá "${trimmed}" không tồn tại hoặc không hợp lệ`,
+      );
       return;
     }
     if (voucher.minimumOrderValue && subtotal < voucher.minimumOrderValue) {
       setVoucherError(
-        `Đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đủ điều kiện tối thiểu ${voucher.minimumOrderValue.toLocaleString("vi-VN")}đ để dùng mã "${trimmed}"`
+        `Đơn hàng (${subtotal.toLocaleString("vi-VN")}đ) chưa đủ điều kiện tối thiểu ${voucher.minimumOrderValue.toLocaleString("vi-VN")}đ để dùng mã "${trimmed}"`,
       );
       return;
     }
 
-    setSelectedVoucherCode(trimmed);
+    applyVoucher(voucher);
     setVoucherError(null);
   };
 
   const formatPrice = (num: number) => num.toLocaleString("vi-VN") + " ₫";
 
   const handleCheckout = () => {
+    if (!agreedToTerms) {
+      message.warning(
+        "Vui lòng đồng ý với Điều khoản & Điều kiện mua hàng tại PinkPhone trước khi thanh toán.",
+      );
+      return;
+    }
     if (activeItems.length > 0) {
       if (!user) {
         navigate("/login?redirect=/checkout");
@@ -837,12 +812,17 @@ const Cart = () => {
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                       {USER_VOUCHERS_LIST.map((v) => {
                         const isSelected = selectedVoucherCode === v.code;
-                        const isEligible = !v.minimumOrderValue || subtotal >= v.minimumOrderValue;
+                        const isEligible =
+                          !v.minimumOrderValue ||
+                          subtotal >= v.minimumOrderValue;
 
                         let estimatedDisc = 0;
                         if (v.type === "PERCENT") {
                           estimatedDisc = (subtotal * v.discountValue) / 100;
-                          if (v.maximumDiscountAmount && estimatedDisc > v.maximumDiscountAmount) {
+                          if (
+                            v.maximumDiscountAmount &&
+                            estimatedDisc > v.maximumDiscountAmount
+                          ) {
                             estimatedDisc = v.maximumDiscountAmount;
                           }
                         } else {
@@ -855,10 +835,10 @@ const Cart = () => {
                             onClick={() => {
                               if (isEligible) {
                                 if (isSelected) {
-                                  setSelectedVoucherCode(null);
+                                  applyVoucher(null);
                                   setInputCouponCode("");
                                 } else {
-                                  setSelectedVoucherCode(v.code);
+                                  applyVoucher(v);
                                   setInputCouponCode(v.code);
                                 }
                                 setVoucherError(null);
@@ -868,8 +848,8 @@ const Cart = () => {
                               isSelected
                                 ? "border-primary bg-pink-50/70 ring-2 ring-primary/20 shadow-sm"
                                 : !isEligible
-                                ? "border-outline-variant/30 bg-slate-50 opacity-50 cursor-not-allowed"
-                                : "border-outline-variant/60 bg-white hover:border-primary/60 hover:bg-pink-50/20"
+                                  ? "border-outline-variant/30 bg-slate-50 opacity-50 cursor-not-allowed"
+                                  : "border-outline-variant/60 bg-white hover:border-primary/60 hover:bg-pink-50/20"
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -885,7 +865,9 @@ const Cart = () => {
                                   <span className="font-mono text-xs font-black text-primary bg-white px-2 py-0.5 rounded border border-primary/30 shrink-0">
                                     {v.code}
                                   </span>
-                                  <span className="text-xs font-bold text-on-surface truncate">{v.name}</span>
+                                  <span className="text-xs font-bold text-on-surface truncate">
+                                    {v.name}
+                                  </span>
                                 </div>
                                 <p className="text-[11px] text-on-surface-variant mt-0.5 line-clamp-1">
                                   {v.description}
@@ -1005,6 +987,8 @@ const Cart = () => {
                     <input
                       className="mt-1 flex-shrink-0 w-4 h-4 rounded border-outline accent-primary"
                       type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
                     />
                     <span className="text-xs text-on-surface-variant leading-relaxed">
                       Tôi đã đọc và đồng ý với{" "}

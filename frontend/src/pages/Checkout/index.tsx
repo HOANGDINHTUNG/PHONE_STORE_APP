@@ -25,16 +25,16 @@ export type CheckoutData = {
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
-    guestName: "Nguyễn Văn A",
-    guestPhone: "0901234567",
-    guestEmail: "nguyenvana@example.com",
-    guestProvinceCode: "HCM",
-    guestProvinceName: "Hồ Chí Minh",
-    guestDistrictCode: "Q1",
-    guestDistrictName: "Quận 1",
-    guestWardCode: "BN",
-    guestWardName: "Phường Bến Nghé",
-    guestDetailAddress: "123 Lê Lợi",
+    guestName: "",
+    guestPhone: "",
+    guestEmail: "",
+    guestProvinceCode: "",
+    guestProvinceName: "",
+    guestDistrictCode: "",
+    guestDistrictName: "",
+    guestWardCode: "",
+    guestWardName: "",
+    guestDetailAddress: "",
     note: "",
     paymentMethod: "COD",
   });

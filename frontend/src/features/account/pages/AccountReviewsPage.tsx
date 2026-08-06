@@ -1,6 +1,15 @@
 import { AccountShell } from "../components/AccountShell";
 import { useState } from "react";
-import { X, Star, Info, Loader2, ShoppingBag, Edit, Clock } from "lucide-react";
+import {
+  X,
+  Star,
+  Info,
+  Loader2,
+  ShoppingBag,
+  Edit,
+  Clock,
+  MessageSquare,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface PendingReviewItem {
@@ -19,24 +28,7 @@ export function AccountReviewsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mock pending reviews
-  const pendingReviews: PendingReviewItem[] = [
-    {
-      id: "#PKP-882941",
-      name: "PinkPhone 15 Pro Max",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAvo-d0SWq2bHilgAtF8u_rHorsGUtfYHvITKUrdnUOpKEdhaKGPSiP3CjkF5iQ3GTGkND1bXCOH2cN8pAuk6QiFkH58Piqwvi6nP4PIrjXT3BaqzcVkQ4Qi_bZbd0IkcjQ1eqKKMOeiI9MJNADLKr67KRoBGY0x3mmDHRnoSLzl77Bg583900iHGBVic3XFvgD4qtkUlzceVUH70u0BpPQBoNJ1_i28ESPAUM-Aqq3k4y8tnbJ0ptA",
-      attributes: "Màu sắc: Rose Gold | Dung lượng: 512GB",
-      purchaseDate: "15/10/2023",
-    },
-    {
-      id: "#PKP-901235",
-      name: "PinkPods Max - Noise Canceling",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCrgtstTwRD9hw5CxygBQukSzs79oyb5koB9VB-GAsKgL5FY2tiiWZuS1ypkoY6Ix-e1jywXO00aLrjTo3_7AOHafSdaQEEIFBUGAvOGXKl22o1wmsQb8vIHbV5yJwvvdiYXSdPTrTvzymETxr8ljM5j3mQOL5B9XVJhyohebmOLSAPGTb6Gn1U8ueh6F7NJwDR9cih8ZnalcFnNf6aEvEIlQEeQz2cpiYTIBIzZ7tU1qC-ijJT2hBX",
-      attributes: "Màu sắc: Sakura Pink",
-      purchaseDate: "02/11/2023",
-    },
-  ];
+  const pendingReviews: PendingReviewItem[] = [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,20 +130,26 @@ export function AccountReviewsPage() {
             </div>
           ) : (
             /* Empty State */
-            <div className="flex flex-col items-center justify-center py-20 text-center bg-surface-container-low rounded-3xl border-2 border-dashed border-outline-variant">
-              <div className="w-24 h-24 bg-secondary-fixed rounded-full flex items-center justify-center mb-6">
-                <ShoppingBag className="text-secondary" size={48} />
+            /* Empty State */
+            <div className="flex-1 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 flex flex-col items-center justify-center p-10 min-h-[500px]">
+              <div className="mb-8 relative w-48 h-48 flex items-center justify-center">
+                <div className="absolute inset-0 bg-primary-fixed rounded-full opacity-30 animate-pulse"></div>
+                <MessageSquare className="text-primary w-24 h-24 relative z-10" />
               </div>
-              <h2 className="text-headline-md font-bold mb-2 text-on-surface">
-                Bạn đã đánh giá hết sản phẩm!
+              <h2 className="text-[24px] font-headline-md font-bold text-on-surface text-center mb-2">
+                Bạn hiện không có sản phẩm nào chờ đánh giá.
               </h2>
-              <p className="text-body-md text-on-surface-variant max-w-sm mb-8">
-                Cảm ơn bạn đã đóng góp ý kiến. Hãy tiếp tục mua sắm để nhận thêm
-                nhiều ưu đãi đặc biệt.
+              <p className="w-full text-body-md text-[16px] text-on-surface-variant text-center max-w-[450px] mx-auto mb-10">
+                Hãy tiếp tục mua sắm để chia sẻ trải nghiệm của bạn với cộng
+                đồng nhé!
               </p>
-              <button className="bg-primary text-white px-10 py-3.5 rounded-full font-bold hover:bg-secondary transition-all active:scale-95 shadow-sm">
-                Tiếp tục mua sắm
-              </button>
+              <Link
+                to="/store"
+                className="bg-primary hover:bg-secondary text-on-primary font-bold px-8 py-3 rounded-full transition-all active:scale-95 shadow-sm flex items-center gap-2"
+              >
+                <ShoppingBag size={20} />
+                Mua sắm ngay
+              </Link>
             </div>
           )}
         </div>

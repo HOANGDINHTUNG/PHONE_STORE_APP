@@ -1,14 +1,16 @@
 import {
-  Calendar,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  PackageOpen,
   Search,
   Truck,
   Loader2,
+  ShoppingBag,
+  Compass,
+  ShieldCheck,
+  RefreshCcw,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -16,7 +18,7 @@ import { AccountShell, Panel } from "../components/AccountShell";
 import { useQuery } from "@tanstack/react-query";
 import { getMyOrdersApi, OrderResponse } from "../../../api/orderService";
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, PackageOpen } from "lucide-react";
 
 export function OrderHistoryPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -31,7 +33,13 @@ export function OrderHistoryPage() {
 
   return (
     <AccountShell
-      title={isError ? "Lỗi tải đơn hàng | PinkPhone" : isEmpty ? "Lịch sử mua hàng (Trống)" : "Lịch sử mua hàng"}
+      title={
+        isError
+          ? "Lỗi tải đơn hàng | PinkPhone"
+          : isEmpty
+            ? "Lịch sử mua hàng (Trống)"
+            : "Lịch sử mua hàng"
+      }
       description="Xem và quản lý tất cả các đơn hàng bạn đã thực hiện tại PinkPhone."
     >
       {isLoading ? (
@@ -39,7 +47,7 @@ export function OrderHistoryPage() {
           <Loader2 className="animate-spin text-primary w-8 h-8" />
         </div>
       ) : isError ? (
-        <Panel className="p-8 text-center border border-red-200 bg-red-50/50 rounded-2xl">
+        <Panel className="w-full p-8 text-center border border-red-200 bg-red-50/50 rounded-2xl">
           <div className="mx-auto grid size-16 place-items-center rounded-full bg-red-100 text-red-600 mb-4">
             <AlertCircle size={36} />
           </div>
@@ -50,10 +58,10 @@ export function OrderHistoryPage() {
             {httpStatus === 401
               ? "Phiên đăng nhập đã hết hạn (Mã lỗi: 401 Unauthorized). Vui lòng đăng nhập lại."
               : httpStatus === 403
-              ? "Bạn không có quyền truy cập dữ liệu đơn hàng (Mã lỗi: 403 Forbidden)."
-              : httpStatus
-              ? `Máy chủ phản hồi mã lỗi HTTP: ${httpStatus}. Vui lòng thử lại sau.`
-              : "Không thể kết nối đến máy chủ backend (ERR_CONNECTION_REFUSED hoặc lỗi mạng)."}
+                ? "Bạn không có quyền truy cập dữ liệu đơn hàng (Mã lỗi: 403 Forbidden)."
+                : httpStatus
+                  ? `Máy chủ phản hồi mã lỗi HTTP: ${httpStatus}. Vui lòng thử lại sau.`
+                  : "Không thể kết nối đến máy chủ backend (ERR_CONNECTION_REFUSED hoặc lỗi mạng)."}
           </p>
           <div className="flex justify-center gap-3">
             <button
@@ -97,7 +105,10 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
   ];
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(val);
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -125,7 +136,13 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
   };
 
   const getStatusType = (status: string) => {
-    if (status === "DELIVERED" || status === "COMPLETED" || status === "CANCELLED" || status === "RETURNED") return "completed";
+    if (
+      status === "DELIVERED" ||
+      status === "COMPLETED" ||
+      status === "CANCELLED" ||
+      status === "RETURNED"
+    )
+      return "completed";
     return "active";
   };
 
@@ -138,8 +155,10 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       const codeMatch = o.orderCode?.toLowerCase().includes(q);
-      const itemMatch = o.items?.some((i) =>
-        i.productName?.toLowerCase().includes(q) || i.variantName?.toLowerCase().includes(q)
+      const itemMatch = o.items?.some(
+        (i) =>
+          i.productName?.toLowerCase().includes(q) ||
+          i.variantName?.toLowerCase().includes(q),
       );
       if (!codeMatch && !itemMatch) return false;
     }
@@ -221,14 +240,16 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
       {/* Order List */}
       <div className="flex flex-col gap-lg">
         {filteredOrders.length === 0 ? (
-          <div className="text-center py-10 text-muted">Không tìm thấy đơn hàng nào phù hợp.</div>
+          <div className="text-center py-10 text-muted">
+            Không tìm thấy đơn hàng nào phù hợp.
+          </div>
         ) : (
           filteredOrders.map((order) => {
             const firstItem = order.items && order.items[0];
             const extraCount = order.items ? order.items.length - 1 : 0;
             const statusType = getStatusType(order.status);
             const totalAmount = order.grandTotalAmount ?? order.total ?? 0;
-            const formattedDate = order.createdAt 
+            const formattedDate = order.createdAt
               ? new Date(order.createdAt).toLocaleDateString("vi-VN", {
                   year: "numeric",
                   month: "2-digit",
@@ -237,7 +258,7 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
                   minute: "2-digit",
                 })
               : null;
-            
+
             return (
               <article
                 key={order.orderCode}
@@ -245,9 +266,13 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
               >
                 <div className="flex items-center justify-between p-4 bg-surface-container-low border-b border-outline-variant/20">
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-primary">#{order.orderCode}</span>
+                    <span className="font-bold text-primary">
+                      #{order.orderCode}
+                    </span>
                     {formattedDate && (
-                      <span className="text-xs text-muted">({formattedDate})</span>
+                      <span className="text-xs text-muted">
+                        ({formattedDate})
+                      </span>
                     )}
                   </div>
                   <div
@@ -290,9 +315,17 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
                             {firstItem.productName}
                           </h4>
                           <p className="text-on-surface-variant text-sm mb-2">
-                            {firstItem.ram || firstItem.storage || firstItem.color ? (
+                            {firstItem.ram ||
+                            firstItem.storage ||
+                            firstItem.color ? (
                               <span className="inline-block bg-surface-soft px-2 py-0.5 rounded text-xs text-on-surface font-medium mr-2">
-                                {[firstItem.ram, firstItem.storage, firstItem.color].filter(Boolean).join(" - ")}
+                                {[
+                                  firstItem.ram,
+                                  firstItem.storage,
+                                  firstItem.color,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" - ")}
                               </span>
                             ) : null}
                             Số lượng: x{firstItem.quantity}
@@ -304,9 +337,11 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
                           )}
                         </>
                       )}
-                      
+
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-muted">Tổng thanh toán:</span>
+                        <span className="text-xs text-muted">
+                          Tổng thanh toán:
+                        </span>
                         <span className="font-bold text-lg text-primary">
                           {formatCurrency(totalAmount)}
                         </span>
@@ -320,7 +355,8 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
                       >
                         Theo dõi
                       </Link>
-                      {(order.status === "DELIVERED" || order.status === "COMPLETED") && (
+                      {(order.status === "DELIVERED" ||
+                        order.status === "COMPLETED") && (
                         <Link
                           to="/account/reviews"
                           className="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-center transition-colors active:scale-95 bg-surface text-on-surface border border-outline hover:bg-surface-container"
@@ -342,25 +378,82 @@ function HistoryContent({ orders }: { orders: OrderResponse[] }) {
 
 function EmptyHistory() {
   return (
-    <Panel className="p-6 text-center sm:p-12">
-      <div className="mx-auto grid size-24 place-items-center rounded-full bg-surface-soft text-primary">
-        <PackageOpen size={42} />
+    <div className="flex-grow min-h-[600px] flex flex-col">
+      <div className="flex-grow bg-white/70 backdrop-blur-md rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center shadow-lg border border-primary-fixed/20 relative overflow-hidden">
+        {/* Background Decoration */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary-fixed/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-secondary-fixed/20 rounded-full blur-3xl"></div>
+
+        {/* Empty State Illustration Container */}
+        <div className="relative w-full max-w-[400px] mx-auto mb-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+          <div className="bg-surface-container-lowest rounded-full w-48 h-48 mx-auto flex items-center justify-center shadow-inner border border-outline-variant/20 mb-8 overflow-hidden">
+            <img
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFXLF_tO_ba73noL7_q1FlwlOpPbd6QI69IcA6naz77C5VDazaiSS1SgE2KTxz8RX-u0LnlW0FC8vBL7ZoUPoifZL5Xj8r4AzvRqwlMHhGCtIbOaCeOjtTqpFmYxNN_qyZBEa89v2AKlSuX3NVlnzCVzNHJxMqpkilFz3KdvccGT3zBs-nnz17Bc-wbfjUcsvo_IlUrqzevWio8bkCLMpB2ErZ5XZeGC6p-UNdkPFsPdKPVod4Zlxn"
+              alt="Empty Box"
+              className="w-40 h-40 object-contain transform hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+        </div>
+
+        {/* Empty State Content */}
+        <div className="z-10 w-full animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150 fill-mode-both">
+          <h1 className="font-headline-md text-on-surface mb-2 font-bold text-[24px]">
+            Bạn chưa có đơn hàng nào gần đây.
+          </h1>
+          <p className="font-body-md text-on-surface-variant mb-10 opacity-80 max-w-[450px] mx-auto text-[16px] leading-relaxed">
+            Có vẻ như bạn chưa thực hiện giao dịch nào. Hãy khám phá các dòng
+            smartphone mới nhất và ưu đãi hấp dẫn dành riêng cho bạn tại
+            PinkPhone.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link
+              to="/store"
+              className="w-full sm:w-auto px-8 py-3 bg-primary text-on-primary font-bold rounded-full shadow-lg hover:bg-secondary hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <ShoppingBag size={20} />
+              Mua sắm ngay
+            </Link>
+            <Link
+              to="/promotions"
+              className="w-full sm:w-auto px-8 py-3 bg-surface-container-high text-on-surface font-semibold rounded-full hover:bg-surface-variant transition-all flex items-center justify-center gap-2 active:scale-95 border border-transparent hover:border-outline-variant/30"
+            >
+              <Compass size={20} />
+              Xem khuyến mãi
+            </Link>
+          </div>
+        </div>
+
+        {/* Recommendation Teaser (Subtle Bento) */}
+        <div className="mt-12 w-full grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-outline-variant/30 animate-in fade-in duration-700 delay-300 fill-mode-both">
+          <div className="p-4 bg-white/40 rounded-xl border border-white/60 text-left hover:bg-white/60 hover:shadow-sm transition-all cursor-pointer">
+            <ShieldCheck className="text-primary mb-2" size={24} />
+            <h3 className="font-label-sm text-[14px] font-bold text-on-surface">
+              Bảo hành 24 tháng
+            </h3>
+            <p className="text-[12px] text-on-surface-variant font-medium mt-0.5">
+              Yên tâm sử dụng dài lâu
+            </p>
+          </div>
+          <div className="p-4 bg-white/40 rounded-xl border border-white/60 text-left hover:bg-white/60 hover:shadow-sm transition-all cursor-pointer">
+            <Truck className="text-primary mb-2" size={24} />
+            <h3 className="font-label-sm text-[14px] font-bold text-on-surface">
+              Giao hỏa tốc 2h
+            </h3>
+            <p className="text-[12px] text-on-surface-variant font-medium mt-0.5">
+              Nhận máy ngay trong ngày
+            </p>
+          </div>
+          <div className="p-4 bg-white/40 rounded-xl border border-white/60 text-left hover:bg-white/60 hover:shadow-sm transition-all cursor-pointer">
+            <RefreshCcw className="text-primary mb-2" size={24} />
+            <h3 className="font-label-sm text-[14px] font-bold text-on-surface">
+              Thu cũ đổi mới
+            </h3>
+            <p className="text-[12px] text-on-surface-variant font-medium mt-0.5">
+              Trợ giá lên đến 2 triệu
+            </p>
+          </div>
+        </div>
       </div>
-      <h2 className="mt-6 text-xl font-extrabold">
-        Bạn chưa có đơn hàng nào gần đây
-      </h2>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
-        Khám phá các mẫu điện thoại mới nhất và ưu đãi dành riêng cho bạn tại
-        PinkPhone.
-      </p>
-      <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-        <Link
-          to="/"
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-6 font-bold text-white hover:bg-primary-strong transition"
-        >
-          Mua sắm ngay
-        </Link>
-      </div>
-    </Panel>
+    </div>
   );
 }

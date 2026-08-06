@@ -31,7 +31,7 @@ export const loginApi = async (
 
     if (response.data && response.data.accessToken) {
       const token = response.data.accessToken;
-        const u = response.data.user;
+      const u = response.data.user;
       const parsedUser = {
         id: u?.id,
         name: u?.fullName || response.data.username || emailOrPhone,
@@ -103,7 +103,7 @@ export const registerApi = async (details: {
 
       localStorage.setItem("pinkphone_token", response.data.accessToken);
       if (response.data.refreshToken) {
-        localStorage.setItem(
+        sessionStorage.setItem(
           "pinkphone_refreshToken",
           response.data.refreshToken,
         );
@@ -117,7 +117,7 @@ export const registerApi = async (details: {
         token: response.data.accessToken,
         role: u?.role || response.data.role,
       };
-      localStorage.setItem("pinkphone_user", JSON.stringify(parsedUser));
+      sessionStorage.setItem("pinkphone_user", JSON.stringify(parsedUser));
       return parsedUser;
     }
   } catch (error) {

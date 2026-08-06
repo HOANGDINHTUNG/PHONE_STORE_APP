@@ -60,7 +60,7 @@ const Login = () => {
             <Form
               name="login_form"
               layout="vertical"
-              initialValues={{ remember: true }}
+              initialValues={{ remember: false }}
               onFinish={onFinish}
               requiredMark={false}
               className={styles.form}

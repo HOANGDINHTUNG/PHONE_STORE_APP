@@ -270,14 +270,14 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CouponResponse> getMyWalletVouchers(UUID userId, UserVoucherStatus status, Pageable pageable) {
+    public Page<CouponResponse> getMyWalletVouchers(UUID userId, String status, Pageable pageable) {
         if (userId == null) {
             return Page.empty();
         }
 
         LocalDateTime now = LocalDateTime.now();
 
-        if (status == UserVoucherStatus.EXPIRED) {
+        if ("EXPIRED".equalsIgnoreCase(status)) {
             Page<UserVoucher> uvPage = userVoucherRepository.findByUserIdAndStatusOrderByClaimedAtDesc(userId, UserVoucherStatus.AVAILABLE, pageable);
             List<CouponResponse> list = uvPage.getContent().stream()
                     .filter(uv -> uv.getCoupon().getEndTime().isBefore(now))
@@ -291,9 +291,24 @@ public class CouponServiceImpl implements CouponService {
             return new PageImpl<>(list, pageable, uvPage.getTotalElements());
         }
 
-        Page<UserVoucher> uvPage = userVoucherRepository.findByUserIdAndStatusOrderByClaimedAtDesc(userId, status != null ? status : UserVoucherStatus.AVAILABLE, pageable);
+        if ("EXPIRING_SOON".equalsIgnoreCase(status)) {
+            Page<UserVoucher> uvPage = userVoucherRepository.findByUserIdAndStatusOrderByClaimedAtDesc(userId, UserVoucherStatus.AVAILABLE, pageable);
+            LocalDateTime tenDaysLater = now.plusDays(10);
+            List<CouponResponse> list = uvPage.getContent().stream()
+                    .filter(uv -> uv.getCoupon().getEndTime().isAfter(now) && uv.getCoupon().getEndTime().isBefore(tenDaysLater))
+                    .map(uv -> {
+                        CouponResponse res = mapToResponse(uv.getCoupon(), userId, null, null);
+                        res.setIsClaimed(true);
+                        return res;
+                    }).toList();
+            return new PageImpl<>(list, pageable, uvPage.getTotalElements());
+        }
+
+        UserVoucherStatus dbStatus = "USED".equalsIgnoreCase(status) ? UserVoucherStatus.USED : UserVoucherStatus.AVAILABLE;
+        Page<UserVoucher> uvPage = userVoucherRepository.findByUserIdAndStatusOrderByClaimedAtDesc(userId, dbStatus, pageable);
 
         List<CouponResponse> responses = uvPage.getContent().stream()
+                .filter(uv -> dbStatus == UserVoucherStatus.USED || uv.getCoupon().getEndTime().isAfter(now))
                 .map(uv -> {
                     CouponResponse res = mapToResponse(uv.getCoupon(), userId, null, null);
                     res.setIsClaimed(true);

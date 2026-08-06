@@ -13,7 +13,7 @@ export const OrderSummarySidebar = ({
   onNext,
   disabled = false,
 }: OrderSummarySidebarProps) => {
-  const { cart } = useStore();
+  const { cart, appliedVoucher } = useStore();
 
   const getPriceNum = (val?: string | number): number => {
     if (typeof val === "number") return val;
@@ -28,7 +28,26 @@ export const OrderSummarySidebar = ({
     return sum + priceNum * item.quantity;
   }, 0);
 
-  const discount = subtotal > 20000000 ? 500000 : 0;
+  let discount = 0;
+  if (
+    appliedVoucher &&
+    (!appliedVoucher.minimumOrderValue ||
+      subtotal >= appliedVoucher.minimumOrderValue)
+  ) {
+    if (appliedVoucher.type === "PERCENT") {
+      discount = (subtotal * appliedVoucher.discountValue) / 100;
+      if (
+        appliedVoucher.maximumDiscountAmount &&
+        discount > appliedVoucher.maximumDiscountAmount
+      ) {
+        discount = appliedVoucher.maximumDiscountAmount;
+      }
+    } else {
+      discount = appliedVoucher.discountValue;
+    }
+  }
+  discount = Math.min(discount, subtotal);
+
   const total = subtotal - discount;
 
   const formatCurrency = (val: number) =>
@@ -79,7 +98,9 @@ export const OrderSummarySidebar = ({
           </div>
           {discount > 0 && (
             <div className="flex justify-between">
-              <span className="text-[#E91E63]">Giảm giá</span>
+              <span className="text-[#E91E63]">
+                Giảm giá {appliedVoucher && `(${appliedVoucher.code})`}
+              </span>
               <span className="font-semibold text-[#E91E63]">
                 -{formatCurrency(discount)}
               </span>

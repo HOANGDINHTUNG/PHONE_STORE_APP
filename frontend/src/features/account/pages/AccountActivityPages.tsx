@@ -425,7 +425,7 @@ const MOCK_NOTIFICATIONS = [
     Icon: CreditCard,
     title: "Thanh toán thành công #PP-123412",
     time: "2 giờ trước",
-    text: "Bạn đã thanh toán thành công số tiền 24,990,000đ cho đơn hàng #PP-123412.",
+    text: "Bạn đã thanh toán thành công số tiền 24,990,000đ cho đơn hàng #PP-123412 qua thẻ tín dụng.",
     isRead: true,
     category: "Đơn hàng",
   },
@@ -449,14 +449,12 @@ export function NotificationsPage() {
 
   const filteredNotifications = MOCK_NOTIFICATIONS.filter((n) => {
     if (activeTab === "Chưa đọc") return !n.isRead;
-    if (activeTab === "Đơn hàng") return n.category === "Đơn hàng";
     return true;
   });
 
   return (
     <AccountShell
       title="Thông báo"
-      description="Cập nhật đơn hàng, ưu đãi và hoạt động tài khoản PinkPhone."
       actions={
         <div className="flex items-center gap-4">
           {/* Debug Panel to toggle states easily during UI verification */}
@@ -482,7 +480,7 @@ export function NotificationsPage() {
     >
       {/* Tabs */}
       <div className="flex gap-8 overflow-x-auto border-b border-outline-variant mb-6">
-        {["Tất cả", "Chưa đọc", "Đơn hàng", "Ưu đãi"].map((tab) => (
+        {["Tất cả", "Chưa đọc"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -502,7 +500,7 @@ export function NotificationsPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-surface-container-low rounded-xl p-4 flex gap-4 items-start animate-pulse"
+              className="bg-surface-container-lowest rounded-xl p-4 flex gap-4 items-start animate-pulse shadow-[0_4px_12px_rgba(214,51,108,0.08)]"
             >
               <div className="w-10 h-10 rounded-full bg-surface-variant shrink-0"></div>
               <div className="flex-grow">
@@ -525,10 +523,11 @@ export function NotificationsPage() {
             <BellOff size={48} />
           </div>
           <h3 className="font-headline-md text-headline-md text-on-surface mb-2">
-            Hộp thư thông báo đang trống
+            Không có thông báo nào
           </h3>
           <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-            Các cập nhật về đơn hàng và ưu đãi sẽ xuất hiện tại đây.
+            Bạn hiện không có thông báo nào mới. Hãy tiếp tục mua sắm để trải
+            nghiệm các dịch vụ từ PinkPhone.
           </p>
           <button className="mt-6 font-label-sm text-label-sm bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-secondary transition-colors">
             Tiếp tục mua sắm
@@ -562,15 +561,27 @@ export function NotificationsPage() {
       {fetchStatus === "success" && (
         <div className="fade-in">
           {filteredNotifications.length === 0 ? (
-            <div className="py-10 text-center text-on-surface-variant font-medium">
-              Không tìm thấy thông báo nào trong mục này
+            <div className="flex flex-col items-center justify-center py-16 text-center border-t border-outline-variant mt-8 fade-in">
+              <div className="w-24 h-24 bg-surface-variant rounded-full flex items-center justify-center mb-6 text-outline">
+                <BellOff size={48} />
+              </div>
+              <h3 className="font-headline-md text-headline-md text-on-surface mb-2">
+                Không có thông báo nào
+              </h3>
+              <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
+                Bạn hiện không có thông báo nào mới. Hãy tiếp tục mua sắm để
+                trải nghiệm các dịch vụ từ PinkPhone.
+              </p>
+              <button className="mt-6 font-label-sm text-label-sm bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-secondary transition-colors">
+                Tiếp tục mua sắm
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
               {filteredNotifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`rounded-xl p-4 flex gap-4 items-start shadow-sm border border-border/50 hover:shadow-md transition-shadow relative cursor-pointer ${
+                  className={`rounded-xl p-4 flex gap-4 items-start shadow-[0_4px_12px_rgba(214,51,108,0.08)] hover:shadow-[0_8px_24px_rgba(214,51,108,0.12)] transition-shadow relative cursor-pointer ${
                     !notif.isRead
                       ? "bg-primary-fixed-dim/10"
                       : "bg-surface-container-lowest"
@@ -583,8 +594,8 @@ export function NotificationsPage() {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                       !notif.isRead
-                        ? "bg-primary-container text-on-primary-container"
-                        : "bg-surface-variant text-on-surface-variant"
+                        ? "bg-primary-container text-on-primary-container shrink-0"
+                        : "bg-surface-variant text-on-surface-variant shrink-0"
                     }`}
                   >
                     <notif.Icon size={20} />
@@ -599,7 +610,7 @@ export function NotificationsPage() {
                         {notif.time}
                       </span>
                     </div>
-                    <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+                    <p className="font-body-md text-body-md text-on-surface-variant">
                       {notif.text}
                     </p>
                   </div>
@@ -608,11 +619,13 @@ export function NotificationsPage() {
             </div>
           )}
 
-          <div className="flex justify-center mt-6">
-            <button className="font-label-sm text-label-sm text-primary border border-primary px-6 py-2 rounded-full hover:bg-primary hover:text-white transition-colors">
-              Xem thêm
-            </button>
-          </div>
+          {filteredNotifications.length > 0 && (
+            <div className="flex justify-center mt-4">
+              <button className="font-label-sm text-label-sm text-primary border border-primary px-6 py-2 rounded-full hover:bg-primary hover:text-on-primary transition-colors">
+                Xem thêm
+              </button>
+            </div>
+          )}
         </div>
       )}
     </AccountShell>
