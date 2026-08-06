@@ -196,6 +196,12 @@ const ProductDetail = () => {
   const selectedStock = getSelectedStock();
   const isOutOfStock = selectedStock <= 0;
   const warehouseOptions = selectedVariant?.warehouseStocks || [];
+  const warehouseLabel = (warehouse: { warehouseName: string; availableQuantity: number }) => {
+    const quantity = Number.isFinite(Number(warehouse.availableQuantity))
+      ? Math.max(0, Number(warehouse.availableQuantity))
+      : 0;
+    return `${warehouse.warehouseName} · ${quantity > 0 ? `Còn ${quantity}` : "Hết hàng"}`;
+  };
 
   return (
     <div className="bg-surface font-body-md text-on-surface pb-[80px] md:pb-0 overflow-x-hidden">
@@ -429,7 +435,7 @@ const ProductDetail = () => {
                 >
                   {warehouseOptions.length > 0 && warehouseOptions.map((warehouse) => (
                     <option key={warehouse.warehouseId} value={warehouse.warehouseId}>
-                      {warehouse.warehouseName}
+                      {warehouseLabel(warehouse)}
                     </option>
                   ))}
                   {warehouseOptions.length === 0 && <option value="">Chưa có dữ liệu kho</option>}

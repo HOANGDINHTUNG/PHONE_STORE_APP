@@ -43,6 +43,9 @@ import com.re.ecommerce.modules.payment.repository.PaymentRepository;
 import com.re.ecommerce.modules.inventory.repository.WarehouseInventoryRepository;
 import com.re.ecommerce.modules.inventory.entity.enums.WarehouseStatus;
 import com.re.ecommerce.modules.inventory.service.StockReservationService;
+import com.re.ecommerce.modules.shipment.entity.Shipment;
+import com.re.ecommerce.modules.shipment.entity.ShipmentStatus;
+import com.re.ecommerce.modules.shipment.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -80,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
     private final WarehouseInventoryRepository warehouseInventoryRepository;
     private final StockReservationService stockReservationService;
     private final com.re.ecommerce.modules.cart.repository.UserVoucherRepository userVoucherRepository;
+    private final ShipmentRepository shipmentRepository;
     
 
     @Override
@@ -349,12 +353,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PagedResponse<OrderResponse> getAdminOrders(int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, size, org.springframework.data.domain.Sort.by("createdAt").descending());
         org.springframework.data.domain.Page<Order> ordersPage = orderRepository.findAll(pageable);
         
         List<UUID> orderIds = ordersPage.getContent().stream().map(Order::getId).toList();
+        syncStatusesFromShipments(ordersPage.getContent());
         List<OrderItem> allItems = orderIds.isEmpty() ? java.util.Collections.emptyList() : orderItemRepository.findByOrderIdIn(orderIds);
         java.util.Map<UUID, List<OrderItem>> itemsByOrderId = allItems.stream().collect(Collectors.groupingBy(item -> item.getOrder().getId()));
         
@@ -460,10 +465,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public OrderResponse getAdminOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("ORDER_NOT_FOUND", "Order not found"));
+        syncStatusesFromShipments(List.of(order));
         return toResponse(order, orderItemRepository.findByOrderId(order.getId()));
+    }
+
+    private void syncStatusesFromShipments(List<Order> orders) {
+        if (orders.isEmpty()) return;
+        List<UUID> ids = orders.stream().map(Order::getId).toList();
+        shipmentRepository.findByOrder_IdIn(ids).stream()
+                .filter(shipment -> shipment.getStatus() == ShipmentStatus.DELIVERED
+                        || shipment.getStatus() == ShipmentStatus.IN_TRANSIT
+                        || shipment.getStatus() == ShipmentStatus.SHIPPED
+                        || shipment.getStatus() == ShipmentStatus.PACKING)
+                .forEach(shipment -> {
+                    Order order = orders.stream().filter(candidate -> candidate.getId().equals(shipment.getOrder().getId())).findFirst().orElse(null);
+                    if (order == null || order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.COMPLETED) return;
+                    OrderStatus target = shipment.getStatus() == ShipmentStatus.DELIVERED ? OrderStatus.COMPLETED
+                            : shipment.getStatus() == ShipmentStatus.PACKING ? OrderStatus.PROCESSING : OrderStatus.SHIPPING;
+                    if (order.getStatus() == target) return;
+                    OrderStatus previous = order.getStatus();
+                    order.setStatus(target);
+                    if (target == OrderStatus.COMPLETED) order.setCompletedAt(LocalDateTime.now());
+                    orderRepository.save(order);
+                    orderStatusHistoryRepository.save(OrderStatusHistory.builder().order(order).oldStatus(previous).newStatus(target)
+                            .actorType(OrderStatusActor.SYSTEM).note("Synced from shipment " + shipment.getShipmentCode()).build());
+                });
     }
 
     @Override

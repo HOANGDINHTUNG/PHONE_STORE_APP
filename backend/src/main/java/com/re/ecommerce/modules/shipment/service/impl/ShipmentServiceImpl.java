@@ -16,6 +16,10 @@ import com.re.ecommerce.modules.order.entity.Order;
 import com.re.ecommerce.modules.order.entity.OrderItem;
 import com.re.ecommerce.modules.order.repository.OrderItemRepository;
 import com.re.ecommerce.modules.order.repository.OrderRepository;
+import com.re.ecommerce.modules.order.repository.OrderStatusHistoryRepository;
+import com.re.ecommerce.modules.order.entity.OrderStatusHistory;
+import com.re.ecommerce.modules.order.enums.OrderStatus;
+import com.re.ecommerce.modules.order.enums.OrderStatusActor;
 import com.re.ecommerce.modules.shipment.dto.request.AssignShipmentUnitsRequest;
 import com.re.ecommerce.modules.shipment.dto.request.ChangeShipmentStatusRequest;
 import com.re.ecommerce.modules.shipment.dto.request.CreateShipmentRequest;
@@ -55,6 +59,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final WarehouseInventoryRepository warehouseInventoryRepository;
     private final StockReservationRepository stockReservationRepository;
     private final InventoryUnitRepository inventoryUnitRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     @Override
     @Transactional
@@ -185,6 +190,29 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
 
         shipmentRepository.save(shipment);
+
+        // Keep the customer order lifecycle in sync with its shipment.
+        Order order = orderRepository.findById(shipment.getOrder().getId()).orElse(null);
+        OrderStatus target = switch (request.getStatus()) {
+            case DELIVERED -> OrderStatus.COMPLETED;
+            case SHIPPED, IN_TRANSIT -> OrderStatus.SHIPPING;
+            case PACKING -> OrderStatus.PROCESSING;
+            default -> null;
+        };
+        if (order != null && target != null && order.getStatus() != target
+                && order.getStatus() != OrderStatus.CANCELLED
+                && order.getStatus() != OrderStatus.COMPLETED) {
+            OrderStatus previous = order.getStatus();
+            order.setStatus(target);
+            if (target == OrderStatus.COMPLETED) order.setCompletedAt(LocalDateTime.now());
+            orderRepository.saveAndFlush(order);
+            orderStatusHistoryRepository.save(OrderStatusHistory.builder()
+                    .order(order).oldStatus(previous).newStatus(target)
+                    .actorType(OrderStatusActor.SYSTEM)
+                    .note("Đồng bộ từ trạng thái vận đơn " + request.getStatus().name())
+                    .build());
+            log.info("Synced order {} status {} -> {} from shipment {}", order.getId(), previous, target, shipment.getId());
+        }
     }
     @Override
     @Transactional(readOnly = true)

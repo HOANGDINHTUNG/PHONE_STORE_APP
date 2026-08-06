@@ -102,6 +102,7 @@ export const adminCatalogService = {
   getVariants: (productId: string) => apiClient.get<AdminVariant[]>(`/admin/products/${productId}/variants`).then((r) => r.data),
   createVariant: (productId: string, data: Omit<AdminVariant, "id" | "productId" | "status" | "version" | "images">) => apiClient.post<AdminVariant>(`/admin/products/${productId}/variants`, data).then((r) => r.data),
   updateVariant: (id: string, version: number, data: Partial<Pick<AdminVariant, "name" | "color" | "ramGb" | "storageGb" | "warrantyMonths">>) => apiClient.patch<AdminVariant>(`/admin/variants/${id}`, data, { headers: { "If-Match": version } }).then((r) => r.data),
+  changeVariantPrice: (id: string, newListPrice: number, newSalePrice?: number) => apiClient.post<AdminVariant>(`/admin/variants/${id}/price-changes`, { newListPrice, newSalePrice, reason: "Cập nhật từ quản trị biến thể" }).then((r) => r.data),
   setVariantStatus: (id: string, status: CatalogStatus) => apiClient.patch<AdminVariant>(`/admin/variants/${id}/status`, undefined, { params: { status } }).then((r) => r.data),
   addVariantImage: (id: string, imageUrl: string) => apiClient.post(`/admin/variants/${id}/images`, { imageUrl, altText: "", isPrimary: true, sortOrder: 0 }).then((r) => r.data),
 

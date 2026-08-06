@@ -12,6 +12,7 @@ import {
   type AdminProduct,
   type AdminVariant,
   type CatalogStatus,
+  type PublicationStatus,
 } from "../../api/adminCatalogService";
 
 type PageKind = "products" | "variants" | "brands" | "categories" | "banners" | "news";
@@ -85,6 +86,7 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
   const [banners, setBanners] = useState<AdminBanner[]>([]);
   const [news, setNews] = useState<AdminNews[]>([]);
   const [selectedProductId, setSelectedProductId] = useState(() => new URLSearchParams(window.location.search).get("product") || "");
+  const [productQuery, setProductQuery] = useState("");
   const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,10 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
       if (kind === "variants") {
         const productData = await adminCatalogService.getProducts();
         setProducts(productData);
-        if (!selectedProductId && productData[0]) setSelectedProductId(productData[0].id);
+        if (!selectedProductId && productData[0]) {
+          setSelectedProductId(productData[0].id);
+          setProductQuery(productData[0].name);
+        }
       }
     } catch {
       message.error("Không tải được dữ liệu quản trị. Hãy kiểm tra kết nối backend và quyền admin.");
@@ -126,12 +131,25 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { if (kind === "products") void loadReferenceData().catch(() => undefined); }, [kind, loadReferenceData]);
   useEffect(() => {
-    if (kind !== "variants" || !selectedProductId) return;
+    if (kind !== "variants") return;
+    const selected = products.find((item) => item.id === selectedProductId);
+    if (selected) setProductQuery(selected.name);
+  }, [kind, products, selectedProductId]);
+  useEffect(() => {
+    if (kind !== "variants" || !selectedProductId) {
+      if (kind === "variants") setVariants([]);
+      return;
+    }
     setLoading(true);
     void adminCatalogService.getVariants(selectedProductId).then(setVariants).catch(() => message.error("Không tải được các biến thể của sản phẩm này.")).finally(() => setLoading(false));
   }, [kind, selectedProductId]);
 
   const records = useMemo(() => ({ products, variants, brands, categories, banners, news }[kind]), [kind, products, variants, brands, categories, banners, news]);
+  const filteredVariantProducts = useMemo(() => {
+    const query = productQuery.trim().toLowerCase();
+    if (!query) return products;
+    return products.filter((item) => `${item.name} ${item.slug}`.toLowerCase().includes(query));
+  }, [products, productQuery]);
   const createDefaults = () => {
     if (kind === "products") return { categoryId: categories[0]?.id || "", brandId: brands[0]?.id || "", name: "", description: "" };
     if (kind === "variants") return { sku: "", name: "", color: "", ramGb: "", storageGb: "", trackingType: "NONE", warrantyMonths: "12", listPrice: "", salePrice: "", imageUrl: "" };
@@ -166,6 +184,7 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
         const numeric = (key: string) => form[key] ? Number(form[key]) : undefined;
         if (editingId) {
           await adminCatalogService.updateVariant(editingId, Number((variants.find((v) => v.id === editingId)?.version || 0)), { name: form.name, color: form.color || undefined, ramGb: numeric("ramGb"), storageGb: numeric("storageGb"), warrantyMonths: numeric("warrantyMonths") });
+          await adminCatalogService.changeVariantPrice(editingId, Number(form.listPrice), numeric("salePrice"));
           if (form.imageUrl) await adminCatalogService.addVariantImage(editingId, form.imageUrl);
         }
         else {
@@ -186,9 +205,12 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
     } finally { setSaving(false); }
   };
 
-  const changeStatus = async (id: string, current: string) => {
+  const changeStatus = async (id: string, current: string, nextStatus?: string) => {
     try {
-      if (kind === "products") await adminCatalogService.setProductStatus(id, current === "ACTIVE" ? "INACTIVE" : "ACTIVE");
+      if (kind === "products") {
+        const target = nextStatus || (current === "DRAFT" ? "ACTIVE" : current === "ACTIVE" ? "INACTIVE" : "DRAFT");
+        await adminCatalogService.setProductStatus(id, target as PublicationStatus);
+      }
       if (kind === "variants") await adminCatalogService.setVariantStatus(id, current === "ACTIVE" ? "INACTIVE" : "ACTIVE");
       if (kind === "brands") await adminCatalogService.setBrandStatus(id, current === "ACTIVE" ? "INACTIVE" : "ACTIVE");
       if (kind === "categories") await adminCatalogService.setCategoryStatus(id, current === "ACTIVE" ? "INACTIVE" : "ACTIVE");
@@ -211,7 +233,7 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
 
   const renderTable = () => {
     if (kind === "products") return <table className="min-w-full text-left text-sm"><thead><tr className="bg-[#fbe1e8] text-[11px] font-extrabold uppercase tracking-wide text-slate-600"><th className="px-5 py-4">Sản phẩm</th><th className="px-5 py-4">Danh mục</th><th className="px-5 py-4">Thương hiệu</th><th className="px-5 py-4 text-center">Biến thể</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{products.map((item) => <tr key={item.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4"><b className="block text-slate-900">{item.name}</b><span className="text-xs text-slate-500">/{item.slug}</span></td><td className="px-5 py-4">{item.categoryName}</td><td className="px-5 py-4">{item.brandName}</td><td className="px-5 py-4 text-center font-bold">{item.variantCount}</td><td className="px-5 py-4"><StatusPill status={item.publicationStatus} /></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => navigate(`/admin/variants?product=${item.id}`)} className="rounded-lg border border-[#ebc9d5] px-2.5 py-1.5 text-xs font-bold text-[#c2185b]" title="Quản lý biến thể">Biến thể</button><button onClick={() => openEdit(item)} className="rounded-lg border border-[#ebc9d5] p-1.5 text-[#c2185b]"><Pencil size={15} /></button><button onClick={() => void changeStatus(item.id, item.publicationStatus)} className="rounded-lg bg-[#fff0f5] px-2.5 py-1.5 text-xs font-bold text-[#b20f50]">{item.publicationStatus === "ACTIVE" ? "Ẩn" : "Bật"}</button></div></td></tr>)}</tbody></table>;
-    if (kind === "variants") return <table className="min-w-full text-left text-sm"><thead><tr className="bg-[#fbe1e8] text-[11px] font-extrabold uppercase tracking-wide text-slate-600"><th className="px-5 py-4">SKU / biến thể</th><th className="px-5 py-4">Cấu hình</th><th className="px-5 py-4">Giá bán</th><th className="px-5 py-4">Ảnh</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{variants.map((item) => <tr key={item.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4"><b className="block text-slate-900">{item.name}</b><span className="text-xs text-slate-500">{item.sku}</span></td><td className="px-5 py-4">{[item.color, item.ramGb && `${item.ramGb}GB RAM`, item.storageGb && `${item.storageGb}GB`].filter(Boolean).join(" · ") || "—"}</td><td className="px-5 py-4 font-bold">{new Intl.NumberFormat("vi-VN").format(item.salePrice || item.listPrice)} đ</td><td className="px-5 py-4"><span className="inline-flex items-center gap-1 text-xs font-bold text-slate-600"><ImageIcon size={15} /> {item.images.length}</span></td><td className="px-5 py-4"><StatusPill status={item.status} /></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => openEdit(item)} className="rounded-lg border border-[#ebc9d5] p-1.5 text-[#c2185b]"><Pencil size={15} /></button><button onClick={() => void changeStatus(item.id, item.status)} className="rounded-lg bg-[#fff0f5] px-2.5 py-1.5 text-xs font-bold text-[#b20f50]">{item.status === "ACTIVE" ? "Ẩn" : "Bật"}</button></div></td></tr>)}</tbody></table>;
+    if (kind === "variants") return <table className="min-w-full text-left text-sm"><thead><tr className="bg-[#fbe1e8] text-[11px] font-extrabold uppercase tracking-wide text-slate-600"><th className="px-5 py-4">SKU / biến thể</th><th className="px-5 py-4">Cấu hình</th><th className="min-w-[160px] whitespace-nowrap px-5 py-4">Giá bán (VNĐ)</th><th className="px-5 py-4">Ảnh</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{variants.map((item) => { const image = item.images.find((entry) => entry.isPrimary)?.imageUrl || item.images[0]?.imageUrl; const price = Number(item.salePrice ?? item.listPrice ?? 0); return <tr key={item.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4"><b className="block text-slate-900">{item.name}</b><span className="text-xs text-slate-500">{item.sku}</span></td><td className="px-5 py-4">{[item.color, item.ramGb && `${item.ramGb}GB RAM`, item.storageGb && `${item.storageGb}GB`].filter(Boolean).join(" · ") || "—"}</td><td className="min-w-[160px] whitespace-nowrap px-5 py-4 font-bold text-[#c2185b]">{Number.isFinite(price) ? new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(price) : "—"} ₫</td><td className="px-5 py-4">{image ? <img src={image} alt={item.name} className="h-12 w-16 rounded-lg border border-[#f1dce4] bg-white object-contain p-1" /> : <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500"><ImageIcon size={15} /> Chưa có ảnh</span>}</td><td className="px-5 py-4"><StatusPill status={item.status} /></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => openEdit(item)} className="rounded-lg border border-[#ebc9d5] p-1.5 text-[#c2185b]"><Pencil size={15} /></button><button onClick={() => void changeStatus(item.id, item.status)} className="rounded-lg bg-[#fff0f5] px-2.5 py-1.5 text-xs font-bold text-[#b20f50]">{item.status === "ACTIVE" ? "Ẩn" : "Bật"}</button></div></td></tr>; })}</tbody></table>;
     if (kind === "brands") return <table className="min-w-full text-left text-sm"><thead><tr className="bg-[#fbe1e8] text-[11px] font-extrabold uppercase tracking-wide text-slate-600"><th className="px-5 py-4">Thương hiệu</th><th className="px-5 py-4">Mô tả</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{brands.map((item) => <tr key={item.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4"><div className="flex items-center gap-3"><img className="h-9 w-12 rounded border border-[#f1dce4] object-contain p-1" src={getLocalBrandLogo(item.slug, item.name, item.logoUrl)} alt={`Logo ${item.name}`} /><div><b className="block text-slate-900">{item.name}</b><span className="text-xs text-slate-500">/{item.slug}</span></div></div></td><td className="max-w-xs px-5 py-4 text-slate-600">{item.description || "—"}</td><td className="px-5 py-4"><StatusPill status={item.status} /></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => openEdit(item)} className="rounded-lg border border-[#ebc9d5] p-1.5 text-[#c2185b]"><Pencil size={15} /></button><button onClick={() => void changeStatus(item.id, item.status)} className="rounded-lg bg-[#fff0f5] px-2.5 py-1.5 text-xs font-bold text-[#b20f50]">{item.status === "ACTIVE" ? "Ẩn" : "Bật"}</button></div></td></tr>)}</tbody></table>;
     if (kind === "categories") return <table className="min-w-full text-left text-sm"><thead><tr className="bg-[#fbe1e8] text-[11px] font-extrabold uppercase tracking-wide text-slate-600"><th className="px-5 py-4">Tên danh mục</th><th className="px-5 py-4">Slug</th><th className="px-5 py-4">Thứ tự</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{categories.map((item) => <tr key={item.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4"><b className="text-slate-900">{item.parentId ? "↳ " : ""}{item.name}</b><span className="ml-2 text-xs text-slate-500">{item.description || ""}</span></td><td className="px-5 py-4 text-slate-600">{item.slug}</td><td className="px-5 py-4">{item.sortOrder}</td><td className="px-5 py-4"><StatusPill status={item.status} /></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => openEdit(item)} className="rounded-lg border border-[#ebc9d5] p-1.5 text-[#c2185b]"><Pencil size={15} /></button><button onClick={() => void changeStatus(item.id, item.status)} className="rounded-lg bg-[#fff0f5] px-2.5 py-1.5 text-xs font-bold text-[#b20f50]">{item.status === "ACTIVE" ? "Ẩn" : "Bật"}</button></div></td></tr>)}</tbody></table>;
     if (kind === "banners") return <table className="min-w-full text-left text-sm"><thead><tr className="bg-[#fbe1e8] text-[11px] font-extrabold uppercase tracking-wide text-slate-600"><th className="px-5 py-4">Preview & tiêu đề</th><th className="px-5 py-4">Vị trí</th><th className="px-5 py-4">Thứ tự</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{banners.map((item) => <tr key={item.id} className="border-t border-[#f6e4ea]"><td className="px-5 py-4"><div className="flex items-center gap-3"><img src={item.image} alt="" className="h-11 w-20 rounded border border-[#f1dce4] object-cover" /><div><b className="block text-slate-900">{item.title}</b><span className="text-xs text-slate-500">{item.linkUrl || "Không có liên kết"}</span></div></div></td><td className="px-5 py-4">{item.position || "HERO"}</td><td className="px-5 py-4">{item.sortOrder}</td><td className="px-5 py-4"><StatusPill status={item.status} /></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => openEdit(item)} className="rounded-lg border border-[#ebc9d5] p-1.5 text-[#c2185b]"><Pencil size={15} /></button><button onClick={() => void changeStatus(item.id, item.status)} className="rounded-lg bg-[#fff0f5] px-2.5 py-1.5 text-xs font-bold text-[#b20f50]">{item.status === "ACTIVE" ? "Ẩn" : "Bật"}</button></div></td></tr>)}</tbody></table>;
@@ -220,7 +242,7 @@ export function AdminCatalogPage({ kind }: { kind: PageKind }) {
 
   return <div className="mx-auto max-w-[1400px] space-y-6">
     <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start"><div><h1 className="text-2xl font-black tracking-tight text-slate-950">{copy.title}</h1><p className="mt-1 text-sm text-slate-500">{copy.description}</p></div><button onClick={openCreate} disabled={kind === "variants" && !selectedProductId} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#c2185b] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#a70f4b] disabled:cursor-not-allowed disabled:opacity-60"><Plus size={18} /> {copy.create}</button></section>
-    {kind === "variants" && <section className="rounded-xl border border-[#efd3dc] bg-[#fce4eb] p-4"><Select label="Sản phẩm cần quản lý biến thể" value={selectedProductId} onChange={setSelectedProductId}>{products.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.variantCount} biến thể)</option>)}</Select></section>}
+    {kind === "variants" && <section className="rounded-xl border border-[#efd3dc] bg-[#fce4eb] p-4"><div className="grid gap-3 md:grid-cols-2"><label className="block text-sm font-semibold text-slate-700">Tìm sản phẩm<span className="relative mt-1.5 flex items-center"><Search className="absolute left-3 text-slate-500" size={17}/><input list="variant-products" value={productQuery} onChange={(event) => { const value = event.target.value; setProductQuery(value); const exact = products.find((item) => item.name === value || item.slug === value); if (exact) setSelectedProductId(exact.id); }} placeholder="Nhập tên sản phẩm hoặc slug..." className="w-full rounded-lg border border-[#edd4de] bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-[#d92e70]" /></span></label><Select label="Hoặc chọn sản phẩm" value={selectedProductId} onChange={setSelectedProductId}><option value="">Chọn sản phẩm</option>{products.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.variantCount} biến thể)</option>)}</Select></div><datalist id="variant-products">{filteredVariantProducts.map((item) => <option key={item.id} value={item.name}>{item.variantCount} biến thể · /{item.slug}</option>)}</datalist><p className="mt-2 text-xs text-slate-500">Đang chọn: {selectedProductId ? products.find((item) => item.id === selectedProductId)?.name || "Sản phẩm đã chọn" : "Chưa chọn sản phẩm"}</p></section>}
     {kind !== "variants" && <section className="flex flex-col gap-3 rounded-xl border border-[#efd3dc] bg-[#fce4eb] p-4 md:flex-row md:items-end"><label className="block flex-1 text-sm font-semibold text-slate-700">Tìm kiếm<span className="relative mt-1.5 flex items-center"><Search className="absolute left-3 text-slate-500" size={17} /><input value={keyword} onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void load(); }} placeholder="Nhập tên, slug hoặc từ khóa..." className="w-full rounded-lg border border-[#edd4de] bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-[#d92e70]" /></span></label><div className="w-full md:w-48"><Select label="Trạng thái" value={status} onChange={setStatus}><option value="">Tất cả trạng thái</option>{kind === "products" && <><option value="ACTIVE">Đang hoạt động</option><option value="DRAFT">Bản nháp</option><option value="INACTIVE">Đã ẩn</option></>}{["brands", "categories"].includes(kind) && <><option value="ACTIVE">Đang hoạt động</option><option value="INACTIVE">Đã ẩn</option></>}{kind === "banners" && <><option value="ACTIVE">Đang chạy</option><option value="INACTIVE">Đã ẩn</option><option value="SCHEDULED">Đã lên lịch</option></>}{kind === "news" && <><option value="DRAFT">Bản nháp</option><option value="PUBLISHED">Đã xuất bản</option><option value="ARCHIVED">Lưu trữ</option></>}</Select></div><button onClick={() => void load()} className="inline-flex h-[42px] items-center justify-center gap-2 rounded-lg border border-[#e8c4d1] bg-white px-4 text-sm font-bold text-[#9f1c4e]"><SlidersHorizontal size={17} /> Lọc</button></section>}
     <TableShell loading={loading} empty={records.length === 0}>{renderTable()}</TableShell>
     {dialogOpen && <EditorDialog title={`${editingId ? "Chỉnh sửa" : "Tạo mới"} · ${copy.title}`} onClose={() => setDialogOpen(false)} onSubmit={handleSave} busy={saving}>{renderForm()}</EditorDialog>}
