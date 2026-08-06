@@ -8,6 +8,8 @@ import com.re.ecommerce.modules.orderreturn.enumeration.ReturnRequestStatus;
 import com.re.ecommerce.modules.orderreturn.repository.ReturnRequestRepository;
 import com.re.ecommerce.modules.orderreturn.service.ReturnRequestService;
 import com.re.ecommerce.modules.auth.repository.UserRepository;
+import com.re.ecommerce.modules.system.entity.Notification;
+import com.re.ecommerce.modules.system.repository.NotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,8 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     private final ReturnRequestRepository returnRequestRepository;
 
     private final UserRepository userRepository;
+    
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional
@@ -41,6 +45,16 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         returnRequest.setStatus(ReturnRequestStatus.APPROVED);
         returnRequest.setReviewer(userRepository.getReferenceById(staffId));
         returnRequestRepository.save(returnRequest);
+        
+        notificationRepository.save(new Notification(
+                returnRequest.getCustomer(),
+                "Yêu cầu đổi trả được duyệt",
+                "Yêu cầu đổi trả mã #" + returnRequest.getId() + " của bạn đã được phê duyệt.",
+                "RETURN",
+                "ReturnRequest",
+                returnRequest.getId().toString(),
+                "/account/returns/" + returnRequest.getId()
+        ));
     }
 
     @Override
@@ -52,6 +66,16 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         returnRequest.setStatus(ReturnRequestStatus.REJECTED);
         returnRequest.setReviewer(userRepository.getReferenceById(staffId));
         returnRequestRepository.save(returnRequest);
+        
+        notificationRepository.save(new Notification(
+                returnRequest.getCustomer(),
+                "Yêu cầu đổi trả bị từ chối",
+                "Yêu cầu đổi trả mã #" + returnRequest.getId() + " đã bị từ chối: " + reason,
+                "RETURN",
+                "ReturnRequest",
+                returnRequest.getId().toString(),
+                "/account/returns/" + returnRequest.getId()
+        ));
     }
 
     @Override
@@ -62,6 +86,16 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 
         returnRequest.setStatus(ReturnRequestStatus.RECEIVED);
         returnRequestRepository.save(returnRequest);
+        
+        notificationRepository.save(new Notification(
+                returnRequest.getCustomer(),
+                "Đã nhận hàng hoàn trả",
+                "Cửa hàng đã nhận được sản phẩm từ yêu cầu đổi trả mã #" + returnRequest.getId() + ".",
+                "RETURN",
+                "ReturnRequest",
+                returnRequest.getId().toString(),
+                "/account/returns/" + returnRequest.getId()
+        ));
     }
 
     @Override
@@ -73,6 +107,16 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         returnRequest.setStatus(ReturnRequestStatus.INSPECTING);
         // Set item outcomes...
         returnRequestRepository.save(returnRequest);
+        
+        notificationRepository.save(new Notification(
+                returnRequest.getCustomer(),
+                "Đang xử lý đổi trả",
+                "Yêu cầu đổi trả mã #" + returnRequest.getId() + " đang được kiểm tra kỹ thuật.",
+                "RETURN",
+                "ReturnRequest",
+                returnRequest.getId().toString(),
+                "/account/returns/" + returnRequest.getId()
+        ));
     }
 
     @Override
@@ -83,5 +127,15 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 
         returnRequest.setStatus(ReturnRequestStatus.COMPLETED);
         returnRequestRepository.save(returnRequest);
+        
+        notificationRepository.save(new Notification(
+                returnRequest.getCustomer(),
+                "Yêu cầu đổi trả hoàn tất",
+                "Yêu cầu đổi trả mã #" + returnRequest.getId() + " đã được xử lý xong.",
+                "RETURN",
+                "ReturnRequest",
+                returnRequest.getId().toString(),
+                "/account/returns/" + returnRequest.getId()
+        ));
     }
 }

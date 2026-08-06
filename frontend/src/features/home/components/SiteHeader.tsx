@@ -21,14 +21,42 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../../../context/StoreContext";
+import {
+  getNotificationsApi,
+  markAllNotificationsReadApi,
+  markNotificationReadApi,
+  NotificationResponse,
+} from "../../../api/notificationService";
 
 type SiteHeaderProps = {
   search: string;
   onSearch: (value: string) => void;
 };
 
-// Đã xoá tạm dữ liệu tĩnh để sếp test màn "Không thể tải"
-const HEADER_NOTIFICATIONS: any[] = [];
+const getNotifIcon = (type: string) => {
+  switch (type) {
+    case "ORDER":
+      return ShoppingCart;
+    case "PAYMENT":
+      return CreditCard;
+    case "RETURN":
+      return RefreshCw;
+    default:
+      return Bell;
+  }
+};
+const getNotifColor = (type: string) => {
+  switch (type) {
+    case "ORDER":
+      return "bg-primary/20 text-primary";
+    case "PAYMENT":
+      return "bg-green-500/20 text-green-600";
+    case "RETURN":
+      return "bg-orange-500/20 text-orange-600";
+    default:
+      return "bg-surface-variant text-on-surface-variant";
+  }
+};
 
 export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
   const navigate = useNavigate();
@@ -41,11 +69,27 @@ export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    [],
+  );
+  const [isNotifLoading, setIsNotifLoading] = useState(false);
 
   const accountRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = HEADER_NOTIFICATIONS.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.readAt).length;
+
+  // Poll notifications every 30s instead of websockets
+  useEffect(() => {
+    let interval: any;
+    if (user) {
+      getNotificationsApi().then(setNotifications).catch(console.error);
+      interval = setInterval(() => {
+        getNotificationsApi().then(setNotifications).catch(console.error);
+      }, 30000);
+    }
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -79,6 +123,15 @@ export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
   const handleNotificationClick = () => {
     if (user) {
       setIsNotificationOpen(!isNotificationOpen);
+      if (!isNotificationOpen) {
+        setIsNotifLoading(true);
+        getNotificationsApi()
+          .then((data) => {
+            setNotifications(data);
+            setIsNotifLoading(false);
+          })
+          .catch(() => setIsNotifLoading(false));
+      }
       if (isAccountOpen) setIsAccountOpen(false);
     } else {
       navigate("/login?redirect=/account/notifications");
@@ -228,46 +281,72 @@ export function SiteHeader({ search, onSearch }: SiteHeaderProps) {
                       <h3 className="font-bold text-[18px] text-on-surface m-0 leading-tight">
                         Thông báo mới
                       </h3>
-                      <button className="text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
-                        Đánh dấu đã đọc
-                      </button>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={async () => {
+                            await markAllNotificationsReadApi();
+                            const data = await getNotificationsApi();
+                            setNotifications(data);
+                          }}
+                          className="text-on-surface-variant hover:text-primary transition-colors text-xs font-bold"
+                        >
+                          Đánh dấu đã đọc
+                        </button>
+                      )}
                     </div>
 
                     {/* List / Error State */}
-                    {HEADER_NOTIFICATIONS.length > 0 ? (
+                    {isNotifLoading && notifications.length === 0 ? (
+                      <div className="flex justify-center py-10">
+                        <RefreshCw className="animate-spin text-primary" />
+                      </div>
+                    ) : notifications.length > 0 ? (
                       <ul className="flex flex-col max-h-[400px] overflow-y-auto bg-white">
-                        {HEADER_NOTIFICATIONS.map((notif) => (
-                          <li
-                            key={notif.id}
-                            className={`relative border-b border-outline-variant/30 hover:bg-surface-container transition-colors cursor-pointer group ${!notif.isRead ? "bg-primary-fixed-dim/5" : "bg-white"}`}
-                          >
-                            <Link
-                              to="/account/notifications"
-                              className="flex items-start gap-4 p-4 w-full"
-                              onClick={() => setIsNotificationOpen(false)}
+                        {notifications.map((notif) => {
+                          const IconComp = getNotifIcon(notif.notificationType);
+                          return (
+                            <li
+                              key={notif.id}
+                              className={`relative border-b border-outline-variant/30 hover:bg-surface-container transition-colors cursor-pointer group ${!notif.readAt ? "bg-primary-fixed-dim/5" : "bg-white"}`}
                             >
-                              <div
-                                className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notif.colorClass}`}
+                              <Link
+                                to={notif.actionUrl}
+                                className="flex items-start gap-4 p-4 w-full"
+                                onClick={async () => {
+                                  setIsNotificationOpen(false);
+                                  if (!notif.readAt) {
+                                    await markNotificationReadApi(notif.id);
+                                    getNotificationsApi().then(
+                                      setNotifications,
+                                    );
+                                  }
+                                }}
                               >
-                                <notif.Icon size={20} />
-                              </div>
-                              <div className="flex-grow">
-                                <h4 className="font-bold text-sm text-on-surface mb-1 group-hover:text-primary transition-colors leading-tight pr-2">
-                                  {notif.title}
-                                </h4>
-                                <p className="text-[13px] text-on-surface-variant line-clamp-2 leading-tight mb-2 font-medium">
-                                  {notif.text}
-                                </p>
-                                <span className="text-[11px] font-bold text-outline">
-                                  {notif.time}
-                                </span>
-                              </div>
-                              {!notif.isRead && (
-                                <div className="w-2 h-2 rounded-full bg-primary mt-2 absolute right-4 top-4"></div>
-                              )}
-                            </Link>
-                          </li>
-                        ))}
+                                <div
+                                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${getNotifColor(notif.notificationType)}`}
+                                >
+                                  <IconComp size={20} />
+                                </div>
+                                <div className="flex-grow">
+                                  <h4 className="font-bold text-sm text-on-surface mb-1 group-hover:text-primary transition-colors leading-tight pr-2">
+                                    {notif.title}
+                                  </h4>
+                                  <p className="text-[13px] text-on-surface-variant line-clamp-2 leading-tight mb-2 font-medium">
+                                    {notif.content}
+                                  </p>
+                                  <span className="text-[11px] font-bold text-outline">
+                                    {new Date(notif.createdAt).toLocaleString(
+                                      "vi-VN",
+                                    )}
+                                  </span>
+                                </div>
+                                {!notif.readAt && (
+                                  <div className="w-2 h-2 rounded-full bg-primary mt-2 absolute right-4 top-4"></div>
+                                )}
+                              </Link>
+                            </li>
+                          );
+                        })}
                       </ul>
                     ) : (
                       <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-4 bg-white">

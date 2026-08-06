@@ -46,6 +46,8 @@ import com.re.ecommerce.modules.inventory.service.StockReservationService;
 import com.re.ecommerce.modules.shipment.entity.Shipment;
 import com.re.ecommerce.modules.shipment.entity.ShipmentStatus;
 import com.re.ecommerce.modules.shipment.repository.ShipmentRepository;
+import com.re.ecommerce.modules.system.entity.Notification;
+import com.re.ecommerce.modules.system.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,6 +86,7 @@ public class OrderServiceImpl implements OrderService {
     private final StockReservationService stockReservationService;
     private final com.re.ecommerce.modules.cart.repository.UserVoucherRepository userVoucherRepository;
     private final ShipmentRepository shipmentRepository;
+    private final NotificationRepository notificationRepository;
     
 
     @Override
@@ -259,6 +262,19 @@ public class OrderServiceImpl implements OrderService {
         if (!hasDirectItems && cart != null) {
             cart.getItems().clear();
             cartRepository.save(cart);
+        }
+        
+        if (currentUser != null) {
+            Notification notification = new Notification(
+                    currentUser,
+                    "Đặt hàng thành công",
+                    "Đơn hàng " + order.getOrderCode() + " của bạn đã được đặt thành công.",
+                    "ORDER",
+                    "Order",
+                    order.getId().toString(),
+                    "/account/orders/" + order.getOrderCode()
+            );
+            notificationRepository.save(notification);
         }
         
         log.info("Checkout successful. Order ID: {}", order.getId());

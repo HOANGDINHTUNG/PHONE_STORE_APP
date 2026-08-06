@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   Check,
@@ -24,6 +24,12 @@ import {
   getMyReviewsApi,
   createReviewApi,
 } from "../../../api/reviewService";
+import {
+  getNotificationsApi,
+  markAllNotificationsReadApi,
+  markNotificationReadApi,
+  NotificationResponse,
+} from "../../../api/notificationService";
 
 export function MyReviewsPage() {
   const [activeTab, setActiveTab] = useState<"ELIGIBLE" | "REVIEWED">(
@@ -522,71 +528,81 @@ export function ReturnsPage() {
   );
 }
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: "1",
-    Icon: ShoppingBag,
-    title: "Xác nhận đơn hàng #PP-123456",
-    time: "Vừa xong",
-    text: "Đơn hàng của bạn đã được xác nhận và đang trong quá trình chuẩn bị. Chúng tôi sẽ thông báo khi đơn hàng được giao cho đơn vị vận chuyển.",
-    isRead: false,
-    category: "Đơn hàng",
-  },
-  {
-    id: "2",
-    Icon: CreditCard,
-    title: "Thanh toán thành công #PP-123412",
-    time: "2 giờ trước",
-    text: "Bạn đã thanh toán thành công số tiền 24,990,000đ cho đơn hàng #PP-123412 qua thẻ tín dụng.",
-    isRead: true,
-    category: "Đơn hàng",
-  },
-  {
-    id: "3",
-    Icon: Truck,
-    title: "Đơn hàng #PP-123390 đang được giao",
-    time: "Hôm qua",
-    text: "Đơn hàng của bạn đã được giao cho bưu tá. Vui lòng chú ý điện thoại để nhận hàng.",
-    isRead: true,
-    category: "Đơn hàng",
-  },
-];
-
 export function NotificationsPage() {
   const [activeTab, setActiveTab] = useState("Tất cả");
-  // [DEV-MODE]: Added state machine to handle the 4 lifecycle paths organically
   const [fetchStatus, setFetchStatus] = useState<
     "loading" | "error" | "empty" | "success"
-  >("success");
+  >("loading");
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    [],
+  );
 
-  const filteredNotifications = MOCK_NOTIFICATIONS.filter((n) => {
-    if (activeTab === "Chưa đọc") return !n.isRead;
+  useEffect(() => {
+    loadNotifs();
+  }, []);
+
+  const loadNotifs = async () => {
+    setFetchStatus("loading");
+    try {
+      const data = await getNotificationsApi();
+      setNotifications(data);
+      if (data.length === 0) setFetchStatus("empty");
+      else setFetchStatus("success");
+    } catch {
+      setFetchStatus("error");
+    }
+  };
+
+  const filteredNotifications = notifications.filter((n) => {
+    if (activeTab === "Chưa đọc") return !n.readAt;
     return true;
   });
+
+  const getNotifIcon = (type: string) => {
+    switch (type) {
+      case "ORDER":
+        return ShoppingBag;
+      case "PAYMENT":
+        return CreditCard;
+      case "RETURN":
+        return RefreshCcw;
+      default:
+        return Bell;
+    }
+  };
+
+  const getNotifColor = (type: string) => {
+    switch (type) {
+      case "ORDER":
+        return "bg-primary/20 text-primary";
+      case "PAYMENT":
+        return "bg-green-500/20 text-green-600";
+      case "RETURN":
+        return "bg-orange-500/20 text-orange-600";
+      default:
+        return "bg-surface-variant text-on-surface-variant";
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    await markAllNotificationsReadApi();
+    loadNotifs();
+  };
 
   return (
     <AccountShell
       title="Thông báo"
       actions={
         <div className="flex items-center gap-4">
-          {/* Debug Panel to toggle states easily during UI verification */}
-          <div className="hidden lg:flex bg-surface-container-high rounded-full p-1 gap-1 text-[10px] font-bold">
-            {["loading", "empty", "error", "success"].map((s) => (
-              <button
-                key={s}
-                onClick={() => setFetchStatus(s as any)}
-                className={`px-3 py-1 rounded-full uppercase ${fetchStatus === s ? "bg-primary text-white" : "text-on-surface-variant hover:bg-surface-container-highest"}`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="font-label-sm text-label-sm text-primary hover:text-secondary transition-colors underline decoration-primary decoration-2 underline-offset-4"
-          >
-            Đánh dấu tất cả là đã đọc
-          </button>
+          {notifications.length > 0 && notifications.some((n) => !n.readAt) && (
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              className="font-label-sm text-label-sm text-primary hover:text-secondary transition-colors underline decoration-primary decoration-2 underline-offset-4"
+            >
+              Đánh dấu tất cả là đã đọc
+            </button>
+          )}
         </div>
       }
     >
@@ -637,13 +653,16 @@ export function NotificationsPage() {
           <h3 className="font-headline-md text-headline-md text-on-surface mb-2">
             Không có thông báo nào
           </h3>
-          <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
+          <p className="font-body-md text-body-md text-on-surface-variant max-w-[448px]">
             Bạn hiện không có thông báo nào mới. Hãy tiếp tục mua sắm để trải
             nghiệm các dịch vụ từ PinkPhone.
           </p>
-          <button className="mt-6 font-label-sm text-label-sm bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-secondary transition-colors">
+          <Link
+            to="/"
+            className="mt-6 font-label-sm text-label-sm bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-secondary transition-colors inline-block"
+          >
             Tiếp tục mua sắm
-          </button>
+          </Link>
         </div>
       )}
 
@@ -659,10 +678,7 @@ export function NotificationsPage() {
             Vui lòng kiểm tra kết nối mạng và thử lại.
           </p>
           <button
-            onClick={() => {
-              setFetchStatus("loading");
-              setTimeout(() => setFetchStatus("success"), 1000);
-            }}
+            onClick={loadNotifs}
             className="font-label-sm text-label-sm border border-primary text-primary px-8 py-2 rounded-full hover:bg-primary hover:text-on-primary transition-colors"
           >
             Tải lại trang
@@ -680,62 +696,59 @@ export function NotificationsPage() {
               <h3 className="font-headline-md text-headline-md text-on-surface mb-2">
                 Không có thông báo nào
               </h3>
-              <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-                Bạn hiện không có thông báo nào mới. Hãy tiếp tục mua sắm để
-                trải nghiệm các dịch vụ từ PinkPhone.
+              <p className="font-body-md text-body-md text-on-surface-variant max-w-[448px]">
+                Bạn hiện không có thông báo nào mới ở danh mục này.
               </p>
-              <button className="mt-6 font-label-sm text-label-sm bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-secondary transition-colors">
-                Tiếp tục mua sắm
-              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {filteredNotifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  className={`rounded-xl p-4 flex gap-4 items-start shadow-[0_4px_12px_rgba(214,51,108,0.08)] hover:shadow-[0_8px_24px_rgba(214,51,108,0.12)] transition-shadow relative cursor-pointer ${
-                    !notif.isRead
-                      ? "bg-primary-fixed-dim/10"
-                      : "bg-surface-container-lowest"
-                  }`}
-                >
-                  {!notif.isRead && (
-                    <div className="absolute top-4 right-4 w-2.5 h-2.5 bg-primary rounded-full"></div>
-                  )}
-
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                      !notif.isRead
-                        ? "bg-primary-container text-on-primary-container shrink-0"
-                        : "bg-surface-variant text-on-surface-variant shrink-0"
+              {filteredNotifications.map((notif) => {
+                const IconComp = getNotifIcon(notif.notificationType);
+                return (
+                  <Link
+                    key={notif.id}
+                    to={notif.actionUrl}
+                    onClick={async () => {
+                      if (!notif.readAt) {
+                        await markNotificationReadApi(notif.id);
+                      }
+                    }}
+                    className={`rounded-xl p-4 flex gap-4 items-start shadow-[0_4px_12px_rgba(214,51,108,0.08)] hover:shadow-[0_8px_24px_rgba(214,51,108,0.12)] transition-shadow relative cursor-pointer ${
+                      !notif.readAt
+                        ? "bg-primary-fixed-dim/10"
+                        : "bg-surface-container-lowest"
                     }`}
                   >
-                    <notif.Icon size={20} />
-                  </div>
+                    {!notif.readAt && (
+                      <div className="absolute top-4 right-4 w-2.5 h-2.5 bg-primary rounded-full"></div>
+                    )}
 
-                  <div className="flex-grow pr-6">
-                    <div className="flex items-baseline justify-between mb-1">
-                      <h4 className="font-label-sm text-label-sm text-on-surface">
-                        {notif.title}
-                      </h4>
-                      <span className="font-body-md text-body-md text-on-surface-variant text-sm shrink-0 ml-2">
-                        {notif.time}
-                      </span>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                        !notif.readAt
+                          ? getNotifColor(notif.notificationType)
+                          : "bg-surface-variant text-on-surface-variant shrink-0"
+                      }`}
+                    >
+                      <IconComp size={20} />
                     </div>
-                    <p className="font-body-md text-body-md text-on-surface-variant">
-                      {notif.text}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
 
-          {filteredNotifications.length > 0 && (
-            <div className="flex justify-center mt-4">
-              <button className="font-label-sm text-label-sm text-primary border border-primary px-6 py-2 rounded-full hover:bg-primary hover:text-on-primary transition-colors">
-                Xem thêm
-              </button>
+                    <div className="flex-grow pr-6">
+                      <div className="flex items-baseline justify-between mb-1">
+                        <h4 className="font-label-sm text-label-sm text-on-surface">
+                          {notif.title}
+                        </h4>
+                        <span className="font-body-md text-body-md text-on-surface-variant text-sm shrink-0 ml-2">
+                          {new Date(notif.createdAt).toLocaleString("vi-VN")}
+                        </span>
+                      </div>
+                      <p className="font-body-md text-body-md text-on-surface-variant">
+                        {notif.content}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

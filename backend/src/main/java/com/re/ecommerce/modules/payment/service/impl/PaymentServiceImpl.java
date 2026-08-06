@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
+import com.re.ecommerce.modules.system.entity.Notification;
+import com.re.ecommerce.modules.system.repository.NotificationRepository;
 
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -43,6 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final StockReservationService stockReservationService;
+    private final NotificationRepository notificationRepository;
     
     private final VNPayConfig vnPayConfig;
 
@@ -274,6 +277,18 @@ public class PaymentServiceImpl implements PaymentService {
                                 BigDecimal amount = new BigDecimal(vnp_Amount).divide(new BigDecimal(100));
                                 updatePaymentAggregate(attempt.getPayment(), amount);
                                 stockReservationService.confirmForFulfillment(attempt.getPayment().getOrder().getId());
+                                
+                                if (attempt.getPayment().getOrder().getCustomer() != null) {
+                                    notificationRepository.save(new Notification(
+                                            attempt.getPayment().getOrder().getCustomer(),
+                                            "Thanh toán thành công",
+                                            "Thanh toán thành công qua VNPay cho đơn hàng " + attempt.getPayment().getOrder().getOrderCode(),
+                                            "PAYMENT",
+                                            "Order",
+                                            attempt.getPayment().getOrder().getId().toString(),
+                                            "/account/orders/" + attempt.getPayment().getOrder().getOrderCode()
+                                    ));
+                                }
                             } else {
                                 attempt.setStatus(PaymentAttemptStatus.FAILED);
                                 attempt.setProviderMessage("Response Code: " + vnp_ResponseCode);
@@ -284,6 +299,18 @@ public class PaymentServiceImpl implements PaymentService {
                                     failedOrder.setNote((failedOrder.getNote() == null ? "" : failedOrder.getNote() + " | ") + "Thanh toán thất bại");
                                     stockReservationService.releaseForOrder(failedOrder.getId(), "Thanh toán thất bại");
                                     orderRepository.save(failedOrder);
+                                }
+                                
+                                if (failedOrder.getCustomer() != null) {
+                                    notificationRepository.save(new Notification(
+                                            failedOrder.getCustomer(),
+                                            "Thanh toán thất bại",
+                                            "Giao dịch bị từ chối hoặc có lỗi cho đơn hàng " + failedOrder.getOrderCode(),
+                                            "PAYMENT",
+                                            "Order",
+                                            failedOrder.getId().toString(),
+                                            "/account/orders/" + failedOrder.getOrderCode()
+                                    ));
                                 }
                             }
                             paymentAttemptRepository.save(attempt);
